@@ -50,7 +50,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initWechat(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 L.d("Application onCreate");
@@ -62,7 +62,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initAlipay(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             private boolean mCalled = false;
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -78,7 +78,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initTaobao(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             //受Atlas影响Application onCreate入口只需执行一次即可
             private boolean mCalled = false;
             @TargetApi(21)
@@ -102,7 +102,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
             return;
         }
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
             private boolean mCalled = false;
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
