@@ -3,6 +3,7 @@ package com.yyxx.wechatfp.xposed;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
@@ -49,11 +50,11 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initWechat(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Application.class, "onCreate", new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 L.d("Application onCreate");
-                Context context = (Context) param.thisObject;
+                Context context = (Context) param.args[0];
                 XposedPluginLoader.load(XposedWeChatPlugin.class, context, lpparam);
             }
         });
@@ -61,7 +62,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initAlipay(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Application.class, "onCreate", new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
             private boolean mCalled = false;
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
@@ -77,7 +78,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
 
     private void initTaobao(final LoadPackageParam lpparam) {
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Application.class, "onCreate", new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
             //受Atlas影响Application onCreate入口只需执行一次即可
             private boolean mCalled = false;
             @TargetApi(21)
@@ -101,7 +102,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
             return;
         }
         L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
-        XposedHelpers.findAndHookMethod(Application.class, "onCreate", new XC_MethodHook() {
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate",Application.class, new XC_MethodHook() {
             private boolean mCalled = false;
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
