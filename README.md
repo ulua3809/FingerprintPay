@@ -54,7 +54,7 @@
 4. [QQ](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/QQ)
 
 百度云下载地址:
-链接: https://pan.baidu.com/s/1eSq0QNw 密码: fbrg
+链接: https://pan.baidu.com/s/1qZdJvHE 密码: wss3
 
 #### 常见问题:
 1. 部分三星设备(S8, S7e等) 在2.6版本以上 Xposed 需要安装88.2版本, 避免开机卡住
