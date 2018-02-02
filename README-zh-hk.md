@@ -51,8 +51,8 @@
 1. [淘寶](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/Taobao)
 1. [微信](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/WeChat)
 
-百度雲下載地址:
-鏈接: https://pan.baidu.com/s/1eSq0QNw 密碼: fbrg
+百度雲下載地址:\
+鏈接: https://pan.baidu.com/s/1qZdJvHE 密碼: wss3
 
 友情提示: 
 1. 以上提供的安裝包均為 支付寶/微信/淘寶官方提供的安裝包, 沒有任何添加修改, 提供安裝包只為方便找到指定適配過的安裝包.
