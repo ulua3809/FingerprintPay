@@ -7,7 +7,7 @@ android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
     defaultConfig {
-        applicationId "com.yyxx.wechatfp"
+        applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
         targetSdkVersion 26
         versionCode 17
@@ -48,7 +48,7 @@ android.applicationVariants.all { variant ->
                 println "Running app..."
                 exec {
                     executable = ADB_PATH
-                    args = ['shell', "am start -n ${variant.applicationId}/.activity.HomeActivity"]
+                    args = ['shell', "monkey -p ${variant.applicationId} -c android.intent.category.LAUNCHER 1"]
                 }
             }
         }
