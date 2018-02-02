@@ -55,6 +55,7 @@ public class XposedPluginLoader {
             ClassLoader xposedClassLoader = XposedPluginLoader.class.getClassLoader();
             ClassLoader apkClzLoader = new DexClassLoader(apkPath, odexPath, libPath, xposedClassLoader);
             forceClassLoaderReloadClasses(apkClzLoader, BuildConfig.APPLICATION_ID, apkPath);
+            forceClassLoaderReloadClasses(apkClzLoader, "com.yyxx.wechatfp", apkPath);
             Method findClzMethod = BaseDexClassLoader.class.getDeclaredMethod("findClass", String.class);
             findClzMethod.setAccessible(true);
             Class<?> clz = (Class<?>) findClzMethod.invoke(apkClzLoader, pluginClz.getName());
