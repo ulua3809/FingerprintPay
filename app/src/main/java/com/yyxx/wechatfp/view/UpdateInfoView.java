@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
@@ -55,7 +56,7 @@ public class UpdateInfoView extends DialogFrameLayout {
 
         int defHPadding = DpUtil.dip2px(context, 20);
         contentTextView.setPadding(defHPadding, 0, defHPadding, 0);
-
+        contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
         this.addView(contentTextView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         withNeutralButtonText(Lang.getString(R.id.skip_this_version));
