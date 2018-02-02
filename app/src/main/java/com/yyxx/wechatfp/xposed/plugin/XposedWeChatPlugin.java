@@ -65,6 +65,7 @@ public class XposedWeChatPlugin {
     private FingerprintIdentify mFingerprintIdentify;
     private Activity mCurrentActivity;
     private boolean mMockCurrentUser = false;
+    private int mWeChatVersionCode;
 
     @Keep
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
@@ -72,6 +73,8 @@ public class XposedWeChatPlugin {
         try {
             Umeng.init(context);
             XposedLogNPEBugFixer.fix();
+            mWeChatVersionCode = getWeChatVersionCode(context);
+            L.d("WeChat Version code:" + mWeChatVersionCode);
             //for multi user
             if (!Tools.isCurrentUserOwner(context)) {
                 XposedHelpers.findAndHookMethod(UserHandle.class, "myUserId", new XC_MethodHook() {
@@ -103,8 +106,14 @@ public class XposedWeChatPlugin {
             XposedHelpers.findAndHookMethod(Dialog.class, "show", new XC_MethodHook() {
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    if (!"com.tencent.mm.plugin.wallet_core.ui.l".equals(param.thisObject.getClass().getName())) {
-                        return;
+                    if (mWeChatVersionCode >= 1240) { // WECHAT 6.6.2
+                        if (!"com.tencent.mm.plugin.wallet_core.ui.m".equals(param.thisObject.getClass().getName())) {
+                            return;
+                        }
+                    } else {
+                        if (!"com.tencent.mm.plugin.wallet_core.ui.l".equals(param.thisObject.getClass().getName())) {
+                            return;
+                        }
                     }
                     L.d("PayDialog Constructor", param.thisObject);
                     if (Config.from(context).isOn()) {
@@ -492,5 +501,16 @@ public class XposedWeChatPlugin {
                 L.e(e);
             }
         });
+    }
+
+    private static int getWeChatVersionCode(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(Constant.PACKAGE_NAME_WECHAT, 0);
+            int versionCode = packageInfo.versionCode;
+            return versionCode;
+        } catch (Exception e) {
+            L.e(e);
+        }
+        return 0;
     }
 }
