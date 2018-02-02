@@ -221,6 +221,7 @@ public class XposedQQPlugin {
                 KeyboardUtils.switchIme(payDialog.inputEditText, true);
                 payDialog.inputEditText.requestFocus();
             } else {
+                payDialog.keyboardView.setAlpha(1);
                 if (payDialog.keyboardView.getVisibility() != View.VISIBLE) {
                     payDialog.keyboardView.setVisibility(View.VISIBLE);
                 }
@@ -261,8 +262,15 @@ public class XposedQQPlugin {
                 KeyboardUtils.switchIme(payDialog.inputEditText, false);
                 payDialog.inputEditText.clearFocus();
             } else {
+                payDialog.keyboardView.setAlpha(0);
                 if (payDialog.keyboardView.getVisibility() != View.INVISIBLE) {
                     payDialog.keyboardView.setVisibility(View.INVISIBLE);
+                    //fix切换支付方式后键盘会出现
+                    Task.onMain(1000, () -> {
+                        if (mFingerprintScanStateReady) {
+                            payDialog.keyboardView.setVisibility(View.INVISIBLE);
+                        }
+                    });
                 }
             }
             if (fingerprintImageView.getVisibility() != View.VISIBLE) {
