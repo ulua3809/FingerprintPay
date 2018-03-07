@@ -49,6 +49,7 @@ import com.yyxx.wechatfp.view.SettingsView;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
@@ -106,14 +107,8 @@ public class XposedWeChatPlugin {
             XposedHelpers.findAndHookMethod(Dialog.class, "show", new XC_MethodHook() {
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    if (mWeChatVersionCode >= 1240) { // WECHAT 6.6.2
-                        if (!"com.tencent.mm.plugin.wallet_core.ui.m".equals(param.thisObject.getClass().getName())) {
-                            return;
-                        }
-                    } else {
-                        if (!"com.tencent.mm.plugin.wallet_core.ui.l".equals(param.thisObject.getClass().getName())) {
-                            return;
-                        }
+                    if (!verifyPayDialog(param.thisObject.getClass())) {
+                        return;
                     }
                     L.d("PayDialog Constructor", param.thisObject);
                     if (Config.from(context).isOn()) {
@@ -512,5 +507,26 @@ public class XposedWeChatPlugin {
             L.e(e);
         }
         return 0;
+    }
+
+    private static boolean verifyPayDialog(Class targetClass) {
+        if (!targetClass.getName().startsWith("com.tencent.mm.plugin.wallet_core.ui.")) {
+            return false;
+        }
+        String method = Arrays.toString(targetClass.getDeclaredMethods());
+        if (!method.contains("Bankcard")) {
+            return false;
+        }
+        String field = Arrays.toString(targetClass.getDeclaredFields());
+        if (!field.contains("MyKeyboardWindow")) {
+            return false;
+        }
+        if (!field.contains("EditHintPasswdView")) {
+            return false;
+        }
+        if (!field.contains("Bankcard")) {
+            return false;
+        }
+        return true;
     }
 }
