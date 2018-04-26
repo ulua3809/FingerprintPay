@@ -29,6 +29,7 @@
 感谢原作者 dss16694/WechatFp , 这么给力的项目
 
 ## 注意: 这是Xposed插件
+无法安装 Xposed 可以下载分身大师X版([点击下载](http://msoftdl.360.cn/mobilesafe/shouji360/360safe/300030/Magic.apk)), 在里面使用Xposed插件
 
 最低配置要求:
 1. 有指纹硬件
