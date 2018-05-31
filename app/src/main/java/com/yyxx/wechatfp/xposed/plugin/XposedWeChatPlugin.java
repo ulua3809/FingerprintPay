@@ -78,7 +78,7 @@ public class XposedWeChatPlugin {
             L.d("WeChat Version code:" + mWeChatVersionCode);
             //for multi user
             if (!Tools.isCurrentUserOwner(context)) {
-                XposedHelpers.findAndHookMethod(UserHandle.class, "myUserId", new XC_MethodHook() {
+                XposedHelpers.findAndHookMethod(UserHandle.class, "getUserId", int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         if (mMockCurrentUser) {

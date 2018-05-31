@@ -1,5 +1,11 @@
 package com.yyxx.wechatfp.util;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,4 +57,30 @@ public class StringUtil {
         }
     }
 
+    public static String toString(@Nullable  Bundle bundle) {
+        if (bundle == null) {
+            return "Bundle: null";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("bundle:[");
+
+        Set<String> keys = bundle.keySet();
+        Iterator<String> it = keys.iterator();
+        while (it.hasNext()) {
+            String key = it.next();
+            Object value = bundle.get(key);
+
+            stringBuilder.append(key).append("=");
+            if (value instanceof String[]) {
+                stringBuilder.append(Arrays.toString((String[])value));
+            } else {
+                stringBuilder.append(value);
+                stringBuilder.append(" type:");
+                stringBuilder.append(value == null ? null : value.getClass());
+            }
+            stringBuilder.append("\n");
+        }
+        stringBuilder.append("]");
+        return stringBuilder.toString();
+    }
 }
