@@ -69,7 +69,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.thisObject;
+                    Context context = (Context) param.args[0];
                     XposedPluginLoader.load(XposedAlipayPlugin.class, context, lpparam);
                 }
             }
@@ -86,7 +86,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.thisObject;
+                    Context context = (Context) param.args[0];
                     if (context == null) {
                         L.d("context eq null what the hell.");
                         return;
@@ -109,7 +109,7 @@ public class WalletBaseUI implements IXposedHookZygoteInit, IXposedHookLoadPacka
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.thisObject;
+                    Context context = (Context) param.args[0];
                     XposedPluginLoader.load(XposedQQPlugin.class, context, lpparam);
                 }
             }
