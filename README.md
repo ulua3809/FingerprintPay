@@ -39,7 +39,7 @@
 
 
 #### 使用步骤:
-1. 下载并安装插件: [WeChatFp-3.7.0-release.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/3.7.0/WeChatFp-3.7.0-release.apk)
+1. 下载并安装插件: [WeChatFp-3.7.1-release.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/3.7.1/WeChatFp-3.7.1-release.apk)
 2. 下载并安装微信: [WeChat-6.5.16-1120.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.3.0/WeChat-6.5.16-1120.apk)
 3. 下载并安装支付宝: [Alipay-10.1.0.090418-114.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.0.0/Alipay-10.1.0.090418-114.apk)
 4. 下载并安装淘宝: [Taobao-6.11.0-161.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.1.0/Taobao-6.11.0-161.apk)
