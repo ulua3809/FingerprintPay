@@ -464,7 +464,7 @@ public class XposedAlipayPlugin {
     }
 
     private EditText findPasswordEditText(Activity activity) {
-        View pwdEditText = ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "input_et_password");;
+        View pwdEditText = ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "input_et_password");
         L.d("pwdEditText1", pwdEditText);
         if (pwdEditText instanceof EditText) {
             if (!pwdEditText.isShown()) {

@@ -9,6 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Keep;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
@@ -333,11 +335,32 @@ public class XposedTaobaoPlugin {
         }
     }
 
+    /**
+     * 感觉是淘宝出bug了, 控件的id 和Resources 获取到的id 不符
+     */
+    @Nullable
+    private View findTaobaoVSettingsPageItemView(@NonNull ViewGroup rootView) {
+        List<View> childViewList = new ArrayList<>();
+        ViewUtil.getChildViews(rootView, childViewList);
+        String packageName = rootView.getContext().getPackageName();
+        String identifier = packageName + ":id/v_setting_page_item} ";
+        ViewUtil.sortViewListByYPosition(childViewList);
+        for (View childView: childViewList) {
+            if (ViewUtil.getViewInfo(childView).contains(identifier)) {
+                if (childView.isShown()) {
+                    return childView;
+                }
+            }
+        }
+        return null;
+    }
+
     private void doSettingsMenuInject(final Activity activity) {
-        if (ViewUtil.findViewByText(activity.getWindow().getDecorView(), Lang.getString(R.id.app_settings_name)) != null) {
+        ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
+        if (ViewUtil.findViewByText(rootView, Lang.getString(R.id.app_settings_name)) != null) {
             return;
         }
-        View itemView = ViewUtil.findViewByName(activity, activity.getPackageName(), "v_setting_page_item");
+        View itemView = findTaobaoVSettingsPageItemView(rootView);
         LinearLayout linearLayout = (LinearLayout) itemView.getParent();
         linearLayout.setPadding(0, 0, 0, 0);
         List<ViewGroup.LayoutParams> childViewParamsList = new ArrayList<>();

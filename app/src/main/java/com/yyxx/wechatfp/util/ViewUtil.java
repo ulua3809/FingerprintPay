@@ -148,7 +148,7 @@ public class ViewUtil {
             View rootView = activity.getWindow().getDecorView();
             List<View> viewList = new ArrayList<>();
             getChildViews((ViewGroup) rootView, id, viewList);
-            Collections.sort(viewList, sYLocationLHCompator);
+            sortViewListByYPosition(viewList);
             int outViewListSize = viewList.size();
             if (outViewListSize == 1) {
                 return viewList.get(0);
@@ -375,6 +375,10 @@ public class ViewUtil {
             return Integer.compare(y1, y2);
         }
     };
+
+    public static void sortViewListByYPosition (List<View> viewList) {
+        Collections.sort(viewList, sYLocationLHCompator);
+    }
 
     public static int getViewYPosInScreen(View v) {
         int[] location = new int[]{0, 0};
