@@ -84,7 +84,8 @@ public class XposedAlipayPlugin {
                     }
                     if (activityClzName.contains(".UserSettingActivity")) {
                         Task.onMain(100, () -> doSettingsMenuInject(activity));
-                    } else if (activityClzName.contains(".FlyBirdWindowActivity")) {
+                    } else if (activityClzName.contains(".MspContainerActivity")
+                            || activityClzName.contains(".FlyBirdWindowActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
                         if (!config.isOn()) {
