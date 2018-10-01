@@ -360,7 +360,10 @@ public class XposedTaobaoPlugin {
         if (ViewUtil.findViewByText(rootView, Lang.getString(R.id.app_settings_name)) != null) {
             return;
         }
-        View itemView = findTaobaoVSettingsPageItemView(rootView);
+        View itemView = ViewUtil.findViewByName(activity, activity.getPackageName(), "v_setting_page_item");
+        if (itemView == null) {
+            itemView = findTaobaoVSettingsPageItemView(rootView);
+        }
         LinearLayout linearLayout = (LinearLayout) itemView.getParent();
         linearLayout.setPadding(0, 0, 0, 0);
         List<ViewGroup.LayoutParams> childViewParamsList = new ArrayList<>();
