@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -82,7 +83,9 @@ public class XposedAlipayPlugin {
                     if (BuildConfig.DEBUG) {
                         L.d("activity", activity, "clz", activityClzName);
                     }
-                    if (activityClzName.contains(".UserSettingActivity")) {
+                    if (activityClzName.contains(".MySettingActivity")) {
+                        Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
+                    } else if (activityClzName.contains(".UserSettingActivity")) {
                         Task.onMain(100, () -> doSettingsMenuInject(activity));
                     } else if (activityClzName.contains(".MspContainerActivity")
                             || activityClzName.contains(".FlyBirdWindowActivity")) {
@@ -314,6 +317,71 @@ public class XposedAlipayPlugin {
         } catch (OutOfMemoryError e) {
         }
     }
+
+    private void doSettingsMenuInject_10_1_38(final Activity activity) {
+        int listViewId = activity.getResources().getIdentifier("setting_list", "id", "com.alipay.android.phone.openplatform");
+
+        ListView listView = activity.findViewById(listViewId);
+
+        View lineTopView = new View(activity);
+        lineTopView.setBackgroundColor(0xFFEEEEEE);
+
+        LinearLayout itemHlinearLayout = new LinearLayout(activity);
+        itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        itemHlinearLayout.setWeightSum(1);
+        itemHlinearLayout.setBackground(ViewUtil.genBackgroundDefaultDrawable(Color.WHITE, 0xFFD9D9D9));
+        itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
+        itemHlinearLayout.setClickable(true);
+        itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
+
+        int defHPadding = DpUtil.dip2px(activity, 15);
+
+        TextView itemNameText = new TextView(activity);
+        StyleUtil.apply(itemNameText);
+        itemNameText.setText(Lang.getString(R.id.app_settings_name));
+        itemNameText.setGravity(Gravity.CENTER_VERTICAL);
+        itemNameText.setPadding(defHPadding, 0, 0, 0);
+        itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtil.TEXT_SIZE_BIG);
+
+        TextView itemSummerText = new TextView(activity);
+        StyleUtil.apply(itemSummerText);
+        itemSummerText.setText(BuildConfig.VERSION_NAME);
+        itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
+        itemSummerText.setPadding(0, 0, defHPadding, 0);
+        itemSummerText.setTextColor(0xFF999999);
+
+        //try use Alipay style
+        try {
+            View settingsView = ViewUtil.findViewByName(activity, "com.alipay.mobile.antui", "item_left_text");
+            L.d("settingsView", settingsView);
+            if (settingsView instanceof TextView) {
+                TextView settingsTextView = (TextView) settingsView;
+                float scale = itemNameText.getTextSize() / settingsTextView.getTextSize();
+                itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_PX, settingsTextView.getTextSize());
+                itemSummerText.setTextSize(TypedValue.COMPLEX_UNIT_PX, itemSummerText.getTextSize() / scale);
+                itemNameText.setTextColor(settingsTextView.getCurrentTextColor());
+            }
+        } catch (Exception e) {
+            L.e(e);
+        }
+
+        itemHlinearLayout.addView(itemNameText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        itemHlinearLayout.addView(itemSummerText, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        View lineBottomView = new View(activity);
+        lineBottomView.setBackgroundColor(0xFFEEEEEE);
+
+        LinearLayout rootLinearLayout = new LinearLayout(activity);
+        rootLinearLayout.setOrientation(LinearLayout.VERTICAL);
+        rootLinearLayout.addView(lineTopView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        rootLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(activity, 45)));
+        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        lineParams.bottomMargin = DpUtil.dip2px(activity, 20);
+        rootLinearLayout.addView(lineBottomView, lineParams);
+
+        listView.addHeaderView(rootLinearLayout);
+    }
+
     private void doSettingsMenuInject(final Activity activity) {
         int logout_id = activity.getResources().getIdentifier("logout", "id", "com.alipay.android.phone.openplatform");
 

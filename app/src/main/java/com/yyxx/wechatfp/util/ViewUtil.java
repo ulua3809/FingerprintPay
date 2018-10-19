@@ -137,6 +137,13 @@ public class ViewUtil {
         return statesDrawable;
     }
 
+    public static Drawable genBackgroundDefaultDrawable(int defaultColor, int pressedColor) {
+        StateListDrawable statesDrawable = new StateListDrawable();
+        statesDrawable.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(pressedColor));
+        statesDrawable.addState(new int[]{}, new ColorDrawable(defaultColor));
+        return statesDrawable;
+    }
+
     @Nullable
     public static View findViewByName(Activity activity, String packageName, String... names) {
         Resources resources = activity.getResources();
