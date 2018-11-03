@@ -39,17 +39,19 @@
  
 
 使用步骤:
-1. 下載並安裝: [WeChatFp-2.5.0-release.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.5.0/WeChatFp-2.5.0-release.apk)
-2. 下載並安裝微信: [WeChat-6.5.16-1120.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.3.0/WeChat-6.5.16-1120.apk)
-3. 下載並安裝支付寶: [Alipay-10.1.0.090418-114.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.0.0/Alipay-10.1.0.090418-114.apk)
-4. 下載並安裝淘寶: [Taobao-6.11.0-161.apk](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/download/2.1.0/Taobao-6.11.0-161.apk)
-5. 啟用插件, 輸入密碼
-6. 重啟手機,Enjoy.
+1. 下載並安裝插件: [點擊下載](https://github.com/eritpchy/Xposed-Fingerprint-pay/releases/latest)
+2. 下載並安裝微信: [點擊下載](https://www.coolapk.com/apk/com.tencent.mm)
+3. 下載並安裝支付寶: [點擊下載](https://www.coolapk.com/apk/com.eg.android.AlipayGphone)
+4. 下載並安裝淘寶: [點擊下載](https://www.coolapk.com/apk/com.taobao.taobao)
+5. 下載並安裝QQ: [點擊下載](https://www.coolapk.com/apk/com.tencent.mobileqq)
+6. 啟用插件, 輸入密碼
+7. 重啟手機,Enjoy.
 
 詳細教程:
 1. [支付寶](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/Alipay)
-1. [淘寶](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/Taobao)
-1. [微信](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/WeChat)
+2. [淘寶](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/Taobao)
+3. [微信](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/WeChat)
+4. [QQ](https://github.com/eritpchy/Xposed-Fingerprint-pay/tree/master/doc/QQ)
 
 百度雲下載地址:\
 鏈接: https://pan.baidu.com/s/1qZdJvHE 密碼: wss3
@@ -58,7 +60,6 @@
 1. 以上提供的安裝包均為 支付寶/微信/淘寶官方提供的安裝包, 沒有任何添加修改, 提供安裝包只為方便找到指定適配過的安裝包.
 2. 本軟件的網絡功能僅限檢查自己軟件更新功能, 如不放心, 歡迎REVIEW代碼.
 3. 支付寶、淘寶可沿用市場中的最新版.
-4. 不支持QQ, 别問我為什麼, 反正就是不支持!
 
 ![qq](https://github.com/eritpchy/Xposed-Fingerprint-pay/raw/master/doc/qqGroup.png)
 
