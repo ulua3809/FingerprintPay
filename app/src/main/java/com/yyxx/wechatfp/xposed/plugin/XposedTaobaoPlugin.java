@@ -108,7 +108,8 @@ public class XposedTaobaoPlugin {
                         L.d("activity", activity, "clz", activityClzName);
                     }
                     mCurrentActivity = activity;
-                   if (activityClzName.contains(".FlyBirdWindowActivity")) {
+                   if (activityClzName.contains(".MspContainerActivity")
+                           || activityClzName.contains(".FlyBirdWindowActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
                         if (!config.isOn()) {
