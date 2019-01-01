@@ -288,7 +288,12 @@ public class XposedWeChatPlugin {
                 itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_PX, generalTextView.getTextSize());
 
                 itemSummerText.setTextSize(TypedValue.COMPLEX_UNIT_PX, itemSummerText.getTextSize() / scale);
-                View generalItemView = (View) generalView.getParent().getParent().getParent().getParent().getParent().getParent();
+                View generalItemView;
+                if (mWeChatVersionCode >= 1380) { //7.0.0
+                    generalItemView = (View) generalView.getParent().getParent().getParent().getParent().getParent();
+                } else {
+                    generalItemView = (View) generalView.getParent().getParent().getParent().getParent().getParent().getParent();
+                }
                 if (generalItemView != null) {
                     Drawable background = generalItemView.getBackground();
                     if (background != null) {
@@ -307,7 +312,14 @@ public class XposedWeChatPlugin {
         itemHlinearLayout.addView(itemNameText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
         itemHlinearLayout.addView(itemSummerText, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        settingsItemLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(activity, 50)));
+        if (mWeChatVersionCode >= 1380) { //7.0.0
+            View lineView = new View(activity);
+            lineView.setBackgroundColor(0xFFD5D5D5);
+            settingsItemLinearLayout.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+            settingsItemLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(activity, 55)));
+        } else {
+            settingsItemLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(activity, 50)));
+        }
 
         settingsItemRootLLayout.addView(settingsItemLinearLayout);
         settingsItemRootLLayout.setTag(BuildConfig.APPLICATION_ID);
