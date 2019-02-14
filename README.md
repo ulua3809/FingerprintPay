@@ -28,6 +28,8 @@
 
 感谢原作者 dss16694/WechatFp , 这么给力的项目
 
+## 注意: 支付宝现在支持了刷脸支付, 体验感官跟苹果的Face ID差不多, 请优先使用支付宝自带的刷脸支付
+
 ## 注意: 这是Xposed插件
 无法安装 Xposed 可以下载分身大师X版([点击下载](http://msoftdl.360.cn/mobilesafe/shouji360/360safe/300030/Magic.apk)), 在里面使用Xposed插件(友情提示: 分身大师X版软件内部有引导)
 
