@@ -4,6 +4,9 @@
 # Xposed Fingerprint pay
 让微信、支付宝、淘宝和腾讯QQ在支持指纹识别的手机上使用指纹支付, 即使他们都不打算支持!
 
+## 相关软件
+[Magisk 微信指纹支付](https://github.com/eritpchy/Fingerprint-pay-magisk-wechat)
+
 已适配版本:
 
 | 微信                                       |                   支付宝                    |                                       淘宝 |                                     腾讯QQ |
