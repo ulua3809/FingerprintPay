@@ -5,6 +5,12 @@
 让微信、支付宝、淘宝和腾讯QQ在支持指纹识别的手机上使用指纹支付, 即使他们都不打算支持!
 
 ## 相关软件
+[Magisk QQ指纹支付](https://github.com/eritpchy/Fingerprint-pay-magisk-qq)
+
+[Magisk 淘宝指纹支付](https://github.com/eritpchy/Fingerprint-pay-magisk-taobao)
+
+[Magisk 支付宝指纹支付](https://github.com/eritpchy/Fingerprint-pay-magisk-alipay)
+
 [Magisk 微信指纹支付](https://github.com/eritpchy/Fingerprint-pay-magisk-wechat)
 
 已适配版本:
