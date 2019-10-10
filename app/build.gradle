@@ -10,8 +10,8 @@ android {
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
         targetSdkVersion 26
-        versionCode 19
-        versionName "3.9.2"
+        versionCode 20
+        versionName "3.9.3"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"WeChatFp\""
     }
 
