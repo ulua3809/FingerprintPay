@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -43,7 +44,9 @@ import android.widget.TextView;
 
 import com.yyxx.wechatfp.util.log.L;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -427,5 +430,88 @@ public class ViewUtil {
             }
         }
         return -1;
+    }
+
+    public static List<View> getWindowManagerViews() {
+        try {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
+
+                // get the list from WindowManagerImpl.mViews
+                Class wmiClass = Class.forName("android.view.WindowManagerImpl");
+                Object wmiInstance = wmiClass.getMethod("getDefault").invoke(null);
+
+                return viewsFromWM(wmiClass, wmiInstance);
+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+
+                // get the list from WindowManagerGlobal.mViews
+                Class wmgClass = Class.forName("android.view.WindowManagerGlobal");
+                Object wmgInstance = wmgClass.getMethod("getInstance").invoke(null);
+
+                return viewsFromWM(wmgClass, wmgInstance);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new ArrayList<View>();
+    }
+
+    private static List<View> viewsFromWM(Class wmClass, Object wmInstance) throws Exception {
+
+        Field viewsField = wmClass.getDeclaredField("mViews");
+        viewsField.setAccessible(true);
+        Object views = viewsField.get(wmInstance);
+
+        if (views instanceof List) {
+            return new ArrayList<View>((List<View>) viewsField.get(wmInstance));
+        } else if (views instanceof View[]) {
+            return Arrays.asList((View[])viewsField.get(wmInstance));
+        }
+
+        return new ArrayList<View>();
+    }
+
+
+    public static boolean isShown(View v) {
+        Rect r = new Rect();
+        v.getGlobalVisibleRect(r);
+        if (r.left == 0 && r.right == 0 && r.top == 0 && r.bottom == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isViewVisibleInScreen(View view) {
+        if (!isShown(view)) {
+            return false;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (!view.isAttachedToWindow()) {
+                return false;
+            }
+        }
+        if (view.getAlpha() == 0) {
+            return false;
+        }
+        if (view.getWidth() <= 0 && view.getHeight() <= 0) {
+            return false;
+        }
+        return view.getWindowVisibility() == View.VISIBLE;
+    }
+
+    public static ViewGroup getTopestView(View view) {
+        return getTopestView(view, null);
+    }
+
+    private static ViewGroup getTopestView(View view, ViewGroup current) {
+        View parent = view.getRootView();
+        if (parent == null) {
+            return current;
+        }
+        return getTopestView(parent, (ViewGroup)parent);
     }
 }
