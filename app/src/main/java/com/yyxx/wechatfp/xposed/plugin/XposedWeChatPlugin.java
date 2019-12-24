@@ -299,6 +299,8 @@ public class XposedWeChatPlugin {
             return;
         }
 
+        boolean isDarkMode = StyleUtil.isDarkMode(activity);
+
         LinearLayout settingsItemRootLLayout = new LinearLayout(activity);
         settingsItemRootLLayout.setOrientation(LinearLayout.VERTICAL);
         settingsItemRootLLayout.setLayoutParams(new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -313,7 +315,7 @@ public class XposedWeChatPlugin {
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(ViewUtil.genBackgroundDefaultDrawable(Color.WHITE));
+        itemHlinearLayout.setBackground(ViewUtil.genBackgroundDefaultDrawable(isDarkMode ? 0xFF232323 : Color.WHITE, isDarkMode ? 0xFF252525 : 0xFFE5E5E5));
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
@@ -321,7 +323,7 @@ public class XposedWeChatPlugin {
         int defHPadding = DpUtil.dip2px(activity, 15);
 
         TextView itemNameText = new TextView(activity);
-        itemNameText.setTextColor(0xFF353535);
+        itemNameText.setTextColor(isDarkMode ? 0xFFD3D3D3 : 0xFF353535);
         itemNameText.setText(Lang.getString(R.id.app_settings_name));
         itemNameText.setGravity(Gravity.CENTER_VERTICAL);
         itemNameText.setPadding(DpUtil.dip2px(activity, 14), 0, 0, 0);
@@ -332,11 +334,11 @@ public class XposedWeChatPlugin {
         itemSummerText.setText(BuildConfig.VERSION_NAME);
         itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
         itemSummerText.setPadding(0, 0, defHPadding, 0);
-        itemSummerText.setTextColor(0xFF999999);
+        itemSummerText.setTextColor(isDarkMode ? 0xFF656565 : 0xFF999999);
 
         //try use WeChat style
         try {
-            View generalView = ViewUtil.findViewByText(itemView, "通用", "一般", "General");
+            View generalView = ViewUtil.findViewByText(itemView, "通用", "一般", "General", "服务管理", "服務管理", "Manage Services");
             L.d("generalView", generalView);
             if (generalView instanceof TextView) {
                 TextView generalTextView = (TextView) generalView;
@@ -370,7 +372,7 @@ public class XposedWeChatPlugin {
 
         if (mWeChatVersionCode >= 1380) { //7.0.0
             View lineView = new View(activity);
-            lineView.setBackgroundColor(0xFFD5D5D5);
+            lineView.setBackgroundColor(isDarkMode ? 0xFF2E2E2E : 0xFFD5D5D5);
             settingsItemLinearLayout.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
             settingsItemLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(activity, 55)));
         } else {

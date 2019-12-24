@@ -1,6 +1,10 @@
 package com.yyxx.wechatfp.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -100,6 +104,10 @@ public class PreferenceAdapter extends BaseAdapter {
             verticalLayout.addView(subTitleText);
 
             selectBox = new CheckBox(context);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                selectBox.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
+                selectBox.setBackgroundTintMode(PorterDuff.Mode.SRC_OVER);
+            }
             selectBox.setClickable(false);
             selectBox.setFocusable(false);
             selectBox.setFocusableInTouchMode(false);

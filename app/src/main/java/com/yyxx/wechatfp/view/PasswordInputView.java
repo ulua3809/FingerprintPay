@@ -49,6 +49,7 @@ public class PasswordInputView extends DialogFrameLayout {
         rootLLayout.setOrientation(LinearLayout.VERTICAL);
 
         mInputView = new EditText(context);
+        mInputView.setTextColor(Color.BLACK);
         mInputView.setPadding(0, 0, 0, 0);
         mInputView.setBackgroundColor(Color.TRANSPARENT);
         mInputView.setFocusable(true);

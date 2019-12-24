@@ -1,5 +1,7 @@
 package com.yyxx.wechatfp.util;
 
+import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.util.TypedValue;
 import android.widget.TextView;
@@ -22,5 +24,9 @@ public class StyleUtil {
     public static void apply(TextView textView) {
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DEFAULT);
         textView.setTextColor(TEXT_COLOR_DEFAULT);
+    }
+
+    public static boolean isDarkMode(Context context) {
+        return Configuration.UI_MODE_NIGHT_YES == (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK);
     }
 }
