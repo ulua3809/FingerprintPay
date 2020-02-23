@@ -240,6 +240,7 @@ public class XposedWeChatPlugin {
                 passwordLayout.removeView(fingerPrintLayout);
                 mInputEditText.setVisibility(View.VISIBLE);
                 keyboardView.setVisibility(View.VISIBLE);
+                mInputEditText.performClick();
                 mFingerprintIdentify.cancelIdentify();
                 mMockCurrentUser = false;
                 if (titleTextView != null) {
