@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 import com.yyxx.wechatfp.BuildConfig;
+import com.yyxx.wechatfp.Constant;
 import com.yyxx.wechatfp.Lang;
 import com.yyxx.wechatfp.R;
 import com.yyxx.wechatfp.util.Config;
@@ -62,10 +63,14 @@ public class XposedAlipayPlugin {
     private Activity mCurrentActivity;
 
     private boolean mIsViewTreeObserverFirst;
+    private int mAlipayVersionCode;
+
     @Keep
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
+            mAlipayVersionCode = getAlipayVersionCode(context);
+            L.d("mAlipayVersionCode", mAlipayVersionCode);
             Umeng.init(context);
             XposedLogNPEBugFixer.fix();
             final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(lpparam.packageName, 0);
@@ -87,7 +92,7 @@ public class XposedAlipayPlugin {
                         Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
                     } else if (activityClzName.contains(".UserSettingActivity")) {
                         Task.onMain(100, () -> doSettingsMenuInject(activity));
-                    } else if (activityClzName.contains(".MspContainerActivity")
+                    } else if (activityClzName.contains(mAlipayVersionCode >= 230 ? ".PayPwdDialogActivity" : ".MspContainerActivity")
                             || activityClzName.contains(".FlyBirdWindowActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
@@ -286,6 +291,7 @@ public class XposedAlipayPlugin {
                                 inputDigitPassword(activity, pwd);
                             } catch (NullPointerException e) {
                                 Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                L.d("inputDigitPassword NPE", e);
                             } catch (Exception e) {
                                 Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
                                 L.e(e);
@@ -586,5 +592,16 @@ public class XposedAlipayPlugin {
             return (View) view.getParent();
         }
         return null;
+    }
+
+    private static int getAlipayVersionCode(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(Constant.PACKAGE_NAME_ALIPAY, 0);
+            int versionCode = packageInfo.versionCode;
+            return versionCode;
+        } catch (Exception e) {
+            L.e(e);
+        }
+        return 0;
     }
 }
