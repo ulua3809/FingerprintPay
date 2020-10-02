@@ -29,6 +29,8 @@ import com.yyxx.wechatfp.BuildConfig;
 import com.yyxx.wechatfp.Constant;
 import com.yyxx.wechatfp.Lang;
 import com.yyxx.wechatfp.R;
+import com.yyxx.wechatfp.util.AlipayVersionControl;
+import com.yyxx.wechatfp.util.BlackListUtils;
 import com.yyxx.wechatfp.util.Config;
 import com.yyxx.wechatfp.util.DpUtil;
 import com.yyxx.wechatfp.util.ImageUtil;
@@ -58,6 +60,7 @@ public class XposedAlipayPlugin {
 
     private AlertDialog mFingerPrintAlertDialog;
     private boolean mPwdActivityDontShowFlag;
+    private int mPwdActivityReShowDelayTimeMsec;
 
     private FingerprintIdentify mFingerprintIdentify;
     private Activity mCurrentActivity;
@@ -99,6 +102,12 @@ public class XposedAlipayPlugin {
                         if (!config.isOn()) {
                             return;
                         }
+                        Task.onMain(2000, new Runnable() {
+                            @Override
+                            public void run() {
+                                ViewUtil.recursiveLoopChildren(activity.getWindow().getDecorView());
+                            }
+                        });
                         mIsViewTreeObserverFirst = true;
                         activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
                             if (mCurrentActivity == null) {
@@ -112,7 +121,8 @@ public class XposedAlipayPlugin {
                             }
 
                             if (ViewUtil.findViewByName(activity, "com.alipay.android.app", "simplePwdLayout") == null
-                                    && ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null ) {
+                                    && ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null
+                                    && ViewUtil.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
                                 return;
                             }
                             if (mIsViewTreeObserverFirst) {
@@ -197,8 +207,22 @@ public class XposedAlipayPlugin {
     public void showFingerPrintDialog(final Activity activity) {
         final Context context = activity;
         try {
+            if (mAlipayVersionCode >= 224) {
+                if (activity.getClass().getName().contains(".MspContainerActivity")) {
+                    ViewUtil.recursiveLoopChildren(activity.getWindow().getDecorView());
+
+                    View payTextView = ViewUtil.findViewByText(activity.getWindow().getDecorView(), "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password");
+                    L.d("payTextView", payTextView);
+                    if (payTextView == null) {
+                        return;
+                    }
+                }
+            }
+
+            hidePreviousPayDialog();
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
+            mPwdActivityReShowDelayTimeMsec = 0;
             int defVMargin = DpUtil.dip2px(context, 30);
             final Bitmap bitmap = ImageUtil.base64ToBitmap(ICON_FINGER_PRINT_ALIPAY_BASE64);
             LinearLayout rootVLinearLayout = new LinearLayout(context);
@@ -262,6 +286,7 @@ public class XposedAlipayPlugin {
             rootVLinearLayout.addView(buttonHLinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(context, 60)));
 
             initFingerPrintLock(context, () -> {
+                BlackListUtils.applyIfNeeded(context);
                 String pwd = Config.from(activity).getPassword();
                 if (TextUtils.isEmpty(pwd)) {
                     Toast.makeText(activity, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
@@ -269,6 +294,7 @@ public class XposedAlipayPlugin {
                 }
 
                 Runnable onCompleteRunnable = () -> {
+                    mPwdActivityReShowDelayTimeMsec = 1000;
                     AlertDialog dialog = mFingerPrintAlertDialog;
                     if (dialog != null) {
                         dialog.dismiss();
@@ -310,7 +336,7 @@ public class XposedAlipayPlugin {
                     fingerprintIdentify.cancelIdentify();
                 }
                 if (!mPwdActivityDontShowFlag) {
-                    activity.getWindow().getDecorView().setAlpha(1);
+                    Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
                 }
                 try {
                     bitmap.recycle();
@@ -467,18 +493,18 @@ public class XposedAlipayPlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
-        String modulePackageName = "com.alipay.android.phone.safepaybase";
+        AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(mAlipayVersionCode);
         View ks[] = new View[] {
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_1"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_2"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_3"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_4", "key_4"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_5"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_6"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_7"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_8"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_9"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_0"),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key3),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key4),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key5),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key6),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key7),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key8),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key9),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key0),
         };
         char[] chars = password.toCharArray();
         for (char c : chars) {
@@ -539,7 +565,7 @@ public class XposedAlipayPlugin {
     }
 
     private EditText findPasswordEditText(Activity activity) {
-        View pwdEditText = ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "input_et_password");
+        View pwdEditText = ViewUtil.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password");
         L.d("pwdEditText1", pwdEditText);
         if (pwdEditText instanceof EditText) {
             if (!pwdEditText.isShown()) {
@@ -565,7 +591,7 @@ public class XposedAlipayPlugin {
     }
 
     private View findConfirmPasswordBtn(Activity activity) {
-        View okView =  ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "button_ok");
+        View okView =  ViewUtil.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "button_ok");
         L.d("okView", okView);
         if (okView != null) {
             if (!okView.isShown()) {
@@ -603,5 +629,13 @@ public class XposedAlipayPlugin {
             L.e(e);
         }
         return 0;
+    }
+
+    private void hidePreviousPayDialog() {
+        AlertDialog dialog = mFingerPrintAlertDialog;
+        L.d("hidePreviousPayDialog", mFingerPrintAlertDialog);
+        if (dialog != null) {
+            dialog.dismiss();
+        }
     }
 }

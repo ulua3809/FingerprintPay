@@ -35,6 +35,7 @@ import com.yyxx.wechatfp.util.DpUtil;
 import com.yyxx.wechatfp.util.ImageUtil;
 import com.yyxx.wechatfp.util.KeyboardUtils;
 import com.yyxx.wechatfp.util.PermissionUtils;
+import com.yyxx.wechatfp.util.QQUtils;
 import com.yyxx.wechatfp.util.StyleUtil;
 import com.yyxx.wechatfp.util.Task;
 import com.yyxx.wechatfp.util.Tools;
@@ -145,6 +146,9 @@ public class XposedQQPlugin {
                     final String activityClzName = activity.getClass().getName();
                     if (BuildConfig.DEBUG) {
                         L.d("activity", activity, "clz", activityClzName);
+                    }
+                    if (activityClzName.contains(".SplashActivity")) {
+                        QQUtils.checkBlackListQQ(activity);
                     }
                     if (activityClzName.contains(".QWalletPluginProxyActivity")) {
                         L.d("found");

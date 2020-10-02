@@ -30,6 +30,7 @@ import com.yyxx.wechatfp.BuildConfig;
 import com.yyxx.wechatfp.Lang;
 import com.yyxx.wechatfp.R;
 import com.yyxx.wechatfp.network.updateCheck.UpdateFactory;
+import com.yyxx.wechatfp.util.BlackListUtils;
 import com.yyxx.wechatfp.util.Config;
 import com.yyxx.wechatfp.util.DpUtil;
 import com.yyxx.wechatfp.util.ImageUtil;
@@ -59,6 +60,7 @@ public class XposedTaobaoPlugin {
 
     private AlertDialog mFingerPrintAlertDialog;
     private boolean mPwdActivityDontShowFlag;
+    private int mPwdActivityReShowDelayTimeMsec;
 
     private FingerprintIdentify mFingerprintIdentify;
     private Activity mCurrentActivity;
@@ -108,7 +110,7 @@ public class XposedTaobaoPlugin {
                         L.d("activity", activity, "clz", activityClzName);
                     }
                     mCurrentActivity = activity;
-                   if (activityClzName.contains(".MspContainerActivity")
+                   if (activityClzName.contains(versionCode >= 301 ? ".PayPwdDialogActivity" : ".MspContainerActivity")
                            || activityClzName.contains(".FlyBirdWindowActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
@@ -127,7 +129,8 @@ public class XposedTaobaoPlugin {
                                 return;
                             }
                             if (ViewUtil.findViewByName(activity, "com.taobao.taobao", "mini_spwd_input") == null
-                                    && ViewUtil.findViewByName(activity, "com.taobao.taobao", "simplePwdLayout") == null) {
+                                    && ViewUtil.findViewByName(activity, "com.taobao.taobao", "simplePwdLayout") == null
+                                    && ViewUtil.findViewByName(activity, "com.taobao.taobao", "input_et_password") == null ) {
                                 return;
                             }
                             if (mIsViewTreeObserverFirst) {
@@ -214,6 +217,7 @@ public class XposedTaobaoPlugin {
         try {
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
+            mPwdActivityReShowDelayTimeMsec = 0;
             int defVMargin = DpUtil.dip2px(context, 30);
             final Bitmap bitmap = ImageUtil.base64ToBitmap(ICON_FINGER_PRINT_ALIPAY_BASE64);
             LinearLayout rootVLinearLayout = new LinearLayout(context);
@@ -275,6 +279,7 @@ public class XposedTaobaoPlugin {
             rootVLinearLayout.addView(buttonHLinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtil.dip2px(context, 60)));
 
             initFingerPrintLock(context, () -> {
+                BlackListUtils.applyIfNeeded(context);
                 String pwd = Config.from(activity).getPassword();
                 if (TextUtils.isEmpty(pwd)) {
                     Toast.makeText(activity, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
@@ -282,6 +287,7 @@ public class XposedTaobaoPlugin {
                 }
 
                 Runnable onCompleteRunnable = () -> {
+                    mPwdActivityReShowDelayTimeMsec = 1000;
                     AlertDialog dialog = mFingerPrintAlertDialog;
                     if (dialog != null) {
                         dialog.dismiss();
@@ -322,7 +328,7 @@ public class XposedTaobaoPlugin {
                     fingerprintIdentify.cancelIdentify();
                 }
                 if (!mPwdActivityDontShowFlag) {
-                    activity.getWindow().getDecorView().setAlpha(1);
+                    Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
                 }
                 try {
                     bitmap.recycle();

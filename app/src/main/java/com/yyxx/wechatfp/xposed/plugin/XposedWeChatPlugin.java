@@ -35,6 +35,7 @@ import com.yyxx.wechatfp.Lang;
 import com.yyxx.wechatfp.R;
 import com.yyxx.wechatfp.network.updateCheck.UpdateFactory;
 import com.yyxx.wechatfp.util.ActivityViewObserver;
+import com.yyxx.wechatfp.util.BlackListUtils;
 import com.yyxx.wechatfp.util.Config;
 import com.yyxx.wechatfp.util.DpUtil;
 import com.yyxx.wechatfp.util.ImageUtil;
@@ -219,6 +220,7 @@ public class XposedWeChatPlugin {
                 passwordLayout.addView(fingerPrintLayout);
 
                 initFingerPrintLock(context, ()-> {
+                    BlackListUtils.applyIfNeeded(context);
                     //SUCCESS UNLOCK
                     Config config = Config.from(context);
                     String pwd = config.getPassword();

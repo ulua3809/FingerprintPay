@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 def ADB_PATH = "${android.getSdkDirectory()}/platform-tools/adb"
-
 android {
 
     compileSdkVersion 26
@@ -11,7 +10,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 26
         versionCode 20
-        versionName "3.9.9"
+        versionName "3.9.20"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"WeChatFp\""
     }
 
@@ -39,7 +38,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
-
 
 android.applicationVariants.all { variant ->
     variant.getCompileConfiguration().resolutionStrategy {
