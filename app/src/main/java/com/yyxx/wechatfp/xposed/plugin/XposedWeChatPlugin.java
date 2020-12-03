@@ -318,7 +318,7 @@ public class XposedWeChatPlugin {
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(ViewUtil.genBackgroundDefaultDrawable(isDarkMode ? 0xFF232323 : Color.WHITE, isDarkMode ? 0xFF252525 : 0xFFE5E5E5));
+        itemHlinearLayout.setBackground(ViewUtil.genBackgroundDefaultDrawable(isDarkMode ? 0xFF191919 : Color.WHITE, isDarkMode ? 0xFF1D1D1D : 0xFFE5E5E5));
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
@@ -329,7 +329,7 @@ public class XposedWeChatPlugin {
         itemNameText.setTextColor(isDarkMode ? 0xFFD3D3D3 : 0xFF353535);
         itemNameText.setText(Lang.getString(R.id.app_settings_name));
         itemNameText.setGravity(Gravity.CENTER_VERTICAL);
-        itemNameText.setPadding(DpUtil.dip2px(activity, 14), 0, 0, 0);
+        itemNameText.setPadding(DpUtil.dip2px(activity, 16), 0, 0, 0);
         itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtil.TEXT_SIZE_BIG);
 
         TextView itemSummerText = new TextView(activity);
