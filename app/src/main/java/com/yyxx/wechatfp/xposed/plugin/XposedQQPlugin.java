@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -19,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +30,6 @@ import com.yyxx.wechatfp.R;
 import com.yyxx.wechatfp.network.updateCheck.UpdateFactory;
 import com.yyxx.wechatfp.util.Config;
 import com.yyxx.wechatfp.util.DpUtil;
-import com.yyxx.wechatfp.util.ImageUtil;
 import com.yyxx.wechatfp.util.KeyboardUtils;
 import com.yyxx.wechatfp.util.PermissionUtils;
 import com.yyxx.wechatfp.util.QQUtils;
@@ -54,7 +51,6 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
-import static com.yyxx.wechatfp.Constant.ICON_FINGER_PRINT_ALIPAY_BASE64;
 
 /**
  * Created by Jason on 2017/9/8.
@@ -212,7 +208,7 @@ public class XposedQQPlugin {
         boolean longPassword = payDialog.isLongPassword();
         ViewGroup editCon = longPassword ? (ViewGroup) payDialog.inputEditText.getParent().getParent().getParent()
                 : (ViewGroup) payDialog.inputEditText.getParent().getParent();
-        ImageView fingerprintImageView = prepareFingerprintView(context);
+        View fingerprintView = prepareFingerprintView(context);
 
         Runnable switchToPwdRunnable = () -> {
             if (activity != mCurrentPayActivity) {
@@ -230,8 +226,8 @@ public class XposedQQPlugin {
                     payDialog.keyboardView.setVisibility(View.VISIBLE);
                 }
             }
-            if (fingerprintImageView.getVisibility() != View.GONE) {
-                fingerprintImageView.setVisibility(View.GONE);
+            if (fingerprintView.getVisibility() != View.GONE) {
+                fingerprintView.setVisibility(View.GONE);
             }
             if (payDialog.titleTextView != null) {
                 if (mQQVersionCode >= QQ_VERSION_CODE_7_3_0) {
@@ -277,8 +273,8 @@ public class XposedQQPlugin {
                     });
                 }
             }
-            if (fingerprintImageView.getVisibility() != View.VISIBLE) {
-                fingerprintImageView.setVisibility(View.VISIBLE);
+            if (fingerprintView.getVisibility() != View.VISIBLE) {
+                fingerprintView.setVisibility(View.VISIBLE);
             }
             if (payDialog.titleTextView != null) {
                 payDialog.titleTextView.setText(Lang.getString(R.id.qq_payview_fingerprint_title));
@@ -300,7 +296,7 @@ public class XposedQQPlugin {
             resumeFingerprintIdentify();
         };
 
-        fingerprintImageView.setOnClickListener(v -> {
+        fingerprintView.setOnClickListener(v -> {
             switchToPwdRunnable.run();
         });
 
@@ -316,13 +312,13 @@ public class XposedQQPlugin {
         }
 
         ViewGroup viewGroup = ((ViewGroup)(editCon.getParent()));
-        removeAllFingerprintImageView(viewGroup);
+        removeAllFingerprintView(viewGroup);
 
         int keyboardViewPosition = ViewUtil.findChildViewPosition(viewGroup, payDialog.keyboardView);
         if (keyboardViewPosition >= 0) {
-            viewGroup.addView(fingerprintImageView, keyboardViewPosition);
+            viewGroup.addView(fingerprintView, keyboardViewPosition);
         } else {
-            viewGroup.addView(fingerprintImageView);
+            viewGroup.addView(fingerprintView);
         }
 
         mCurrentPayActivity = activity;
@@ -348,7 +344,7 @@ public class XposedQQPlugin {
         }
     }
 
-    private void removeAllFingerprintImageView(ViewGroup viewGroup) {
+    private void removeAllFingerprintView(ViewGroup viewGroup) {
         List<View> pendingRemoveList = new ArrayList<>();
 
         int childCount = viewGroup.getChildCount();
@@ -364,44 +360,20 @@ public class XposedQQPlugin {
         }
     }
 
-    private ImageView prepareFingerprintView(Context context) {
+    private View prepareFingerprintView(Context context) {
 
-        ImageView imageView = new ImageView(context);
-        imageView.setTag(TAG_FINGER_PRINT_IMAGE);
-        Bitmap bitmap = null;
-        try {
-            bitmap = ImageUtil.base64ToBitmap(ICON_FINGER_PRINT_ALIPAY_BASE64);
-            imageView.setImageBitmap(bitmap);
-        } catch (OutOfMemoryError e) {
-        }
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(DpUtil.dip2px(context, 40), DpUtil.dip2px(context, 40));
+        TextView textView = new TextView(context);
+        textView.setTag(TAG_FINGER_PRINT_IMAGE);
+        textView.setText("使用密码");
+        textView.setTextSize(16);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.CENTER;
         if (mQQVersionCode >= QQ_VERSION_CODE_7_3_0) {
             //QQ居然拿键盘底部来定位... To TP工程师. 你们的Activity太重了
             params.bottomMargin = DpUtil.dip2px(context, 30);
         }
-        imageView.setLayoutParams(params);
-
-        final Bitmap bitmapFinal = bitmap;
-        imageView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View v) {
-                try {
-                    if (bitmapFinal != null) {
-                        bitmapFinal.recycle();
-                    }
-                } catch (Exception e) {
-                    L.e(e);
-                }
-                cancelFingerprintIdentify();
-                L.d("onViewDetachedFromWindow");
-            }
-        });
-        return imageView;
+        textView.setLayoutParams(params);
+        return textView;
     }
 
 

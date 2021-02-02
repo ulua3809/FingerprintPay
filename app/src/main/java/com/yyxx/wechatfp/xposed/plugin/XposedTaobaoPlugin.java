@@ -35,6 +35,7 @@ import com.yyxx.wechatfp.util.Config;
 import com.yyxx.wechatfp.util.DpUtil;
 import com.yyxx.wechatfp.util.ImageUtil;
 import com.yyxx.wechatfp.util.StyleUtil;
+import com.yyxx.wechatfp.util.TaobaoVersionControl;
 import com.yyxx.wechatfp.util.Task;
 import com.yyxx.wechatfp.util.Umeng;
 import com.yyxx.wechatfp.util.ViewUtil;
@@ -69,6 +70,7 @@ public class XposedTaobaoPlugin {
     private LinearLayout mItemHlinearLayout;
     private LinearLayout mLineTopCon;
     private View mLineBottomView;
+    private int mTaobaoVersionCode;
     private boolean isFirstStartup = true;
 
     @Keep
@@ -78,20 +80,21 @@ public class XposedTaobaoPlugin {
             Umeng.init(context);
             XposedLogNPEBugFixer.fix();
             final PackageInfo packageInfo = context.getPackageManager().getPackageInfo(lpparam.packageName, 0);
-            final int versionCode = packageInfo.versionCode;
+            mTaobaoVersionCode = packageInfo.versionCode;
             String versionName = packageInfo.versionName;
-            L.d("app info: versionCode:" + versionCode + " versionName:" + versionName);
+            L.d("app info: versionCode:" + mTaobaoVersionCode + " versionName:" + versionName);
 
             XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     final Activity activity = (Activity) param.thisObject;
+
                     final String activityClzName = activity.getClass().getName();
                     if (BuildConfig.DEBUG) {
                         L.d("activity", activity, "clz", activityClzName);
                     }
-                    if (activityClzName.contains(".TaobaoSettingActivity")) {
-                        Task.onMain(100, () -> doSettingsMenuInject(activity));
+                    if (handleSettingsMenuInjection(activity)) {
+                        return;
                     } else if (activityClzName.contains(".welcome.Welcome")) {
                         if (isFirstStartup) {
                             isFirstStartup = false;
@@ -110,7 +113,7 @@ public class XposedTaobaoPlugin {
                         L.d("activity", activity, "clz", activityClzName);
                     }
                     mCurrentActivity = activity;
-                   if (activityClzName.contains(versionCode >= 301 ? ".PayPwdDialogActivity" : ".MspContainerActivity")
+                   if (activityClzName.contains(mTaobaoVersionCode >= 301 ? ".PayPwdDialogActivity" : ".MspContainerActivity")
                            || activityClzName.contains(".FlyBirdWindowActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
@@ -139,7 +142,7 @@ public class XposedTaobaoPlugin {
                             }
                         });
 
-                    } else if (activityClzName.contains("PayPwdHalfActivity")) {
+                   } else if (activityClzName.contains("PayPwdHalfActivity")) {
                         L.d("found");
                         final Config config = Config.from(activity);
                         if (!config.isOn()) {
@@ -157,7 +160,9 @@ public class XposedTaobaoPlugin {
                             //try again
                             Task.onMain(2000, () -> showFingerPrintDialog(activity));
                         });
-                    }
+                   } else if (mTaobaoVersionCode >= 323 /** 9.20.0 */ && handleSettingsMenuInjection(activity)) {
+                       return;
+                   }
                 }
             });
         } catch (Throwable l) {
@@ -165,6 +170,22 @@ public class XposedTaobaoPlugin {
         }
     }
 
+    private boolean handleSettingsMenuInjection(Activity activity) {
+        try {
+            final String activityClzName = activity.getClass().getName();
+            if (BuildConfig.DEBUG) {
+                L.d("activity", activity, "clz", activityClzName);
+            }
+            if (activityClzName.contains(".NewTaobaoSettingActivity") // <- 这个命名真是SB, 再改版一次估计你要叫 NewNewTaobaoSettingActivity 了吧
+                    || activityClzName.contains(".TaobaoSettingActivity")) {
+                Task.onMain(250, () -> doSettingsMenuInject(activity)); // 100 -> 250, 这个改版的页面加载性能还没上一版好
+                return true;
+            }
+        } catch (Exception e) {
+            L.e(e);
+        }
+        return false;
+    }
 
     public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback) {
         mFingerprintIdentify = new FingerprintIdentify(context);
@@ -322,7 +343,8 @@ public class XposedTaobaoPlugin {
                 onCompleteRunnable.run();
             });
 
-            AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog_MinWidth)).setView(rootVLinearLayout).setOnDismissListener(dialogInterface -> {
+            AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q ? android.R.style.Theme_DeviceDefault_DayNight : android.R.style.Theme_Holo_Light_Dialog_MinWidth))
+                    .setView(rootVLinearLayout).setOnDismissListener(dialogInterface -> {
                 FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
@@ -336,8 +358,7 @@ public class XposedTaobaoPlugin {
                 }
             }).setCancelable(false).create();
             mFingerPrintAlertDialog = dialog;
-            dialog.show();
-
+            Task.onMain(100,  dialog::show);
         } catch (OutOfMemoryError e) {
         }
     }
@@ -465,18 +486,18 @@ public class XposedTaobaoPlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
-        String modulePackageName = "com.taobao.taobao";
+        TaobaoVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = TaobaoVersionControl.getDigitPasswordKeyPad(mTaobaoVersionCode);
         View ks[] = new View[] {
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_1"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_2"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_3"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_4", "key_4"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_5"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_6"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_7"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_8"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_9"),
-                ViewUtil.findViewByName(activity, modulePackageName, "key_num_0"),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key3),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key4),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key5),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key6),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key7),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key8),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key9),
+                ViewUtil.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key0),
         };
         char[] chars = password.toCharArray();
         for (char c : chars) {

@@ -119,8 +119,7 @@ public class XposedAlipayPlugin {
                             if (mCurrentActivity != activity) {
                                 return;
                             }
-
-                            if (ViewUtil.findViewByName(activity, "com.alipay.android.app", "simplePwdLayout") == null
+                            if (ViewUtil.findViewByName(activity, (mAlipayVersionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
                                     && ViewUtil.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null
                                     && ViewUtil.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
                                 return;
@@ -330,7 +329,8 @@ public class XposedAlipayPlugin {
                 onCompleteRunnable.run();
             });
 
-            AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog_MinWidth)).setView(rootVLinearLayout).setOnDismissListener(dialogInterface -> {
+            AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q ? android.R.style.Theme_DeviceDefault_DayNight : android.R.style.Theme_Holo_Light_Dialog_MinWidth))
+                    .setView(rootVLinearLayout).setOnDismissListener(dialogInterface -> {
                 FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
@@ -344,8 +344,7 @@ public class XposedAlipayPlugin {
                 }
             }).setCancelable(false).create();
             mFingerPrintAlertDialog = dialog;
-            dialog.show();
-
+            Task.onMain(100,  dialog::show);
         } catch (OutOfMemoryError e) {
         }
     }

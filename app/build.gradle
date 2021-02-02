@@ -3,14 +3,14 @@ apply plugin: 'com.android.application'
 def ADB_PATH = "${android.getSdkDirectory()}/platform-tools/adb"
 android {
 
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
     defaultConfig {
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 30
         versionCode 21
-        versionName "3.9.21"
+        versionName "3.9.22"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"WeChatFp\""
     }
 
