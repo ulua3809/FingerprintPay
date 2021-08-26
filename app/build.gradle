@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 
-def ADB_PATH = "${android.getSdkDirectory()}/platform-tools/adb"
 android {
 
     compileSdkVersion 30
@@ -10,7 +9,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 30
         versionCode 21
-        versionName "3.9.22"
+        versionName "4.0.0"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"WeChatFp\""
     }
 
@@ -37,130 +36,23 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-}
 
-android.applicationVariants.all { variant ->
-    variant.getCompileConfiguration().resolutionStrategy {
-        if (variant.install != null) {
-            variant.install.doLast {
-                println "Running app..."
-                exec {
-                    executable = ADB_PATH
-                    args = ['shell', "monkey -p ${variant.applicationId} -c android.intent.category.LAUNCHER 1"]
-                }
+    //https://proandroiddev.com/how-to-securely-build-and-sign-your-android-app-with-github-actions-ad5323452ce#fromHistory
+    def keystoreFile = file('keystore.jks')
+    if (keystoreFile.exists()) {
+        signingConfigs {
+            release {
+                storeFile = keystoreFile
+                storePassword System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
             }
         }
-        variant.outputs.each { output ->
-            def apkName = "WeChatFp-${android.defaultConfig.versionName}-${variant.buildType.name}.apk"
-            output.outputFileName = apkName
-        }
+        buildTypes.release.signingConfig signingConfigs.release
     }
 }
 
-task stopWeChat {
-    doLast {
-        println "Stop WeChat..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am force-stop com.tencent.mm"]
-        }
-    }
-}
-
-task debugWeChat(dependsOn: ["installDebug", stopWeChat]) {
-    doLast {
-        println "Start WeChat..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am start -n com.tencent.mm/com.tencent.mm.ui.LauncherUI"]
-        }
-
-    }
-}
-
-task stopAlipay {
-    doLast {
-        println "Stop Alipay..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am force-stop com.eg.android.AlipayGphone"]
-        }
-    }
-}
-
-task debugAlipay(dependsOn: ["installDebug", stopAlipay]) {
-    doLast {
-        println "Start WeChat..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am start -n com.eg.android.AlipayGphone/com.eg.android.AlipayGphone.AlipayLogin"]
-        }
-
-    }
-}
-
-task stopTaobao {
-    doLast {
-        println "Stop taobao..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am force-stop com.taobao.taobao"]
-        }
-    }
-}
-
-task debugTaobao(dependsOn: ["installDebug", stopTaobao]) {
-    doLast {
-        println "Start Taobao..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am start -n com.taobao.taobao/com.taobao.tao.welcome.Welcome"]
-        }
-
-    }
-}
-
-task stopQQ {
-    doLast {
-        println "Stop QQ..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am force-stop com.tencent.mobileqq"]
-        }
-    }
-}
-
-task debugQQ(dependsOn: ["installDebug", stopQQ]) {
-    doLast {
-        println "Start QQ..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am start -n com.tencent.mobileqq/.activity.SplashActivity"]
-        }
-
-    }
-}
-
-task stopMultiQQ {
-    doLast {
-        println "Stop MultiQQ..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am force-stop --user 95 com.tencent.mobileqq"]
-        }
-    }
-}
-
-task debugMultiQQ(dependsOn: ["installDebug", stopMultiQQ]) {
-    doLast {
-        println "Start MultiQQ..."
-        exec {
-            executable = ADB_PATH
-            args = ['shell', "am start -n com.tencent.mobileqq/.activity.SplashActivity --user 95"]
-        }
-
-    }
-}
+apply from: 'debug.gradle'
 
 dependencies {
     implementation 'com.android.support:support-v4:26.0.2'

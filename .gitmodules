@@ -1,0 +1,3 @@
+[submodule "riru/Riru-ModuleTemplate"]
+	path = riru/Riru-ModuleTemplate
+	url = https://github.com/RikkaApps/Riru-ModuleTemplate.git

@@ -1,0 +1,17 @@
+afterEvaluate {
+    android.libraryVariants.forEach { variant ->
+        def magiskDir = file("$rootDir/template/magisk_module")
+        variant.assembleProvider.get().doLast {
+            exec {
+                executable = "$rootDir/../../gradlew"
+                args = ['-p', "$rootDir/../../", "clean", ":app:mergeDexRelease"]
+            }
+            file("$magiskDir/system/framework").mkdirs()
+            copy {
+                from file("$rootDir/../../app/build/intermediates/dex/release/out/classes.dex")
+                rename('classes.dex', "lib${moduleLibraryName}.dex")
+                into file("$magiskDir/system/framework")
+            }
+        }
+    }
+}
