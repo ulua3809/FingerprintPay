@@ -41,6 +41,8 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
     private String mNeutralButtonText;
     private String mNegativeButtonText;
     private String mPositiveButtonText;
+    @Nullable
+    private AlertDialog mDialog;
 
     public DialogFrameLayout(@NonNull Context context) {
         super(context);
@@ -54,7 +56,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         super(context, attrs, defStyleAttr);
     }
 
-    public void showInDialog() {
+    public AlertDialog showInDialog() {
         Context context = getContext();
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen))
                 .setOnDismissListener(this);
@@ -68,6 +70,8 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         window.setBackgroundDrawable(dialogWindowBackground());
         dialog.show();
         Umeng.onResume(getContext());
+        mDialog = dialog;
+        return dialog;
     }
 
     @Override
@@ -116,6 +120,11 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
 
     public String getDialogTitle() {
         return null;
+    }
+
+    @Nullable
+    public AlertDialog getDialog() {
+        return mDialog;
     }
 
     private TextView createTitleTextView() {

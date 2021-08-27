@@ -85,7 +85,7 @@ public class Lang {
             case R.id.settings_title_qq:
                 return tr("腾讯QQ", "騰訊QQ", "Tencent QQ");
             case R.id.enter_password:
-                return tr("输入密码", "輸入密碼", "Enter password");
+                return tr("使用密码", "使用密碼", "Enter password");
             case R.id.settings_title_switch:
                 return tr("启用", "啟用", "Enable");
             case R.id.settings_title_password:

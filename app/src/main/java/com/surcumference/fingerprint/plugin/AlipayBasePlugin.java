@@ -1,23 +1,18 @@
 package com.surcumference.fingerprint.plugin;
 
-import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_ALIPAY_BASE64;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_ALIPAY;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.TypedValue;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -31,11 +26,11 @@ import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
-import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.log.L;
+import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
@@ -197,68 +192,6 @@ public class AlipayBasePlugin {
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
-            int defVMargin = DpUtils.dip2px(context, 30);
-            final Bitmap bitmap = ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_ALIPAY_BASE64);
-            LinearLayout rootVLinearLayout = new LinearLayout(context);
-            rootVLinearLayout.setOrientation(LinearLayout.VERTICAL);
-            rootVLinearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-
-            ImageView imageView = new ImageView(context);
-            imageView.setImageBitmap(bitmap);
-
-            TextView textView = new TextView(context);
-            StyleUtils.apply(textView);
-            textView.setText(Lang.getString(R.id.fingerprint_verification));
-
-            View lineVView = new View(context);
-            lineVView.setBackgroundColor(0xFFBBBBBB);
-
-            LinearLayout buttonHLinearLayout = new LinearLayout(context);
-            buttonHLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
-            buttonHLinearLayout.setWeightSum(2);
-
-
-            Button cancelBtn = new Button(context);
-            cancelBtn.setBackground(ViewUtils.genBackgroundDefaultDrawable());
-            cancelBtn.setText(Lang.getString(R.id.cancel));
-            StyleUtils.apply(cancelBtn);
-            cancelBtn.setOnClickListener(view -> {
-                mPwdActivityDontShowFlag = true;
-                AlertDialog dialog = mFingerPrintAlertDialog;
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-                activity.onBackPressed();
-            });
-
-            View lineHView = new View(context);
-            lineHView.setBackgroundColor(0xFFBBBBBB);
-
-            Button enterPassBtn = new Button(context);
-            enterPassBtn.setBackground(ViewUtils.genBackgroundDefaultDrawable());
-            enterPassBtn.setText(Lang.getString(R.id.enter_password));
-            StyleUtils.apply(enterPassBtn);
-            enterPassBtn.setOnClickListener(view -> {
-                AlertDialog dialog = mFingerPrintAlertDialog;
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-            });
-
-            buttonHLinearLayout.addView(cancelBtn, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
-            buttonHLinearLayout.addView(lineHView, new LinearLayout.LayoutParams(1, LinearLayout.LayoutParams.MATCH_PARENT));
-            buttonHLinearLayout.addView(enterPassBtn, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
-
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(DpUtils.dip2px(context, 60), DpUtils.dip2px(context, 60));
-            params.topMargin = defVMargin;
-            params.bottomMargin = defVMargin;
-            rootVLinearLayout.addView(imageView, params);
-            params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.bottomMargin = defVMargin;
-            rootVLinearLayout.addView(textView, params);
-            rootVLinearLayout.addView(lineVView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-            rootVLinearLayout.addView(buttonHLinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(context, 60)));
-
             initFingerPrintLock(context, () -> {
                 BlackListUtils.applyIfNeeded(context);
                 String pwd = Config.from(activity).getPassword();
@@ -303,21 +236,22 @@ public class AlipayBasePlugin {
                 }
                 onCompleteRunnable.run();
             });
-
-            AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(context, android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q ? android.R.style.Theme_DeviceDefault_DayNight : android.R.style.Theme_Holo_Light_Dialog_MinWidth))
-                    .setView(rootVLinearLayout).setOnDismissListener(dialogInterface -> {
-                        FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-                        if (fingerprintIdentify != null) {
-                            fingerprintIdentify.cancelIdentify();
-                        }
-                        if (!mPwdActivityDontShowFlag) {
-                            Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
-                        }
-                        try {
-                            bitmap.recycle();
-                        } catch (Exception e) {
-                        }
-                    }).setCancelable(false).create();
+            AlertDialog dialog = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
+                mPwdActivityDontShowFlag = true;
+                AlertDialog dialog1 = mFingerPrintAlertDialog;
+                if (dialog1 != null) {
+                    dialog1.dismiss();
+                }
+                activity.onBackPressed();
+            }).withOnDismissListener(v -> {
+                FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                if (fingerprintIdentify != null) {
+                    fingerprintIdentify.cancelIdentify();
+                }
+                if (!mPwdActivityDontShowFlag) {
+                    Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
+                }
+            }).showInDialog();
             mFingerPrintAlertDialog = dialog;
             Task.onMain(100,  dialog::show);
         } catch (OutOfMemoryError e) {
