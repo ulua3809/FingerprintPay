@@ -13,8 +13,8 @@ import android.widget.TextView;
 public class StyleUtils {
 
     public static final float TEXT_SIZE_DEFAULT = 15.0f;
-    public static final float TEXT_SIZE_BIG = 17.0f;
-    public static final float TEXT_SIZE_SMALL = 13.0f;
+    public static final float TEXT_SIZE_BIG = 18.0f;
+    public static final float TEXT_SIZE_SMALL = 12.0f;
 
     public static final int TEXT_COLOR_DEFAULT = Color.BLACK;
     public static final int TEXT_COLOR_SECONDARY = 0xFF8A9899;

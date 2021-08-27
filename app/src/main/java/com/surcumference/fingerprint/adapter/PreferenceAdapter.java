@@ -1,6 +1,5 @@
 package com.surcumference.fingerprint.adapter;
 
-import static com.surcumference.fingerprint.util.StyleUtils.LINE_COLOR_DEFAULT;
 import static com.surcumference.fingerprint.util.StyleUtils.TEXT_COLOR_SECONDARY;
 import static com.surcumference.fingerprint.util.StyleUtils.TEXT_SIZE_SMALL;
 
@@ -14,13 +13,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.view.smoothcompoundbutton.SmoothSwitch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +67,7 @@ public class PreferenceAdapter extends BaseAdapter {
         private final LinearLayout itemView;
         private final TextView titleText;
         private final TextView subTitleText;
-        private final CheckBox selectBox;
-        private final View lineView;
+        private final SmoothSwitch selectBox;
 
         public ViewHolder(Context context) {
             itemView = new LinearLayout(context);
@@ -84,31 +82,33 @@ public class PreferenceAdapter extends BaseAdapter {
             LinearLayout verticalLayout = new LinearLayout(context);
             verticalLayout.setOrientation(LinearLayout.VERTICAL);
 
-            int defTextVPadding = DpUtils.dip2px(context, 2);
-            int defVPadding = DpUtils.dip2px(context, 15);
             int defHPadding = DpUtils.dip2px(context, 5);
 
             titleText = new TextView(context);
             StyleUtils.apply(titleText);
-            titleText.setPadding(0, defTextVPadding, 0, defTextVPadding);
+            titleText.setPadding(0, 0, 0, 0);
+            titleText.setGravity(Gravity.BOTTOM | Gravity.LEFT | Gravity.CENTER_VERTICAL);
 
             subTitleText = new TextView(context);
             StyleUtils.apply(subTitleText);
             subTitleText.setTextColor(TEXT_COLOR_SECONDARY);
             subTitleText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_SMALL);
-            subTitleText.setPadding(0, defTextVPadding, 0, defTextVPadding + defHPadding);
+            subTitleText.setPadding(0, 0, 0, 0);
+            subTitleText.setGravity(Gravity.TOP | Gravity.LEFT | Gravity.CENTER_VERTICAL);
 
 
-            verticalLayout.setPadding(defHPadding, defVPadding, defHPadding, 0);
+            verticalLayout.setPadding(defHPadding, DpUtils.dip2px(context, 7), defHPadding, DpUtils.dip2px(context, 7));
             verticalLayout.addView(titleText);
             verticalLayout.addView(subTitleText);
 
-            selectBox = new CheckBox(context);
+            selectBox = new SmoothSwitch(context);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 selectBox.setBackgroundTintList(ColorStateList.valueOf(Color.LTGRAY));
                 selectBox.setBackgroundTintMode(PorterDuff.Mode.SRC_OVER);
             }
             selectBox.setClickable(false);
+            selectBox.setEnabled(false);
+            selectBox.setAlpha(1);
             selectBox.setFocusable(false);
             selectBox.setFocusableInTouchMode(false);
             LinearLayout.LayoutParams selectBoxLayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -116,12 +116,9 @@ public class PreferenceAdapter extends BaseAdapter {
 
             rootHorizontalLayout.addView(verticalLayout, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             rootHorizontalLayout.addView(selectBox, selectBoxLayoutParams);
-
-            lineView = new View(context);
-            lineView.setBackgroundColor(LINE_COLOR_DEFAULT);
+            rootHorizontalLayout.setPadding(DpUtils.dip2px(context, 15), DpUtils.dip2px(context, 6), DpUtils.dip2px(context, 15), DpUtils.dip2px(context, 6));
 
             itemView.addView(rootHorizontalLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            itemView.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
             itemView.setTag(this);
         }
 
@@ -130,11 +127,6 @@ public class PreferenceAdapter extends BaseAdapter {
                 return;
             }
             int count = getCount();
-            if (position < count - 1) {
-                lineView.setVisibility(View.VISIBLE);
-            } else {
-                lineView.setVisibility(View.GONE);
-            }
             if (data.isSelection) {
                 selectBox.setVisibility(View.VISIBLE);
             } else {

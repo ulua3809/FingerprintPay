@@ -1,23 +1,19 @@
 package com.surcumference.fingerprint.view;
 
-import static com.surcumference.fingerprint.util.StyleUtils.TEXT_SIZE_BIG;
 import static com.surcumference.fingerprint.view.PasswordInputView.DEFAULT_HIDDEN_PASS;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.surcumference.fingerprint.BuildConfig;
@@ -64,15 +60,8 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         View lineView = new View(context);
         lineView.setBackgroundColor(Color.TRANSPARENT);
 
-        TextView settingsTitle = new TextView(context);
-        settingsTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_BIG);
-        settingsTitle.setText(Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME);
-        settingsTitle.setTextColor(Color.WHITE);
-        settingsTitle.setTypeface(null, Typeface.BOLD);
-        settingsTitle.setBackgroundColor(0xFF1AAEE5);
-        int defHPadding = DpUtils.dip2px(context, 15);
+        int defHPadding = DpUtils.dip2px(context, 0);
         int defVPadding = DpUtils.dip2px(context, 12);
-        settingsTitle.setPadding(defHPadding, defVPadding, defHPadding, defVPadding);
 
         mListView = new ListView(context);
         mListView.setDividerHeight(0);
@@ -95,11 +84,15 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_webside), Constant.PROJECT_URL));
         mListAdapter = new PreferenceAdapter(mSettingsDataList);
 
-        rootVerticalLayout.addView(settingsTitle);
         rootVerticalLayout.addView(lineView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, com.surcumference.fingerprint.util.DpUtils.dip2px(context, 2)));
         rootVerticalLayout.addView(mListView);
 
         this.addView(rootVerticalLayout);
+    }
+
+    @Override
+    public String getDialogTitle() {
+        return Lang.getString(R.id.app_settings_name) + " " + BuildConfig.VERSION_NAME;
     }
 
     @Override

@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -53,9 +55,8 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
     }
 
     public void showInDialog() {
-        setBackgroundColor(Color.WHITE);
         Context context = getContext();
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Holo_Light_Dialog))
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen))
                 .setOnDismissListener(this);
 
         AlertDialog dialog;
@@ -64,9 +65,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
 
         Window window = dialog.getWindow();
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-
+        window.setBackgroundDrawable(dialogWindowBackground());
         dialog.show();
         Umeng.onResume(getContext());
     }
@@ -125,8 +124,9 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         TextView titleTextView = new TextView(context);
         titleTextView.setText(title);
         titleTextView.setTextColor(Color.BLACK);
-        titleTextView.setBackgroundColor(Color.WHITE);
-        int defHPadding = DpUtils.dip2px(context, 20);
+        titleTextView.setBackgroundColor(Color.TRANSPARENT);
+        titleTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        int defHPadding = DpUtils.dip2px(context, 15);
         titleTextView.setPadding(defHPadding,  DpUtils.dip2px(context, 15), defHPadding,  DpUtils.dip2px(context, 8));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_BIG);
 
@@ -204,7 +204,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         Context context = getContext();
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_DEFAULT);
         textView.setBackground(ViewUtils.genBackgroundDefaultDrawable());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
@@ -269,10 +269,11 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         LinearLayout rootLLayout = new LinearLayout(context);
         rootLLayout.setOrientation(LinearLayout.VERTICAL);
         rootLLayout.setWeightSum(1);
-        rootLLayout.setBackgroundColor(Color.WHITE);
+        rootLLayout.setBackgroundColor(Color.TRANSPARENT);
         rootLLayout.addView(titleView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         rootLLayout.addView(contentView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         rootLLayout.addView(btnView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        rootLLayout.setElevation(DpUtils.dip2px(context, 2));
         return rootLLayout;
     }
 
@@ -280,5 +281,13 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         return (!TextUtils.isEmpty(mNegativeButtonText))
                 || (!TextUtils.isEmpty(mNeutralButtonText))
                 || (!TextUtils.isEmpty(mPositiveButtonText));
+    }
+
+    private Drawable dialogWindowBackground() {
+        GradientDrawable shape =  new GradientDrawable();
+        shape.setCornerRadius(DpUtils.dip2px(getContext(), 10));
+        shape.setColor(0xFFF5F5F5);
+        int paddingH = DpUtils.dip2px(getContext(), 26);
+        return new InsetDrawable(shape, paddingH, 0, paddingH, 0);
     }
 }
