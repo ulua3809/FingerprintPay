@@ -29,6 +29,7 @@ import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -269,7 +270,7 @@ public class AlipayBasePlugin {
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(ViewUtils.genBackgroundDefaultDrawable(Color.WHITE, 0xFFD9D9D9));
+        itemHlinearLayout.setBackground(new XDrawable.Builder().defaultColor(Color.WHITE).pressedColor(0xFFD9D9D9).create());
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
@@ -345,7 +346,7 @@ public class AlipayBasePlugin {
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(ViewUtils.genBackgroundDefaultDrawable(Color.WHITE));
+        itemHlinearLayout.setBackground(new XDrawable.Builder().defaultColor(Color.WHITE).create());
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());

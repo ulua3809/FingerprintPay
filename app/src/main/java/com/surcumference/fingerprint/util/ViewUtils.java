@@ -3,11 +3,7 @@ package com.surcumference.fingerprint.util;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
@@ -127,24 +123,6 @@ public class ViewUtils {
                 metaState
         );
         view.dispatchTouchEvent(motionEvent);
-    }
-
-    public static Drawable genBackgroundDefaultDrawable() {
-        return genBackgroundDefaultDrawable(Color.TRANSPARENT);
-    }
-
-    public static Drawable genBackgroundDefaultDrawable(int defaultColor) {
-        StateListDrawable statesDrawable = new StateListDrawable();
-        statesDrawable.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(0xFFE5E5E5));
-        statesDrawable.addState(new int[]{}, new ColorDrawable(defaultColor));
-        return statesDrawable;
-    }
-
-    public static Drawable genBackgroundDefaultDrawable(int defaultColor, int pressedColor) {
-        StateListDrawable statesDrawable = new StateListDrawable();
-        statesDrawable.addState(new int[]{android.R.attr.state_pressed}, new ColorDrawable(pressedColor));
-        statesDrawable.addState(new int[]{}, new ColorDrawable(defaultColor));
-        return statesDrawable;
     }
 
     @Nullable

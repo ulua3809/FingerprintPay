@@ -51,13 +51,12 @@ public class DonateView extends DialogFrameLayout implements AdapterView.OnItemC
         LinearLayout rootVerticalLayout = new LinearLayout(context);
         rootVerticalLayout.setOrientation(LinearLayout.VERTICAL);
 
-        int defHPadding = DpUtils.dip2px(context, 15);
         int defVPadding = DpUtils.dip2px(context, 12);
 
         mListView = new ListView(context);
         mListView.setDividerHeight(0);
         mListView.setOnItemClickListener(this);
-        mListView.setPadding(defHPadding, defVPadding, defHPadding, defVPadding);
+        mListView.setPadding(0, defVPadding, 0, defVPadding);
         mListView.setDivider(new ColorDrawable(Color.TRANSPARENT));
 
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_alipay), Constant.AUTHOR_ALIPAY));

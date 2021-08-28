@@ -37,6 +37,7 @@ import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.WeChatPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -351,7 +352,11 @@ public class WeChatBasePlugin {
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(ViewUtils.genBackgroundDefaultDrawable(isDarkMode ? 0xFF191919 : Color.WHITE, isDarkMode ? 0xFF1D1D1D : 0xFFE5E5E5));
+
+        itemHlinearLayout.setBackground(new XDrawable.Builder()
+                .defaultColor(isDarkMode ? 0xFF191919 : Color.WHITE)
+                .pressedColor(isDarkMode ? 0xFF1D1D1D : 0xFFE5E5E5)
+                .create());
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());

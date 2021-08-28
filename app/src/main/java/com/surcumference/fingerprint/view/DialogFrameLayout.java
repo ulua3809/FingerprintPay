@@ -26,7 +26,7 @@ import com.surcumference.fingerprint.listener.OnDismissListener;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Umeng;
-import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.drawable.XDrawable;
 
 /**
  * Created by Jason on 2017/9/9.
@@ -127,6 +127,13 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         return mDialog;
     }
 
+    /**
+     * @return pixel
+     */
+    public int dialogWindowHorizontalInsets () {
+        return DpUtils.dip2px(getContext(), 4);
+    }
+
     private TextView createTitleTextView() {
         String title = getDialogTitle();
         Context context = getContext();
@@ -150,7 +157,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-        textView.setBackground(ViewUtils.genBackgroundDefaultDrawable());
+        textView.setBackground(new XDrawable.Builder().round(DpUtils.dip2px(context, 3)).create());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
 
@@ -182,7 +189,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-        textView.setBackground(ViewUtils.genBackgroundDefaultDrawable());
+        textView.setBackground(new XDrawable.Builder().round(DpUtils.dip2px(context, 3)).create());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
 
@@ -214,7 +221,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_DEFAULT);
-        textView.setBackground(ViewUtils.genBackgroundDefaultDrawable());
+        textView.setBackground(new XDrawable.Builder().round(DpUtils.dip2px(context, 3)).create());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
 
@@ -296,7 +303,8 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         GradientDrawable shape =  new GradientDrawable();
         shape.setCornerRadius(DpUtils.dip2px(getContext(), 10));
         shape.setColor(0xFFF5F5F5);
-        int paddingH = DpUtils.dip2px(getContext(), 26);
+        int paddingH = dialogWindowHorizontalInsets();
         return new InsetDrawable(shape, paddingH, 0, paddingH, 0);
     }
+
 }

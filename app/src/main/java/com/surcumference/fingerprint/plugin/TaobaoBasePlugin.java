@@ -29,6 +29,7 @@ import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.TaobaoVersionControl;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -328,7 +329,7 @@ public class TaobaoBasePlugin {
         }
         mItemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         mItemHlinearLayout.setWeightSum(1);
-        mItemHlinearLayout.setBackground(ViewUtils.genBackgroundDefaultDrawable(Color.WHITE));
+        mItemHlinearLayout.setBackground(new XDrawable.Builder().defaultColor(Color.WHITE).create());
         mItemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         mItemHlinearLayout.setClickable(true);
         mItemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());

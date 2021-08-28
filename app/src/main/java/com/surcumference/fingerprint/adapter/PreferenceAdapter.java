@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
-import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.view.smoothcompoundbutton.SmoothSwitch;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class PreferenceAdapter extends BaseAdapter {
 
         public ViewHolder(Context context) {
             itemView = new LinearLayout(context);
-            itemView.setBackground(ViewUtils.genBackgroundDefaultDrawable());
+            itemView.setBackground(XDrawable.defaultDrawable());
             itemView.setOrientation(LinearLayout.VERTICAL);
 
             LinearLayout rootHorizontalLayout = new LinearLayout(context);

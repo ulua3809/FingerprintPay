@@ -102,6 +102,11 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     }
 
     @Override
+    public int dialogWindowHorizontalInsets() {
+        return DpUtils.dip2px(getContext(), 26);
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         PreferenceAdapter.Data data = mListAdapter.getItem(position);
         final Context context = getContext();
