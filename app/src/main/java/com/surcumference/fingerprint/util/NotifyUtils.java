@@ -2,6 +2,7 @@ package com.surcumference.fingerprint.util;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.view.Gravity;
 import android.widget.Toast;
 
 import com.surcumference.fingerprint.util.log.L;
@@ -20,5 +21,11 @@ public class NotifyUtils {
                 L.e(e);
             }
         });
+    }
+
+    public static void notifyFingerprint(Context context, String message) {
+        Toast toast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.CENTER, 0, 0);
+        toast.show();
     }
 }

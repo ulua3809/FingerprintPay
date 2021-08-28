@@ -24,6 +24,7 @@ import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.KeyboardUtils;
+import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.PermissionUtils;
 import com.surcumference.fingerprint.util.QQUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
@@ -332,7 +333,7 @@ public class QQBasePlugin {
                 @Override
                 public void onSucceed() {
                     // 验证成功，自动结束指纹识别
-                    Toast.makeText(context, Lang.getString(R.id.toast_fingerprint_match), Toast.LENGTH_SHORT).show();
+                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_match));
                     L.d("指纹识别成功");
                     onSuccessUnlockCallback.run();
                     mMockCurrentUser = false;
@@ -342,7 +343,7 @@ public class QQBasePlugin {
                 public void onNotMatch(int availableTimes) {
                     // 指纹不匹配，并返回可用剩余次数并自动继续验证
                     L.d("指纹识别失败，还可尝试" + String.valueOf(availableTimes) + "次");
-                    Toast.makeText(context, Lang.getString(R.id.toast_fingerprint_not_match), Toast.LENGTH_SHORT).show();
+                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_match));
                     mMockCurrentUser = false;
                 }
 
@@ -351,7 +352,7 @@ public class QQBasePlugin {
                     // 错误次数达到上限或者API报错停止了验证，自动结束指纹识别
                     // isDeviceLocked 表示指纹硬件是否被暂时锁定
                     if (mFingerprintScanStateReady) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_fingerprint_retry_ended), Toast.LENGTH_SHORT).show();
+                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
                     }
                     L.d("多次尝试错误，请使用密码输入");
                     onFailureUnlockCallback.run();
@@ -362,7 +363,7 @@ public class QQBasePlugin {
                 public void onStartFailedByDeviceLocked() {
                     // 第一次调用startIdentify失败，因为设备被暂时锁定
                     L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
-                    Toast.makeText(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot), Toast.LENGTH_SHORT).show();
+                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot));
                     onFailureUnlockCallback.run();
                     mMockCurrentUser = false;
                 }
@@ -370,7 +371,7 @@ public class QQBasePlugin {
         } else {
             if (PermissionUtils.hasFingerprintPermission(context)) {
                 L.d("系统指纹功能未启用");
-                Toast.makeText(context, Lang.getString(R.id.toast_fingerprint_not_enable), Toast.LENGTH_LONG).show();
+                NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_enable));
             } else {
                 L.d("QQ 版本过低");
                 Toast.makeText(context, Lang.getString(R.id.toast_need_qq_7_2_5), Toast.LENGTH_LONG).show();
