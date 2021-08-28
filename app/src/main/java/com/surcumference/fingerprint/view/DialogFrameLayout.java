@@ -3,6 +3,7 @@ package com.surcumference.fingerprint.view;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -58,9 +59,10 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
 
     public AlertDialog showInDialog() {
         Context context = getContext();
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen))
-                .setOnDismissListener(this);
-
+        ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen);
+        //修复支付宝主页显示更新页面时dialog宽度不正常
+        contextThemeWrapper.applyOverrideConfiguration(new Configuration());
+        AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper).setOnDismissListener(this);
         AlertDialog dialog;
         dialog = builder.create();
         dialog.setView(createDialogContentView(dialog));
@@ -156,7 +158,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         Context context = getContext();
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_DEFAULT);
         textView.setBackground(new XDrawable.Builder().round(DpUtils.dip2px(context, 3)).create());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
@@ -188,7 +190,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         Context context = getContext();
         TextView textView = new TextView(context);
         textView.setTextColor(0xFF009688);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_DEFAULT);
         textView.setBackground(new XDrawable.Builder().round(DpUtils.dip2px(context, 3)).create());
         textView.setMinWidth(DpUtils.dip2px(context, 45));
         textView.setGravity(Gravity.CENTER);
