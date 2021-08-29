@@ -30,6 +30,8 @@ public class Lang {
 
     public static String getString(int res) {
         switch (res) {
+            case R.string.app_name:
+                return tr("指纹支付", "指纹支付", "Fingerprint Pay");
             case R.id.settings_title_help_wechat:
                 return tr("微信指纹", "微信指纹", "WeChat fingerprint pay");
             case R.id.settings_title_help_alipay:
@@ -76,6 +78,13 @@ public class Lang {
                 return tr("取消", "取消", "Cancel");
             case R.id.goto_update_page:
                 return tr("前往更新页", "前往更新頁 ", "Go");
+            case R.id.update_now:
+                return tr("立即更新", "立即更新 ", "UPDATE");
+            case R.id.update_success_note:
+                return tr("安装更新后, 重启手机使插件生效", "安裝更新後, 重啟手機使插件生效 ",
+                        "After installing the update, restart the phone to enable the plug-in");
+            case R.id.downloading:
+                return tr("下载中", "下載中", "Downloading");
             case R.id.ok:
                 return tr("确定", "确定", "OK");
             case R.id.settings_title_alipay:

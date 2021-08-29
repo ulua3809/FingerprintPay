@@ -1,5 +1,7 @@
 package com.surcumference.fingerprint.network.updateCheck.github;
 
+import android.text.TextUtils;
+
 import com.google.gson.Gson;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
@@ -7,6 +9,7 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
 import com.surcumference.fingerprint.network.updateCheck.BaseUpdateChecker;
+import com.surcumference.fingerprint.network.updateCheck.github.bean.GithubAssetsInfo;
 import com.surcumference.fingerprint.network.updateCheck.github.bean.GithubLatestInfo;
 import com.surcumference.fingerprint.util.DateUtils;
 import com.surcumference.fingerprint.util.StringUtils;
@@ -51,13 +54,12 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                         GithubLatestInfo info = new Gson().fromJson(replay, GithubLatestInfo.class);
                         if (info != null) {
                             if (info.isDataComplete()) {
-                                if (StringUtils.isAppNewVersion(BuildConfig.VERSION_NAME, info.version)) {
-                                    String content = info.content;
-                                    Date date = info.date;
-                                    if (date != null) {
-                                        content = content + "\n\n" + Lang.getString(R.id.update_time) + ": " + DateUtils.toString(date);
-                                    }
-                                    onHasUpdate(info.version, content, info.contentUrl, info.getDownloadUrl());
+                                if (BuildConfig.DEBUG || StringUtils.isAppNewVersion(BuildConfig.VERSION_NAME, info.version)) {
+                                    L.d("info", info);
+                                    String content = appendUpdateExtInfo(info.content, info.date, info.contentUrl);
+                                    L.d("content", content);
+                                    GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
+                                    onHasUpdate(info.version, content, info.contentUrl, assetsInfo.url);
                                 } else {
                                     onNoUpdate();
                                 }
@@ -76,6 +78,25 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                 .url(Constant.UPDATE_URL_GITHUB)
                 .build();
         sHttpClient.newCall(request).enqueue(callback);
+    }
+
+    private String appendUpdateExtInfo(String content, Date date, String pageUrl) {
+        StringBuilder sb = new StringBuilder(content);
+        if (date != null) {
+            sb.append("\n");
+            if (TextUtils.isEmpty(pageUrl)) {
+                sb.append("\n");
+            } else {
+                sb.append("<a href='");
+                sb.append(pageUrl.replaceAll("http(s)*://", ""));
+                sb.append("'>");
+                sb.append(Lang.getString(R.id.goto_update_page));
+                sb.append("</a>");
+                sb.append("\n");
+            }
+            sb.append(Lang.getString(R.id.update_time)).append(": ").append(DateUtils.toString(date));
+        }
+        return sb.toString();
     }
 
 }

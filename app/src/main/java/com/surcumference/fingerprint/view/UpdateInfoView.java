@@ -61,7 +61,7 @@ public class UpdateInfoView extends DialogFrameLayout {
 
         withNeutralButtonText(Lang.getString(R.id.skip_this_version));
         withNegativeButtonText(Lang.getString(R.id.cancel));
-        withPositiveButtonText(Lang.getString(R.id.goto_update_page));
+        withPositiveButtonText(Lang.getString(R.id.update_now));
 
         mContentTextView = contentTextView;
     }

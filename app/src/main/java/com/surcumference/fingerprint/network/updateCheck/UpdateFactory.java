@@ -1,17 +1,27 @@
 package com.surcumference.fingerprint.network.updateCheck;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
 import com.surcumference.fingerprint.network.updateCheck.github.GithubUpdateChecker;
+import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
-import com.surcumference.fingerprint.util.UrlUtils;
+import com.surcumference.fingerprint.util.FileUtils;
+import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.log.L;
+import com.surcumference.fingerprint.view.DownloadView;
+import com.surcumference.fingerprint.view.MessageView;
 import com.surcumference.fingerprint.view.UpdateInfoView;
+
+import java.io.File;
 
 /**
  * Created by Jason on 2017/9/10.
@@ -28,6 +38,8 @@ public class UpdateFactory {
             Toast.makeText(context, Lang.getString(R.id.toast_checking_update), Toast.LENGTH_LONG).show();
         }
         try {
+            File targetFile = FileUtils.getSharableFile(context, BuildConfig.APP_PRODUCT_NAME + ".apk");
+            FileUtils.delete(targetFile);
             new GithubUpdateChecker(new UpdateResultListener() {
                 @Override
                 public void onNoUpdate() {
@@ -58,7 +70,14 @@ public class UpdateFactory {
                         Config.from(context).setSkipVersion(version);
                         dialogInterface.dismiss();
                     });
-                    updateInfoView.withOnPositiveButtonClickListener((dialogInterface, i) -> UrlUtils.openUrl(context, pageUrl));
+                    updateInfoView.withOnPositiveButtonClickListener((dialogInterface, i) -> {
+                        new DownloadView(context)
+                                .download(downloadUrl, targetFile, () -> {
+                                    UpdateFactory.installApk(context, targetFile);
+                                    dialogInterface.dismiss();
+                                    new MessageView(context).text(Lang.getString(R.id.update_success_note)).showInDialog();
+                                }).showInDialog();
+                    });
                     updateInfoView.showInDialog();
                 }
             }).doUpdateCheck();
@@ -66,6 +85,22 @@ public class UpdateFactory {
             //for OPPO R11 Plus 6.0 NoSuchFieldError: No instance field mResultListener
             L.e(e);
         }
+    }
+
+    public static void lazyUpdateWhenActivityAlive() {
+        int lazyCheckTimeMsec = BuildConfig.DEBUG ? 200 : 6000;
+        Task.onMain(lazyCheckTimeMsec, new Runnable() {
+            @Override
+            public void run() {
+                Activity activity = ApplicationUtils.getCurrentActivity();
+                L.d("top activity", activity);
+                if (activity == null) {
+                    Task.onMain(lazyCheckTimeMsec, this);
+                    return;
+                }
+                UpdateFactory.doUpdateCheck(activity);
+            }
+        });
     }
 
     private static boolean isSkipVersion(Context context, String targetVersion) {
@@ -78,5 +113,15 @@ public class UpdateFactory {
             return true;
         }
         return false;
+    }
+
+    public static void installApk(Context context, File file) {
+        Uri uri = FileUtils.getUri(context, file);
+        file.setReadable(true, false);
+        file.getParentFile().setReadable(true, false);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.setDataAndType(uri,"application/vnd.android.package-archive");
+        Task.onMain(() -> context.startActivity(intent));
     }
 }

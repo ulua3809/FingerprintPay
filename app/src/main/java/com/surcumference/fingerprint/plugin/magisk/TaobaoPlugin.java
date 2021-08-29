@@ -32,19 +32,7 @@ public class TaobaoPlugin extends TaobaoBasePlugin {
 
         Task.onMain(1000, ()-> Umeng.init(application));
 
-        Task.onMain(6000, new Runnable() {
-            @Override
-            public void run() {
-                Activity activity = ApplicationUtils.getCurrentActivity();
-                L.d("top activity", activity);
-                if (activity == null) {
-                    Task.onMain(6000, this);
-                    return;
-                }
-                UpdateFactory.doUpdateCheck(activity);
-            }
-        });
-
+        UpdateFactory.lazyUpdateWhenActivityAlive();
         application.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

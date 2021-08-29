@@ -9,7 +9,6 @@ import android.support.annotation.Keep;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.WeChatBasePlugin;
-import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Tools;
 import com.surcumference.fingerprint.util.Umeng;
 import com.surcumference.fingerprint.util.bugfixer.xposed.XposedLogNPEBugFixer;
@@ -26,14 +25,13 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class WeChatPlugin extends WeChatBasePlugin {
 
-    private Activity mCurrentActivity;
-
     @Keep
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
             Umeng.init(context);
             XposedLogNPEBugFixer.fix();
+            UpdateFactory.lazyUpdateWhenActivityAlive();
             //for multi user
             if (!Tools.isCurrentUserOwner(context)) {
                 XposedHelpers.findAndHookMethod(UserHandle.class, "getUserId", int.class, new XC_MethodHook() {
@@ -48,22 +46,14 @@ public class WeChatPlugin extends WeChatBasePlugin {
             XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
                 @TargetApi(21)
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    boolean firstStartUp = mCurrentActivity == null;
-                    Activity activity = (Activity) param.thisObject;
-                    L.d("Activity onResume =", activity);
-                    mCurrentActivity = activity;
-                    if (firstStartUp) {
-                        Task.onMain(6000L, () -> UpdateFactory.doUpdateCheck(activity));
-                    }
-                    onActivityResumed(activity);
+                    onActivityResumed((Activity) param.thisObject);
                 }
             });
 
             XposedHelpers.findAndHookMethod(Activity.class, "onPause", new XC_MethodHook() {
                 @TargetApi(21)
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    Activity activity = (Activity) param.thisObject;
-                    onActivityPaused(activity);
+                    onActivityPaused((Activity) param.thisObject);
                 }
             });
         } catch (Throwable l) {

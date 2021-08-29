@@ -39,7 +39,7 @@ public abstract class BaseUpdateChecker implements IUpdateCheck, UpdateResultLis
     }
 
     @Override
-    public void onHasUpdate(final String version, final String content, final String pageUrl, final String downloadUrl) {
+    public void onHasUpdate(final String version, final String content, final String pageUrl, String downloadUrl) {
         Task.onMain(() -> {
             UpdateResultListener listener = mResultListener;
             if (listener == null) {

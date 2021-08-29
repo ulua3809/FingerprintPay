@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
@@ -144,6 +145,7 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         titleTextView.setTextColor(Color.BLACK);
         titleTextView.setBackgroundColor(Color.TRANSPARENT);
         titleTextView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        titleTextView.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
         int defHPadding = DpUtils.dip2px(context, 15);
         titleTextView.setPadding(defHPadding,  DpUtils.dip2px(context, 15), defHPadding,  DpUtils.dip2px(context, 8));
         titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_BIG);

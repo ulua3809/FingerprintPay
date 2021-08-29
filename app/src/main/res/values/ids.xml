@@ -24,6 +24,9 @@
     <item name="skip_this_version" type="id"/>
     <item name="cancel" type="id"/>
     <item name="goto_update_page" type="id"/>
+    <item name="update_now" type="id"/>
+    <item name="update_success_note" type="id"/>
+    <item name="downloading" type="id"/>
     <item name="ok" type="id"/>
     <item name="settings_title_alipay" type="id"/>
     <item name="settings_title_wechat" type="id"/>

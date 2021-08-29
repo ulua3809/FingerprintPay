@@ -1,7 +1,11 @@
 package com.surcumference.fingerprint.util;
 
+import android.content.Context;
+import android.net.Uri;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.BufferedInputStream;
@@ -11,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.StringReader;
+import java.util.concurrent.Callable;
 
 public class FileUtils {
     /**
@@ -99,5 +104,69 @@ public class FileUtils {
         } finally {
             closeCloseable(fos);
         }
+    }
+
+    public static Uri getUri(Context context, File file) {
+        String authority = getAuthorityForPackage(context.getPackageName());
+        return FileProvider.getUriForFile(context, authority, file);
+    }
+
+    public static String getAuthorityForPackage(String packageName) {
+        if (Constant.PACKAGE_NAME_ALIPAY.equals(packageName)) {
+            return Constant.AUTHORITY_ALIPAY;
+        } else if (Constant.PACKAGE_NAME_QQ.equals(packageName)) {
+            return Constant.AUTHORITY_QQ;
+        } else if (Constant.PACKAGE_NAME_TAOBAO.equals(packageName)) {
+            return Constant.AUTHORITY_TAOBAO;
+        } else if (Constant.PACKAGE_NAME_WECHAT.equals(packageName)) {
+            return Constant.AUTHORITY_WECHAT;
+        } else {
+            throw new RuntimeException("getAuthorityForPackage package:" + packageName + " is not support yet");
+        }
+    }
+
+    public static File getSharableFile(Context context, String fileName) {
+        Callable<File>[] testPathCallArrays = new Callable[] {
+                () -> new File(context.getCacheDir(), fileName), //taobao
+                () -> new File(context.getFilesDir(), fileName),
+                () -> new File(context.getDir("storage", Context.MODE_WORLD_WRITEABLE), fileName), //alipay
+        };
+
+        for (int i = 0; i < testPathCallArrays.length; i++) {
+            try {
+                File testFile = testPathCallArrays[i].call();
+                getUri(context, testFile);
+                return testFile;
+            } catch (Exception e) {
+            }
+        }
+        throw new RuntimeException("getSharableFile need more rule");
+    }
+
+
+    /**
+     * 递归删除目录下的所有文件及子目录下所有文件
+     *
+     * @param file 将要删除的文件目录
+     * @return boolean Returns "true" if all deletions were successful. If a
+     * deletion fails, the method stops attempting to delete and returns
+     * "false".
+     */
+    public static boolean delete(File file) {
+        if (file == null || !file.exists())
+            return true;
+
+        if (file.isDirectory()) {
+            String[] children = file.list();
+            // 递归删除目录中的子目录下
+            for (int i = 0; i < children.length; i++) {
+                boolean success = delete(new File(file, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        // 目录此时为空，可以删除
+        return file.delete();
     }
 }

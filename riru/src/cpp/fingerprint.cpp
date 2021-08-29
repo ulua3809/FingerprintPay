@@ -125,7 +125,6 @@ void fingerprintPre(JNIEnv *env, jstring *appDataDir, jstring *niceName) {
     } else {
         perror("unimplement target " MODULE_NAME);
     }
-    free(sNiceName);
 }
 
 void fingerprintPost(JNIEnv *env) {

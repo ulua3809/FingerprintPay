@@ -34,7 +34,7 @@ public class GithubLatestInfo {
     public List<GithubAssetsInfo> assets = new ArrayList<>();
 
     @Nullable
-    public String getDownloadUrl() {
+    public GithubAssetsInfo getDownloadAssetsInfo() {
         if (assets.size() == 0) {
             return null;
         }
@@ -44,14 +44,18 @@ public class GithubLatestInfo {
                 continue;
             }
             if (asset.name.toLowerCase().contains(lowerProductName)) {
-                return asset.url;
+                return asset;
             }
         }
         return null;
     }
 
     public boolean isDataComplete() {
-        if (TextUtils.isEmpty(getDownloadUrl())) {
+        GithubAssetsInfo downloadAssetsInfo = getDownloadAssetsInfo();
+        if (downloadAssetsInfo == null) {
+            return false;
+        }
+        if (TextUtils.isEmpty(downloadAssetsInfo.url)) {
             return false;
         }
         if (TextUtils.isEmpty(version)) {

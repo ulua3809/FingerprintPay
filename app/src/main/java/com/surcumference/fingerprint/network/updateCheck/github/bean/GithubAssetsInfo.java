@@ -12,4 +12,6 @@ public class GithubAssetsInfo {
 
     @SerializedName("browser_download_url")
     public String url;
+
+    public int size;
 }

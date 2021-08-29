@@ -46,20 +46,8 @@ public class QQPlugin extends QQBasePlugin {
 
             if (!TextUtils.isEmpty(niceName)
                 && !niceName.contains(":")) {
-                Task.onMain(6000, new Runnable() {
-                    @Override
-                    public void run() {
-                        Activity activity = ApplicationUtils.getCurrentActivity();
-                        L.d("top activity", activity);
-                        if (activity == null) {
-                            Task.onMain(6000, this);
-                            return;
-                        }
-                        UpdateFactory.doUpdateCheck(activity);
-                    }
-                });
+                UpdateFactory.lazyUpdateWhenActivityAlive();
             }
-
             application.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
                 @Override
                 public void onActivityCreated(Activity activity, Bundle savedInstanceState) {

@@ -6,10 +6,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.UserHandle;
 import android.support.annotation.Keep;
+import android.text.TextUtils;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.QQBasePlugin;
+import com.surcumference.fingerprint.util.FileUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Tools;
 import com.surcumference.fingerprint.util.Umeng;
@@ -28,8 +30,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class QQPlugin extends QQBasePlugin {
 
-    private boolean isFirstStartup = true;
-
     @Keep
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
@@ -46,6 +46,11 @@ public class QQPlugin extends QQBasePlugin {
              */
             Task.onMain(1000, ()-> Umeng.init(context));
             XposedLogNPEBugFixer.fix();
+            String niceName = FileUtils.getCmdLineContentByPid(android.os.Process.myPid());
+            if (!TextUtils.isEmpty(niceName)
+                    && !niceName.contains(":")) {
+                UpdateFactory.lazyUpdateWhenActivityAlive();
+            }
             //for multi user
             if (!Tools.isCurrentUserOwner(context)) {
                 XposedHelpers.findAndHookMethod(UserHandle.class, "getUserId", int.class, new XC_MethodHook() {
@@ -61,19 +66,7 @@ public class QQPlugin extends QQBasePlugin {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    final Activity activity = (Activity) param.thisObject;
-                    final String activityClzName = activity.getClass().getName();
-                    if (BuildConfig.DEBUG) {
-                        L.d("activity", activity, "clz", activityClzName);
-                    }
-
-                    if (activityClzName.contains(".SplashActivity")) {
-                        if (isFirstStartup) {
-                            isFirstStartup = false;
-                            Task.onMain(6000, () -> UpdateFactory.doUpdateCheck(activity));
-                        }
-                    }
-                    onActivityCreated(activity);
+                    onActivityCreated((Activity) param.thisObject);
                 }
             });
 
@@ -81,16 +74,14 @@ public class QQPlugin extends QQBasePlugin {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    final Activity activity = (Activity) param.thisObject;
-                    onActivityResumed(activity);
+                    onActivityResumed((Activity) param.thisObject);
                 }
             });
             XposedHelpers.findAndHookMethod(Activity.class, "onPause", new XC_MethodHook() {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    final Activity activity = (Activity) param.thisObject;
-                    onActivityPaused(activity);
+                    onActivityPaused((Activity) param.thisObject);
                 }
             });
         } catch (Throwable l) {
