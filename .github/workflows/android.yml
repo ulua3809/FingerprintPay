@@ -8,6 +8,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD-HH
+          utcOffset: "+08:00"
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -36,12 +42,12 @@ jobs:
       - name: Upload Apk
         uses: actions/upload-artifact@v2.2.0
         with:
-          name: xposed.${{ steps.current-time.outputs.formattedTime }}.zip
+          name: xposed.${{ steps.current-time.outputs.formattedTime }}
           path: app/build/outputs/apk/release/*.apk
       - name: Upload Riru Modules
         uses: actions/upload-artifact@v2.2.0
         with:
-          name: magisk.${{ steps.current-time.outputs.formattedTime }}.zip
+          name: magisk.${{ steps.current-time.outputs.formattedTime }}
           path: |
             riru/build/release/*.zip
             !riru/build/release/*-all-*.zip
