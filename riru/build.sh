@@ -5,6 +5,7 @@ MODULE_GRALDE_TASK="$1"
 MODULE_GRALDE_FILE="$2"
 MODULE_TEMPLATE="./Riru-ModuleTemplate"
 VERSION=$(cat ../app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/\1/g')
+APP_PRODUCT_TARGET=$(echo "$MODULE_GRALDE_FILE"|sed -E 's/.+\/(.+)\..+/\1/g')
 echo VERSION: $VERSION
 bash ./reset.sh
 cp -rfv ./src/cpp/* $MODULE_TEMPLATE/module/src/main/cpp/
@@ -22,5 +23,7 @@ echo 'add_definitions(-DMODULE_NAME="${MODULE_NAME}")' >> $MODULE_TEMPLATE/modul
 $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean $MODULE_GRALDE_TASK -PVERSION=$VERSION
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
 find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/magisk-\$(basename {})"
+ZIPNAME=magisk-$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
+zip -u ./build/release/$ZIPNAME $MODULE_TEMPLATE/out/*.zip
 bash ./reset.sh
 

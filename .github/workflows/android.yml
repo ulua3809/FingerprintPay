@@ -42,7 +42,9 @@ jobs:
         uses: actions/upload-artifact@v2.2.0
         with:
           name: magisk.${{ steps.current-time.outputs.formattedTime }}.zip
-          path: riru/build/release/*.zip
+          path: |
+            riru/build/release/*.zip
+            !riru/build/release/*-all-*.zip
       - name: Assign release version from version.properties to Env variable
         run: |
           cat ./app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/release_version=\1/g' >> $GITHUB_ENV

@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.view;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -58,5 +59,12 @@ public class MessageView extends DialogFrameLayout {
     public String getDialogTitle() {
         String title = mTitle;
         return TextUtils.isEmpty(title) ? Lang.getString(R.string.app_name) : title;
+    }
+
+    @Override
+    public AlertDialog showInDialog() {
+        AlertDialog dialog = super.showInDialog();
+        dialog.setCancelable(false);
+        return dialog;
     }
 }

@@ -87,6 +87,8 @@ public class Lang {
                 return tr("下载中", "下載中", "Downloading");
             case R.id.ok:
                 return tr("确定", "确定", "OK");
+            case R.id.settings_title_taobao:
+                return tr("淘宝", "淘寶", "Taobao");
             case R.id.settings_title_alipay:
                 return tr("支付宝", "支付寶", "Alipay");
             case R.id.settings_title_wechat:
@@ -115,6 +117,8 @@ public class Lang {
                 return tr("请输入QQ的支付密码, 密码会加密后保存, 请放心", "請輸入QQ的支付密碼, 密碼會加密后保存, 請放心", "Please enter your Payment password");
             case R.id.settings_sub_title_donate:
                 return tr("如果您觉得本软件好用, 欢迎赞助, 多少都是心意", "如果您覺得本軟件好用, 歡迎贊助, 多少都是心意", "Donate me, If you like this project");
+            case R.id.settings_sub_title_update_modules_same_time:
+                return tr("将同时升级以下模块", "將同時升級以下模塊", "The following modules will be upgraded at the same time");
             case R.id.fingerprint_verification:
                 return tr("请验证已有指纹", "請驗證已有指紋", "Fingerprint verification");
             case R.id.wechat_general:
@@ -143,6 +147,16 @@ public class Lang {
                 return tr("同意", "同意", "I agree");
             case R.id.update_time:
                 return tr("更新日期", "更新日期", "Update time");
+            case R.id.update_no_root:
+                return tr("未获取到ROOT权限, 无法进行自动更新, 请前往更新页面手动获取更新", "未獲取到ROOT權限, 無法進行自動更新, 請前往更新頁面手動獲取更新", "Update failed, no root permission, please go to update page to manually obtain the updates");
+            case R.id.update_at_least_select_one:
+                return tr("请至少少选择一项", "請至少少選擇一項", "Please select at least one item");
+            case R.id.update_file_corrupted:
+                return tr("文件损坏了, 请重试", "文件損壞了, 請重試", "File is corrupted, please try again");
+            case R.id.update_file_missing:
+                return tr("更新文件丢失, 请前往更新页面手动获取更新", "更新文件丟失, 請前往更新頁面手動獲取更新", "Update file is missing, please go to update page to manually obtain the updates");
+            case R.id.update_installation_failed:
+                return tr("更新安装失败, 错误码:", "更新安裝失敗, 錯誤碼:", "Update installation failed, error code:");
 
             case R.id.toast_give_me_star:
                 return tr("如果您拥有Github账户, 别忘了给我的项目+个Star噢", "如果您擁有Github賬戶, 別忘了給我的項目+個Star噢", "Give me a star, if you like this project");

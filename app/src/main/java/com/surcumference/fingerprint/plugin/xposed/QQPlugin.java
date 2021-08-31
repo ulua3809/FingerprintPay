@@ -9,7 +9,10 @@ import android.support.annotation.Keep;
 import android.text.TextUtils;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.bean.PluginTarget;
+import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.QQBasePlugin;
 import com.surcumference.fingerprint.util.FileUtils;
 import com.surcumference.fingerprint.util.Task;
@@ -34,6 +37,7 @@ public class QQPlugin extends QQBasePlugin {
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
+            PluginApp.setup(PluginType.Xposed, PluginTarget.QQ);
             /**
              * FIX java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.ref.WeakReference.get()' on a null object reference
              *     at com.tencent.mqq.shared_file_accessor.n.<init>(Unknown Source)

@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.support.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.bean.PluginTarget;
+import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.AlipayBasePlugin;
+import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.util.ActivityLifecycleCallbacks;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Task;
@@ -26,6 +29,7 @@ public class AlipayPlugin extends AlipayBasePlugin {
     }
 
     public static void init() {
+        PluginApp.setup(PluginType.Magisk, PluginTarget.Alipay);
         Application application = ApplicationUtils.getApplication();
         AlipayPlugin plugin = new AlipayPlugin();
         Task.onMain(1000, ()-> Umeng.init(application));

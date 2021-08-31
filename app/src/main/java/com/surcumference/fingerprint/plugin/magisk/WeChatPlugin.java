@@ -5,7 +5,10 @@ import android.app.Application;
 import android.support.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.bean.PluginTarget;
+import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.WeChatBasePlugin;
 import com.surcumference.fingerprint.util.ActivityLifecycleCallbacks;
 import com.surcumference.fingerprint.util.ApplicationUtils;
@@ -26,6 +29,7 @@ public class WeChatPlugin extends WeChatBasePlugin {
     }
 
     public static void init() {
+        PluginApp.setup(PluginType.Magisk, PluginTarget.WeChat);
         Application application = ApplicationUtils.getApplication();
         WeChatPlugin plugin = new WeChatPlugin();
 

@@ -7,6 +7,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.bean.UpdateInfo;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
 import com.surcumference.fingerprint.network.updateCheck.BaseUpdateChecker;
 import com.surcumference.fingerprint.network.updateCheck.github.bean.GithubAssetsInfo;
@@ -59,7 +60,8 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                                     String content = appendUpdateExtInfo(info.content, info.date, info.contentUrl);
                                     L.d("content", content);
                                     GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
-                                    onHasUpdate(info.version, content, info.contentUrl, assetsInfo.url);
+                                    UpdateInfo updateInfo = new UpdateInfo(info.version, content, info.contentUrl, assetsInfo.url, assetsInfo.size);
+                                    onHasUpdate(updateInfo);
                                 } else {
                                     onNoUpdate();
                                 }

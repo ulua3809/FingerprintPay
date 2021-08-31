@@ -28,6 +28,7 @@
     <item name="update_success_note" type="id"/>
     <item name="downloading" type="id"/>
     <item name="ok" type="id"/>
+    <item name="settings_title_taobao" type="id"/>
     <item name="settings_title_alipay" type="id"/>
     <item name="settings_title_wechat" type="id"/>
     <item name="settings_title_qq" type="id"/>
@@ -42,6 +43,7 @@
     <item name="settings_sub_title_password_wechat" type="id"/>
     <item name="settings_sub_title_password_qq" type="id"/>
     <item name="settings_sub_title_donate" type="id"/>
+    <item name="settings_sub_title_update_modules_same_time" type="id"/>
     <item name="fingerprint_verification" type="id"/>
     <item name="wechat_general" type="id"/>
     <item name="app_settings_name" type="id"/>
@@ -56,6 +58,11 @@
     <item name="disagree" type="id"/>
     <item name="agree" type="id"/>
     <item name="update_time" type="id"/>
+    <item name="update_no_root" type="id"/>
+    <item name="update_at_least_select_one" type="id"/>
+    <item name="update_file_corrupted" type="id"/>
+    <item name="update_file_missing" type="id"/>
+    <item name="update_installation_failed" type="id"/>
 
     <item name="toast_give_me_star" type="id"/>
     <item name="toast_checking_update" type="id"/>

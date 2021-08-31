@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.network.updateCheck;
 
+import com.surcumference.fingerprint.bean.UpdateInfo;
 import com.surcumference.fingerprint.network.inf.IUpdateCheck;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
 import com.surcumference.fingerprint.util.Task;
@@ -39,13 +40,13 @@ public abstract class BaseUpdateChecker implements IUpdateCheck, UpdateResultLis
     }
 
     @Override
-    public void onHasUpdate(final String version, final String content, final String pageUrl, String downloadUrl) {
+    public void onHasUpdate(UpdateInfo updateInfo) {
         Task.onMain(() -> {
             UpdateResultListener listener = mResultListener;
             if (listener == null) {
                 return;
             }
-            listener.onHasUpdate(version, content, pageUrl, downloadUrl);
+            listener.onHasUpdate(updateInfo);
         });
     }
 }

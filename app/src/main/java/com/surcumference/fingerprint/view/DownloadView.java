@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -91,8 +90,6 @@ public class DownloadView extends DialogFrameLayout {
     }
 
     public DownloadView download(String url, File targetFile, @Nullable Runnable onSuccessRunnable) {
-
-        long startTime = SystemClock.uptimeMillis();
         targetFile.delete();
         OkGo.<File>get(url)//
                 .tag(this)//
