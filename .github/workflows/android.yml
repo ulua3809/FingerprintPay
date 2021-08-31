@@ -57,7 +57,11 @@ jobs:
       - name: Echo release version from  Env variable
         run: |
           echo "${{ env.release_version }}"
-      - name: Release
+      - name: Delete drafts
+        uses: hugo19941994/delete-draft-releases@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release draft
         uses: softprops/action-gh-release@v1
         with:
           draft: true
@@ -66,4 +70,4 @@ jobs:
           files: |
             app/build/outputs/apk/release/*.apk
             riru/build/release/*.zip
-          body: "https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
+          body: "[Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})"
