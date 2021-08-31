@@ -60,7 +60,6 @@ public class DownloadView extends DialogFrameLayout {
             LinearLayout rootLinearLayout = new LinearLayout(context);
             rootLinearLayout.setOrientation(LinearLayout.VERTICAL);
             mProgressBar = initProgressBar(new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen));
-            mProgressBar.setBackgroundColor(0x20009688);
             int paddingH = DpUtils.dip2px(context, 20);
             rootLinearLayout.addView(mProgressBar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(context, 4)));
 
@@ -154,7 +153,7 @@ public class DownloadView extends DialogFrameLayout {
     private ProgressBar initProgressBar(Context context) {
         ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
-        progressBar.setBackgroundColor(Color.TRANSPARENT);
+        progressBar.setBackgroundColor(0x20009688);
         return progressBar;
     }
 

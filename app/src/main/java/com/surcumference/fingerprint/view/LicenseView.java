@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -50,7 +51,7 @@ public class LicenseView extends DialogFrameLayout {
 
     private void init(Context context) {
         try {
-            mProgressBar = initProgressBar(context);
+            mProgressBar = initProgressBar(new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen));
             WebView webView = initWebView(context);
             webView.loadUrl(Constant.HELP_URL_LICENSE);
             this.setMinimumHeight(DpUtils.dip2px(context, 200));
@@ -66,7 +67,7 @@ public class LicenseView extends DialogFrameLayout {
     private ProgressBar initProgressBar(Context context) {
         ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
-        progressBar.setBackgroundColor(Color.TRANSPARENT);
+        progressBar.setBackgroundColor(0x20009688);
         return progressBar;
     }
 

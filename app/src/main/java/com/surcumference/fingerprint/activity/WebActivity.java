@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -54,7 +55,7 @@ public class WebActivity extends AppCompatActivity {
         try {
             FrameLayout rootFLayout = new FrameLayout(this);
 
-            mProgressBar = initProgressBar();
+            mProgressBar = initProgressBar(new ContextThemeWrapper(this, android.R.style.Theme_Material_NoActionBar_Fullscreen));
             WebView webView = initWebView();
             if (!TextUtils.isEmpty(url)) {
                 webView.loadUrl(url);
@@ -74,10 +75,10 @@ public class WebActivity extends AppCompatActivity {
         }
     }
 
-    private ProgressBar initProgressBar() {
-        ProgressBar progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+    private ProgressBar initProgressBar(Context context) {
+        ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
-        progressBar.setBackgroundColor(Color.TRANSPARENT);
+        progressBar.setBackgroundColor(0x20009688);
         return progressBar;
     }
 
