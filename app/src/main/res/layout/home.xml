@@ -7,8 +7,6 @@
 
     <ListView
         android:id="@+id/list"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
         android:dividerHeight="1px"
         android:clipToPadding="true"
         android:scrollbarStyle="outsideOverlay"
