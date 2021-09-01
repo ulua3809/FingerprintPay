@@ -43,7 +43,7 @@ android.applicationVariants.all { variant ->
             }
         }
         variant.outputs.each { output ->
-            def apkName = "xposed.${android.defaultConfig.applicationId}.${android.defaultConfig.versionName}.${variant.buildType.name}.apk"
+            def apkName = "xposed.${android.defaultConfig.applicationId}.wechatfp.${android.defaultConfig.versionName}.${variant.buildType.name}.apk"
             output.outputFileName = apkName
         }
     }
