@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 
+import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.util.log.L;
 
@@ -120,6 +121,8 @@ public class FileUtils {
             return Constant.AUTHORITY_TAOBAO;
         } else if (Constant.PACKAGE_NAME_WECHAT.equals(packageName)) {
             return Constant.AUTHORITY_WECHAT;
+        } else if (BuildConfig.APPLICATION_ID.equals(packageName)) {
+            return Constant.AUTHORITY_FINGERPRINT_PAY;
         } else {
             throw new RuntimeException("getAuthorityForPackage package:" + packageName + " is not support yet");
         }

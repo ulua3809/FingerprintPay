@@ -14,6 +14,7 @@ public class Constant {
     public static final String AUTHORITY_ALIPAY = "com.eg.android.AlipayGphone.asUpgradeFileProvider";
     public static final String AUTHORITY_TAOBAO = "com.taobao.taobao.interactProvider";
     public static final String AUTHORITY_QQ = "com.tencent.mobileqq.fileprovider";
+    public static final String AUTHORITY_FINGERPRINT_PAY = BuildConfig.APPLICATION_ID + ".fileprovider";
     public static final String HELP_URL_WECHAT = "https://github.com/eritpchy/Xposed-Fingerprint-pay/blob/master/doc/WeChat/README.md";
     public static final String HELP_URL_ALIPAY = "https://github.com/eritpchy/Xposed-Fingerprint-pay/blob/master/doc/Alipay/README.md";
     public static final String HELP_URL_TAOBAO = "https://github.com/eritpchy/Xposed-Fingerprint-pay/blob/master/doc/Taobao/README.md";
