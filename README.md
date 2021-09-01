@@ -39,9 +39,6 @@
 3. [微信](https://github.com/eritpchy/FingerprintPay/tree/master/doc/WeChat)
 4. [QQ](https://github.com/eritpchy/FingerprintPay/tree/master/doc/QQ)
 
-百度云下载地址:
-链接: https://pan.baidu.com/s/1k8TH1PT8SxUtC6UjlnGqGA 提取码: 87a2
-
 ## 常见问题
 1. 因Xposed 造成的开机卡住, 可按电源键禁用Xposed (多次振动后重启手机)
 2. 可以解锁手机但提示系统指纹未启用\
