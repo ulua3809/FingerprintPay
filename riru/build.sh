@@ -24,6 +24,6 @@ $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean $MODULE_GRALDE_TASK -PVERSION
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
 find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/magisk-\$(basename {})"
 ZIPNAME=magisk-$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
-zip -u ./build/release/$ZIPNAME $MODULE_TEMPLATE/out/*.zip
+zip -j -u ./build/release/$ZIPNAME $MODULE_TEMPLATE/out/*.zip
 bash ./reset.sh
 
