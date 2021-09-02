@@ -33,6 +33,7 @@ import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
+import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
@@ -115,8 +116,8 @@ public class TaobaoBasePlugin {
                 }
                 activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
-                    final String modulePackageName = "com.taobao.taobao";
-                    View key1View = ViewUtils.findViewByName(activity, modulePackageName, "key_num_1");
+                    TaobaoVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = TaobaoVersionControl.getDigitPasswordKeyPad(mTaobaoVersionCode);
+                    View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
                         showFingerPrintDialog(activity);
                         return;
@@ -246,11 +247,11 @@ public class TaobaoBasePlugin {
                 }
                 onCompleteRunnable.run();
             });
-            AlertDialog dialog = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
+            DialogFrameLayout alipayPayView = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
                 mPwdActivityDontShowFlag = true;
-                AlertDialog dialog1 = mFingerPrintAlertDialog;
-                if (dialog1 != null) {
-                    dialog1.dismiss();
+                AlertDialog dialog = mFingerPrintAlertDialog;
+                if (dialog != null) {
+                    dialog.dismiss();
                 }
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
@@ -261,9 +262,8 @@ public class TaobaoBasePlugin {
                 if (!mPwdActivityDontShowFlag) {
                     Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
                 }
-            }).showInDialog();
-            mFingerPrintAlertDialog = dialog;
-            Task.onMain(100,  dialog::show);
+            });
+            Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
         } catch (OutOfMemoryError e) {
         }
     }

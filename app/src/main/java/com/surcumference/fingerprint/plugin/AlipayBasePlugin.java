@@ -33,6 +33,7 @@ import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
+import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
@@ -113,8 +114,9 @@ public class AlipayBasePlugin {
                 }
                 activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
-                    final String modulePackageName = "com.alipay.android.phone.safepaybase";
-                    View key1View = ViewUtils.findViewByName(activity, modulePackageName, "key_num_1");
+                    int versionCode = getAlipayVersionCode(activity);
+                    AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
+                    View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
                         showFingerPrintDialog(activity);
                         return;
@@ -180,8 +182,6 @@ public class AlipayBasePlugin {
         try {
             if (getAlipayVersionCode(activity) >= 224) {
                 if (activity.getClass().getName().contains(".MspContainerActivity")) {
-                    ViewUtils.recursiveLoopChildren(activity.getWindow().getDecorView());
-
                     View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password");
                     L.d("payTextView", payTextView);
                     if (payTextView == null) {
@@ -238,7 +238,7 @@ public class AlipayBasePlugin {
                 }
                 onCompleteRunnable.run();
             });
-            AlertDialog dialog = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
+            DialogFrameLayout alipayPayView = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
                 mPwdActivityDontShowFlag = true;
                 AlertDialog dialog1 = mFingerPrintAlertDialog;
                 if (dialog1 != null) {
@@ -253,9 +253,8 @@ public class AlipayBasePlugin {
                 if (!mPwdActivityDontShowFlag) {
                     Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
                 }
-            }).showInDialog();
-            mFingerPrintAlertDialog = dialog;
-            Task.onMain(100,  dialog::show);
+            });
+            Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
         } catch (OutOfMemoryError e) {
         }
     }
