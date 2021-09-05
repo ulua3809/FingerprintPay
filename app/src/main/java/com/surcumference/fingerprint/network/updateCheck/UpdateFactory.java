@@ -227,7 +227,6 @@ public class UpdateFactory {
             @Override
             public void run() {
                 Activity activity = ApplicationUtils.getCurrentActivity();
-                L.d("top activity", activity);
                 if (activity == null) {
                     Task.onMain(lazyCheckTimeMsec, this);
                     return;
