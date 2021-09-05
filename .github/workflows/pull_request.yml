@@ -1,0 +1,45 @@
+name: Android CI - Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get current time
+        uses: 1466587594/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD-HH
+          utcOffset: "+08:00"
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: gradle
+      - name: Build Riru modules
+        run: cd ./riru && bash ./make.sh
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew clean ":app:assembleRelease"
+      - name: Upload Apk
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: xposed.${{ steps.current-time.outputs.formattedTime }}
+          path: app/build/outputs/apk/release/*.apk
+      - name: Upload Riru Modules
+        uses: actions/upload-artifact@v2.2.0
+        with:
+          name: magisk.${{ steps.current-time.outputs.formattedTime }}
+          path: |
+            riru/build/release/*.zip
+            !riru/build/release/*-all-*.zip
