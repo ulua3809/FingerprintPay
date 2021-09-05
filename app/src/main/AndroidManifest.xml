@@ -25,6 +25,9 @@
         <meta-data
             android:name="xposedminversion"
             android:value="54" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/scope" />
 
         <activity
             android:name=".activity.HomeActivity"
