@@ -1,6 +1,6 @@
 
 
-![1](https://github.com/eritpchy/FingerprintPay/raw/master/app/src/main/res/mipmap-xhdpi/ic_launcher.png)
+![1](https://github.com/eritpchy/FingerprintPay/raw/main/app/src/main/res/mipmap-xhdpi/ic_launcher.png)
 # FingerprintPay
 让微信、支付宝、淘宝和腾讯QQ在支持指纹识别的手机上使用指纹支付, 即使他们都不打算支持!
 
@@ -34,10 +34,10 @@
 4. Enjoy
 
 ## 详细教程
-1. [支付宝](https://github.com/eritpchy/FingerprintPay/tree/master/doc/Alipay)
-2. [淘宝](https://github.com/eritpchy/FingerprintPay/tree/master/doc/Taobao)
-3. [微信](https://github.com/eritpchy/FingerprintPay/tree/master/doc/WeChat)
-4. [QQ](https://github.com/eritpchy/FingerprintPay/tree/master/doc/QQ)
+1. [支付宝](https://github.com/eritpchy/FingerprintPay/tree/main/doc/Alipay)
+2. [淘宝](https://github.com/eritpchy/FingerprintPay/tree/main/doc/Taobao)
+3. [微信](https://github.com/eritpchy/FingerprintPay/tree/main/doc/WeChat)
+4. [QQ](https://github.com/eritpchy/FingerprintPay/tree/main/doc/QQ)
 
 ## 常见问题
 1. 因Xposed 造成的开机卡住, 可按电源键禁用Xposed (多次振动后重启手机)
@@ -59,5 +59,5 @@
 1. 本软件的网络功能仅限检查自己软件更新功能, 如不放心, 欢迎REVIEW代码.
 2. 支付宝、淘宝、微信和QQ均可沿用市场中的最新版.
 
-![qq](https://github.com/eritpchy/FingerprintPay/raw/master/doc/qqGroup.png)
+![qq](https://github.com/eritpchy/FingerprintPay/raw/main/doc/qqGroup.png)
 #### QQ交流群: [665167891](http://shang.qq.com/wpa/qunwpa?idkey=91c2cd8f14532413701607c364f03f43afa1539a24b96b8907c92f3c018894e5)
