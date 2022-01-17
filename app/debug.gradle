@@ -23,12 +23,18 @@ appInfo.each {entry ->
         args = ['shell', "package=${android.defaultConfig.applicationId}&& cp -f \$(pm path \$package| cut -d: -f2) /data/local/tmp/\$package.apk && chmod 777 /data/local/tmp/\$package.apk"]
     }
     debugXposedTask.finalizedBy(startTask)
-    def debugMagiskTask = tasks.create(name: "debug${name}Magisk", dependsOn: ["mergeDexDebug", stopTask], type: Exec) {
+    def debugRiruTask = tasks.create(name: "debug${name}Riru", dependsOn: ["mergeDexDebug", stopTask], type: Exec) {
         def classDexPath = new File(project.buildDir, "intermediates/dex/debug/out/classes.dex").absolutePath
         executable = ADB_PATH
-        args = ['push', classDexPath, "/data/local/tmp/libriru-module-xfingerprint-pay-${name.toLowerCase()}.dex"]
+        args = ['push', classDexPath, "/data/local/tmp/libriru-module-xfingerprint-pay-${name.toLowerCase()}.debug.dex"]
     }
-    debugMagiskTask.finalizedBy(startTask)
+    debugRiruTask.finalizedBy(startTask)
+    def debugZygiskTask = tasks.create(name: "debug${name}Zygisk", dependsOn: ["mergeDexDebug", stopTask], type: Exec) {
+        def classDexPath = new File(project.buildDir, "intermediates/dex/debug/out/classes.dex").absolutePath
+        executable = ADB_PATH
+        args = ['push', classDexPath, "/data/local/tmp/libzygisk-module-xfingerprint-pay-${name.toLowerCase()}.debug.dex"]
+    }
+    debugZygiskTask.finalizedBy(startTask)
 }
 
 android.applicationVariants.all { variant ->

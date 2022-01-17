@@ -2,7 +2,7 @@ ext {
     /*
        This name will be used in the name of the so file ("lib${moduleLibraryName}.so").
     */
-    moduleLibraryName = "riru-module-xfingerprint-pay-qq".toString()
+    moduleLibraryName = project.property("MODULE_LIB_NAME").toString()
 
     /* Minimal supported Riru API version, used in the version check of riru.sh */
     moduleMinRiruApiVersion = 24
@@ -22,7 +22,7 @@ ext {
     */
     magiskModuleId = moduleLibraryName.toString()
 
-    moduleName = "Riru - 指纹支付 - QQ"
+    moduleName = "${project.property("PLUGIN_TYPE_NAME").toString().capitalize()} - 指纹支付 - QQ"
     moduleAuthor = "Jason Eric"
     moduleDescription = "让QQ支持指纹支付 Fingerprint pay for QQ."
     moduleVersion = "v${project.property("VERSION")}"

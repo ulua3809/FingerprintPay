@@ -57,7 +57,8 @@ public class UpdateFactory {
         try {
             String packageName = context.getPackageName();
             String fileName = PluginApp.runActionBaseOnCurrentPluginType(new HashMap<PluginType, Callable<String>>() {{
-                put(PluginType.Magisk, () -> packageName + ".zip");
+                put(PluginType.Riru, () -> packageName + ".riru.zip");
+                put(PluginType.Zygisk, () -> packageName + ".zygisk.zip");
                 put(PluginType.Xposed, () -> packageName + ".apk");
             }});
             File targetFile = FileUtils.getSharableFile(context, fileName);
@@ -94,7 +95,11 @@ public class UpdateFactory {
                     });
                     updateInfoView.withOnPositiveButtonClickListener((dialogInterface, i) -> {
                         PluginApp.runActionBaseOnCurrentPluginType(new HashMap<PluginType, Callable<Object>>() {{
-                            put(PluginType.Magisk, () -> {
+                            put(PluginType.Riru, () -> {
+                                handleMagiskUpdate(context, updateInfo, dialogInterface);
+                                return null;
+                            });
+                            put(PluginType.Zygisk, () -> {
                                 handleMagiskUpdate(context, updateInfo, dialogInterface);
                                 return null;
                             });

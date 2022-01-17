@@ -7,7 +7,6 @@ import android.support.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.bean.PluginTarget;
-import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.TaobaoBasePlugin;
@@ -24,13 +23,13 @@ import com.surcumference.fingerprint.util.log.L;
 public class TaobaoPlugin extends TaobaoBasePlugin {
 
     @Keep
-    public static void main(String appDataDir) {
+    public static void main(String appDataDir, String pluginTypeName) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
+        PluginApp.setup(pluginTypeName, PluginTarget.Taobao);
         Task.onApplicationReady(TaobaoPlugin::init);
     }
 
     public static void init() {
-        PluginApp.setup(PluginType.Magisk, PluginTarget.Taobao);
         Application application = ApplicationUtils.getApplication();
         TaobaoPlugin plugin = new TaobaoPlugin();
 

@@ -45,7 +45,8 @@ public class GithubLatestInfo {
         }
         PluginType pluginType = PluginApp.getCurrentType();
         String assetsMatchRegexRule = PluginApp.runActionBaseOnCurrentPluginType(new HashMap<PluginType, Callable<String>>(){{
-            put(PluginType.Magisk, () -> "^" + pluginType.name() + ".+all.+zip$");
+            put(PluginType.Riru, () -> "^" + pluginType.name() + ".+all.+zip$");
+            put(PluginType.Zygisk, () -> "^" + pluginType.name() + ".+all.+zip$");
             put(PluginType.Xposed, () -> "^" + pluginType.name() + ".+apk$");
         }});
         assetsMatchRegexRule = assetsMatchRegexRule.toLowerCase();

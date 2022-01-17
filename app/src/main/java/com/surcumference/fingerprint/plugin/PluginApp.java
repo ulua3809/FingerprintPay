@@ -17,6 +17,17 @@ public class PluginApp {
         sPluginTarget = pluginTarget;
     }
 
+    public static void setup(String pluginTypeName, PluginTarget pluginTarget) {
+        for (PluginType pluginType: PluginType.values()) {
+            if (pluginType.name().equalsIgnoreCase(pluginTypeName)) {
+                sPluginType = pluginType;
+                sPluginTarget = pluginTarget;
+                return;
+            }
+        }
+        throw new RuntimeException("Unsupported plugin type:" + pluginTypeName);
+    }
+
     public static PluginType getCurrentType() {
         if (sPluginType == null) {
             throw new NullPointerException("PluginApp not initial yet");
@@ -34,7 +45,8 @@ public class PluginApp {
     public static<T> T runActionBaseOnCurrentPluginType(Map<PluginType, Callable<T>> actionMap) {
         PluginType pluginType = PluginApp.getCurrentType();
         switch (pluginType) {
-            case Magisk:
+            case Riru:
+            case Zygisk:
             case Xposed:
                 if (!actionMap.containsKey(pluginType)) {
                     throw new IllegalArgumentException("Plugin type:" + pluginType.name() + " is not in actionMap");
@@ -44,7 +56,8 @@ public class PluginApp {
                 throw new RuntimeException("Unsupported plugin type:" + pluginType.name());
         }
         switch (pluginType) {
-            case Magisk:
+            case Riru:
+            case Zygisk:
             case Xposed:
                 try {
                     return actionMap.get(pluginType).call();

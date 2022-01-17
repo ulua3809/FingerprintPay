@@ -8,7 +8,6 @@ import android.text.TextUtils;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.bean.PluginTarget;
-import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.QQBasePlugin;
@@ -25,15 +24,14 @@ import com.surcumference.fingerprint.util.log.L;
 public class QQPlugin extends QQBasePlugin {
 
     @Keep
-    public static void main(String niceName) {
+    public static void main(String niceName, String pluginTypeName) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
-
+        PluginApp.setup(pluginTypeName, PluginTarget.QQ);
         Task.onApplicationReady(() -> init(niceName));
     }
 
     public static void init(String niceName) {
         try {
-            PluginApp.setup(PluginType.Magisk, PluginTarget.QQ);
             Application application = ApplicationUtils.getApplication();
             QQPlugin plugin = new QQPlugin();
             /**

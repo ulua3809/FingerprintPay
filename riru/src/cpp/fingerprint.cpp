@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <jni.h>
+#include <sys/stat.h>
 #include <sys/types.h>
-#include <riru.h>
 #include <malloc.h>
+
 #include <cstring>
+
+#include <riru.h>
 
 #include "fingerprint.h"
 #include "log.h"
@@ -50,7 +53,8 @@ static bool equals(const char *str1, const char *str2) {
  *  jclassName      需要调用jar包中的类名
  *  jmethodName     需要调用的类中的静态方法
  */
-static void loadDex(JNIEnv *env, jstring jdexPath, jstring jodexPath, jstring jclassName, const char* methodName, jstring jarg1) {
+static void loadDex(JNIEnv *env, jstring jdexPath, jstring jodexPath, jstring jclassName,
+    const char* methodName, jstring jarg1, jstring jarg2) {
 
     if (!jdexPath) {
         LOGD("MEM ERR");
@@ -85,14 +89,14 @@ static void loadDex(JNIEnv *env, jstring jdexPath, jstring jodexPath, jstring jc
     }
 
     jclass javaClientClass = (jclass)env->CallObjectMethod(dexLoader, findclassMethod, jclassName);
-    jmethodID targetMethod = env->GetStaticMethodID(javaClientClass, methodName, "(Ljava/lang/String;)V");
+    jmethodID targetMethod = env->GetStaticMethodID(javaClientClass, methodName, "(Ljava/lang/String;Ljava/lang/String;)V");
 
     if (targetMethod == NULL) {
         LOGD("target method(%s) not found", methodName);
         return;
     }
 
-    env->CallStaticVoidMethod(javaClientClass, targetMethod, jarg1);
+    env->CallStaticVoidMethod(javaClientClass, targetMethod, jarg1, jarg2);
 }
 
 void fingerprintPre(JNIEnv *env, jstring *appDataDir, jstring *niceName) {
@@ -127,33 +131,45 @@ void fingerprintPre(JNIEnv *env, jstring *appDataDir, jstring *niceName) {
     }
 }
 
-void fingerprintPost(JNIEnv *env) {
+void fingerprintPost(JNIEnv *env, const char *pluginTypeName) {
     if (sHookEnable) {
         char appCacheDir[PATH_MAX] = {0};
         snprintf(appCacheDir, PATH_MAX - 1, "%s/cache", sAppDataDir);
+        if (access(appCacheDir, 0) != 0) mkdir(appCacheDir, 0755);
 
-            const char *dexPath = "/data/local/tmp/lib" MODULE_NAME ".dex";
-            if (access(dexPath, 0) != 0) {
-                dexPath = "/system/framework/lib" MODULE_NAME ".dex";
-            }
-            const char *bootClassPath;
-            if (strstr(MODULE_NAME, "qq")) {
-                bootClassPath = "com.surcumference.fingerprint.plugin.magisk.QQPlugin";
-            } else if (strstr(MODULE_NAME, "wechat")) {
-                bootClassPath = "com.surcumference.fingerprint.plugin.magisk.WeChatPlugin";
-            } else if (strstr(MODULE_NAME, "alipay")) {
-                bootClassPath = "com.surcumference.fingerprint.plugin.magisk.AlipayPlugin";
-            } else if (strstr(MODULE_NAME, "taobao")) {
-                bootClassPath = "com.surcumference.fingerprint.plugin.magisk.TaobaoPlugin";
-            } else {
-                perror("unimplement target " MODULE_NAME);
-            }
-            loadDex(env,
-                env->NewStringUTF(dexPath),
-                env->NewStringUTF(appCacheDir),
-                env->NewStringUTF(bootClassPath),
-                "main",
-                env->NewStringUTF(sNiceName)
+        const char *dexPath = "/data/local/tmp/lib" MODULE_NAME ".debug.dex";
+        if (access(dexPath, 0) != 0) {
+            dexPath = "/system/framework/lib" MODULE_NAME ".dex";
+        }
+        //https://github.com/eritpchy/FingerprintPay/issues/107
+        if (access(dexPath, 0) != 0) {
+            LOGE("Error: dexPath:%s is not accessible", dexPath);
+            dexPath = "/data/local/tmp/lib" MODULE_NAME ".dex";
+        }
+        if (access(dexPath, 0) != 0) {
+            LOGE("Error: dexPath:%s is not accessible", dexPath);
+            return;
+        }
+
+        const char *bootClassPath;
+        if (strstr(MODULE_NAME, "qq")) {
+            bootClassPath = "com.surcumference.fingerprint.plugin.magisk.QQPlugin";
+        } else if (strstr(MODULE_NAME, "wechat")) {
+            bootClassPath = "com.surcumference.fingerprint.plugin.magisk.WeChatPlugin";
+        } else if (strstr(MODULE_NAME, "alipay")) {
+            bootClassPath = "com.surcumference.fingerprint.plugin.magisk.AlipayPlugin";
+        } else if (strstr(MODULE_NAME, "taobao")) {
+            bootClassPath = "com.surcumference.fingerprint.plugin.magisk.TaobaoPlugin";
+        } else {
+            perror("unimplement target " MODULE_NAME);
+        }
+        loadDex(env,
+            env->NewStringUTF(dexPath),
+            env->NewStringUTF(appCacheDir),
+            env->NewStringUTF(bootClassPath),
+            "main",
+            env->NewStringUTF(sNiceName),
+            env->NewStringUTF(pluginTypeName)
         );
     }
 }

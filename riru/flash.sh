@@ -2,8 +2,12 @@
 set -e
 cd ${0%/*}
 
-bash ./build.sh :module:flashRelease ./src/gradle/qq.gradle
-bash ./build.sh :module:flashRelease ./src/gradle/alipay.gradle
-bash ./build.sh :module:flashRelease ./src/gradle/taobao.gradle
-bash ./build.sh :module:flashRelease ./src/gradle/wechat.gradle
-adb shell "rm -fv /data/local/tmp/libriru*.dex"
+bash ./build.sh :module:flashRelease ./src/gradle/qq.gradle      Zygisk
+bash ./build.sh :module:flashRelease ./src/gradle/qq.gradle      Riru
+bash ./build.sh :module:flashRelease ./src/gradle/alipay.gradle  Zygisk
+bash ./build.sh :module:flashRelease ./src/gradle/alipay.gradle  Riru
+bash ./build.sh :module:flashRelease ./src/gradle/taobao.gradle  Zygisk
+bash ./build.sh :module:flashRelease ./src/gradle/taobao.gradle  Riru
+bash ./build.sh :module:flashRelease ./src/gradle/wechat.gradle  Zygisk
+bash ./build.sh :module:flashRelease ./src/gradle/wechat.gradle  Riru
+adb shell "rm -fv /data/local/tmp/lib*.debug.dex"
