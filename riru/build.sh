@@ -36,9 +36,6 @@ $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean $MODULE_GRALDE_TASK \
   -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
   -PMODULE_LIB_NAME=$MODULE_LIB_NAME
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
-if [ "$PLUGIN_TYPE_NAME" == "Zygisk" ]; then
-  find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "mv -fv {} \$(echo {}|sed 's|riru-|zygisk-|g')"
-fi
 find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/\$(basename {})"
 ZIPNAME=$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
 zip -j -u ./build/release/$ZIPNAME $MODULE_TEMPLATE/out/*.zip
