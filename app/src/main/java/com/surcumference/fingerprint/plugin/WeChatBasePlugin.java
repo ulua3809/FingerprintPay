@@ -261,7 +261,10 @@ public class WeChatBasePlugin {
                         Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_wechat), Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    mInputEditText.setText(pwd);
+                    mInputEditText.getText().clear();
+                    for (char c : pwd.toCharArray()) {
+                        mInputEditText.append(String.valueOf(c));
+                    }
                 });
                 if (titleTextView != null) {
                     titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
