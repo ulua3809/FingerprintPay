@@ -227,7 +227,8 @@ public class UpdateFactory {
             @Override
             public void run() {
                 Activity activity = ApplicationUtils.getCurrentActivity();
-                if (activity == null) {
+                if (activity == null
+                    || activity.getClass().getName().contains("com.tencent.mm.app.WeChatSplashActivity")) {
                     Task.onMain(lazyCheckTimeMsec, this);
                     return;
                 }
