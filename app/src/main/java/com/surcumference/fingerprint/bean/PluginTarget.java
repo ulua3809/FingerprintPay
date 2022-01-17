@@ -1,21 +1,24 @@
 package com.surcumference.fingerprint.bean;
 
+import android.support.annotation.IdRes;
+
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 
 public enum PluginTarget {
-    QQ(Lang.getString(R.id.settings_title_qq)),
-    WeChat(Lang.getString(R.id.settings_title_wechat)),
-    Alipay(Lang.getString(R.id.settings_title_alipay)),
-    Taobao(Lang.getString(R.id.settings_title_taobao));
+    QQ(R.id.settings_title_qq),
+    WeChat(R.id.settings_title_wechat),
+    Alipay(R.id.settings_title_alipay),
+    Taobao(R.id.settings_title_taobao);
 
-    private String mAppName;
+    @IdRes
+    private int mAppNameRes;
 
-    PluginTarget(String appName) {
-        mAppName = appName;
+    PluginTarget(@IdRes int appNameRes) {
+        mAppNameRes = appNameRes;
     }
 
     public String getAppName() {
-        return mAppName;
+        return Lang.getString(mAppNameRes);
     }
 }
