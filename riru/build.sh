@@ -21,6 +21,7 @@ if [ "$PLUGIN_TYPE_NAME" == "Zygisk" ]; then
 else
   cat ./src/magisk/customize.sh >> $MODULE_TEMPLATE/template/magisk_module/customize.sh
 fi
+echo "rm -f \"/data/local/tmp/lib$MODULE_LIB_NAME.dex\" || true" >> $MODULE_TEMPLATE/template/magisk_module/uninstall.sh
 cat ./src/magisk/post-fs-data.sh > $MODULE_TEMPLATE/template/magisk_module/post-fs-data.sh
 chmod 0755 $MODULE_TEMPLATE/template/magisk_module/post-fs-data.sh
 perl -0777 -i -pe  's/(forkAndSpecializePre[\W\w]+?{[\W\w]+?)}/$1    fingerprintPre(env, appDataDir, niceName);\n}/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
