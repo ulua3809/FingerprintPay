@@ -10,4 +10,4 @@ bash ./build.sh :module:flashRelease ./src/gradle/taobao.gradle  Zygisk
 bash ./build.sh :module:flashRelease ./src/gradle/taobao.gradle  Riru
 bash ./build.sh :module:flashRelease ./src/gradle/wechat.gradle  Zygisk
 bash ./build.sh :module:flashRelease ./src/gradle/wechat.gradle  Riru
-adb shell "rm -fv /data/local/tmp/lib*.debug.dex"
+adb shell "rm -f /data/local/tmp/lib*.debug.dex"
