@@ -358,7 +358,8 @@ public class WeChatBasePlugin {
         if (versionCode >= 2060) { //8.0.18
             //整个设置界面的class 都是 com.tencent.mm.ui.vas.VASCommonActivity...
             if (activity.getClass().getName().contains("com.tencent.mm.ui.vas.VASCommonActivity")) {
-                if (ViewUtils.findViewByText(itemView, Lang.getString(R.id.wechat_general)) == null) {
+                if (ViewUtils.findViewByText(itemView, Lang.getString(R.id.wechat_general),
+                        "通用", "一般", "General") == null) {
                     return;
                 }
             }
