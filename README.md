@@ -11,7 +11,7 @@
 * Android 6.0+
 * Android 5.1+(部分魅族机型)
 * Android 4.4+(部分三星机型)
-* [Magisk](https://github.com/topjohnwu/Magisk) 或 [Xposed](https://github.com/ElderDrivers/EdXposed)
+* [Magisk](https://github.com/topjohnwu/Magisk)、[Zygisk](https://github.com/topjohnwu/Magisk) 或 [Xposed](https://github.com/ElderDrivers/EdXposed)
 
 ## 他怎么工作呢？
 1. 利用 [Magisk](https://github.com/topjohnwu/Magisk) 的 [Riru](https://github.com/RikkaApps/Riru) 注入 zygote 进程
@@ -19,10 +19,20 @@
 
 ## 使用步骤 Magisk
 1. 下载插件: [riru-release.zip](https://github.com/RikkaApps/Riru/releases)
-2. 下载插件: [magisk-riru-module-xfingerprint-pay-qq-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
-3. 下载插件: [magisk-riru-module-xfingerprint-pay-alipay-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
-4. 下载插件: [magisk-riru-module-xfingerprint-pay-wechat-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
-5. 下载插件: [magisk-riru-module-xfingerprint-pay-taobao-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+2. 下载插件: [riru-module-xfingerprint-pay-qq-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+3. 下载插件: [riru-module-xfingerprint-pay-alipay-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+4. 下载插件: [riru-module-xfingerprint-pay-wechat-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+5. 下载插件: [riru-module-xfingerprint-pay-taobao-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+6. 进入 Magisk Manager, 模块, 安装这五个模块, 不要重启
+7. 勾选启用五个模块, 重启手机
+8. Enjoy
+
+## 使用步骤 Zygisk
+1. 确认 Magisk Manager 应用设置中启用 Zygisk功能
+2. 下载插件: [zygisk-module-xfingerprint-pay-qq-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+3. 下载插件: [zygisk-module-xfingerprint-pay-alipay-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+4. 下载插件: [zygisk-module-xfingerprint-pay-wechat-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
+5. 下载插件: [zygisk-riru-module-xfingerprint-pay-taobao-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
 6. 进入 Magisk Manager, 模块, 安装这五个模块, 不要重启
 7. 勾选启用五个模块, 重启手机
 8. Enjoy
