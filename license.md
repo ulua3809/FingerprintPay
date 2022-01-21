@@ -74,4 +74,4 @@
 
 #### 官方邮件地址：
 
-E-mail: eritpchy@qq.com
+E-mail: eritpchy#qq.com
