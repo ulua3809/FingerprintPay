@@ -71,7 +71,7 @@ public class WeChatPayDialog {
                         "使用指纹", "使用指紋", "Fingerprint");
                 L.d("payDialog.usePasswordText", payDialog.usePasswordText); // 6.5.16 app:id/dh0
                 if (payDialog.usePasswordText == null) {
-                    Tools.doUnSupportVersionUpload(rootView.getContext(), "[WeChat usePasswordText NOT FOUND]  " + com.surcumference.fingerprint.util.ViewUtils.viewsDesc(childViews));
+                    //ignore 没有开通指纹支付不会出现
                 }
 
                 payDialog.titleTextView = (TextView) com.surcumference.fingerprint.util.ViewUtils.findViewByText(rootView,

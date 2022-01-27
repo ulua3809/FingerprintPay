@@ -197,7 +197,8 @@ public class WeChatBasePlugin {
         try {
             L.d("Activity onPause =", activity);
             final String activityClzName = activity.getClass().getName();
-            if (activityClzName.contains(".WalletPayUI")) {
+            if (activityClzName.contains(".WalletPayUI")
+                || activityClzName.contains(".UIPageFragmentActivity")) {
                 stopAndRemoveCurrentActivityViewObserver();
                 onPayDialogDismiss(activity);
             }
