@@ -275,20 +275,18 @@ public class AlipayBasePlugin {
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
 
-        int defHPadding = DpUtils.dip2px(activity, 15);
-
         TextView itemNameText = new TextView(activity);
         StyleUtils.apply(itemNameText);
         itemNameText.setText(Lang.getString(R.id.app_settings_name));
         itemNameText.setGravity(Gravity.CENTER_VERTICAL);
-        itemNameText.setPadding(defHPadding, 0, 0, 0);
+        itemNameText.setPadding(DpUtils.dip2px(activity, 12), 0, 0, 0);
         itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, StyleUtils.TEXT_SIZE_BIG);
 
         TextView itemSummerText = new TextView(activity);
         StyleUtils.apply(itemSummerText);
         itemSummerText.setText(BuildConfig.VERSION_NAME);
         itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
-        itemSummerText.setPadding(0, 0, defHPadding, 0);
+        itemSummerText.setPadding(0, 0, DpUtils.dip2px(activity, 18), 0);
         itemSummerText.setTextColor(0xFF999999);
 
         //try use Alipay style
@@ -536,5 +534,6 @@ public class AlipayBasePlugin {
         if (dialog != null) {
             dialog.dismiss();
         }
+        mFingerPrintAlertDialog = null;
     }
 }
