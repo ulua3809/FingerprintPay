@@ -81,7 +81,9 @@ public class Lang {
             case R.id.cancel:
                 return tr("取消", "取消", "Cancel");
             case R.id.goto_update_page:
-                return tr("前往更新页", "前往更新頁 ", "Go");
+                return tr("前往更新页", "前往更新頁 ", "Update page");
+            case R.id.goto_update_page_mirror:
+                return tr("(国内镜像)", "(國內鏡像) ", "(Mirror)");
             case R.id.update_now:
                 return tr("立即更新", "立即更新 ", "UPDATE");
             case R.id.update_success_note:

@@ -95,6 +95,12 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                 sb.append("'>");
                 sb.append(Lang.getString(R.id.goto_update_page));
                 sb.append("</a>");
+
+                sb.append("  <a href='");
+                sb.append((Constant.CDN_URL + pageUrl).replaceAll("http(s)*://", ""));
+                sb.append("'>");
+                sb.append(Lang.getString(R.id.goto_update_page_mirror));
+                sb.append("</a>");
                 sb.append("\n");
             }
             sb.append(Lang.getString(R.id.update_time)).append(": ").append(DateUtils.toString(date));
