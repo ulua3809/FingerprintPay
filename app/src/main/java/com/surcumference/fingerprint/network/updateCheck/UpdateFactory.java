@@ -121,8 +121,10 @@ public class UpdateFactory {
     private static void handleMagiskUpdate(Context context, UpdateInfo updateInfo, DialogInterface updateInfoViewDialogInterface) {
         Task.onBackground(() -> {
             if (!Shell.SU.available()) {
-                Task.onMain(() -> new MessageView(context).text(Lang.getString(R.id.update_no_root)).showInDialog());
-                return;
+                if (!Shell.SU.available()) {
+                    Task.onMain(() -> new MessageView(context).text(Lang.getString(R.id.update_no_root)).showInDialog());
+                    return;
+                }
             }
             Task.onMain(() -> {
                 MagiskInstPluginTargetSelectionView instPluginTargetSelectionView = new MagiskInstPluginTargetSelectionView(context);

@@ -126,6 +126,8 @@ void fingerprintPre(JNIEnv *env, jstring *appDataDir, jstring *niceName) {
         sHookEnable = equals(sNiceName, "com.eg.android.AlipayGphone");
     } else if (strstr(MODULE_NAME, "taobao")) {
         sHookEnable = equals(sNiceName, "com.taobao.taobao");
+    } else if (strstr(MODULE_NAME, "unionpay")) {
+        sHookEnable = equals(sNiceName, "com.unionpay");
     } else {
         perror("unimplement target " MODULE_NAME);
     }
@@ -160,6 +162,8 @@ void fingerprintPost(JNIEnv *env, const char *pluginTypeName) {
             bootClassPath = "com.surcumference.fingerprint.plugin.magisk.AlipayPlugin";
         } else if (strstr(MODULE_NAME, "taobao")) {
             bootClassPath = "com.surcumference.fingerprint.plugin.magisk.TaobaoPlugin";
+        } else if (strstr(MODULE_NAME, "unionpay")) {
+            bootClassPath = "com.surcumference.fingerprint.plugin.magisk.UnionPayPlugin";
         } else {
             perror("unimplement target " MODULE_NAME);
         }

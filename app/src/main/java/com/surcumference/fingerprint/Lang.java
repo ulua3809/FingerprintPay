@@ -40,6 +40,8 @@ public class Lang {
                 return tr("淘宝指纹", "淘宝指纹", "Taobao fingerprint pay");
             case R.id.settings_title_help_qq:
                 return tr("QQ指纹", "QQ指纹", "QQ fingerprint pay");
+            case R.id.settings_title_help_unionpay:
+                return tr("云闪付指纹", "雲閃付指纹", "UnionPay fingerprint pay");
             case R.id.settings_title_qq_group:
                 return tr("QQ交流群", "QQ交流群", "QQ Group");
             case R.id.settings_title_help_faq:
@@ -59,6 +61,8 @@ public class Lang {
             case R.id.settings_sub_title_help_taobao:
                 return tr("查看使用教程", "查看使用教程", "Tutorial");
             case R.id.settings_sub_title_help_qq:
+                return tr("查看使用教程", "查看使用教程", "Tutorial");
+            case R.id.settings_sub_title_help_unionpay:
                 return tr("查看使用教程", "查看使用教程", "Tutorial");
             case R.id.settings_sub_title_qq_group:
                 return tr("665167891", "665167891", "665167891");
@@ -95,6 +99,8 @@ public class Lang {
                 return tr("微信", "微信", "WeChat");
             case R.id.settings_title_qq:
                 return tr("腾讯QQ", "騰訊QQ", "Tencent QQ");
+            case R.id.settings_title_unionpay:
+                return tr("云闪付", "雲閃付", "Union Pay");
             case R.id.enter_password:
                 return tr("使用密码", "使用密碼", "Enter password");
             case R.id.settings_title_switch:

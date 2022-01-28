@@ -1,9 +1,10 @@
 def ADB_PATH = "${android.getSdkDirectory()}/platform-tools/adb"
 def appInfo = [
-    Alipay: "com.eg.android.AlipayGphone",
-    Taobao: "com.taobao.taobao",
-    QQ:     "com.tencent.mobileqq",
-    WeChat: "com.tencent.mm",
+    Alipay:     "com.eg.android.AlipayGphone",
+    Taobao:     "com.taobao.taobao",
+    QQ:         "com.tencent.mobileqq",
+    WeChat:     "com.tencent.mm",
+    UnionPay:   "com.unionpay",
 ]
 appInfo.each {entry ->
     def name = entry.key

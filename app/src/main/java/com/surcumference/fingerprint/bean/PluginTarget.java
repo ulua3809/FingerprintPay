@@ -9,7 +9,8 @@ public enum PluginTarget {
     QQ(R.id.settings_title_qq),
     WeChat(R.id.settings_title_wechat),
     Alipay(R.id.settings_title_alipay),
-    Taobao(R.id.settings_title_taobao);
+    Taobao(R.id.settings_title_taobao),
+    UnionPay(R.id.settings_title_unionpay);
 
     @IdRes
     private int mAppNameRes;

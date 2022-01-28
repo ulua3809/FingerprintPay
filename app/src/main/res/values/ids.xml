@@ -5,6 +5,7 @@
     <item name="settings_title_help_alipay" type="id"/>
     <item name="settings_title_help_taobao" type="id"/>
     <item name="settings_title_help_qq" type="id"/>
+    <item name="settings_title_help_unionpay" type="id"/>
     <item name="settings_title_qq_group" type="id"/>
     <item name="settings_title_help_faq" type="id"/>
     <item name="settings_title_license" type="id"/>
@@ -15,6 +16,7 @@
     <item name="settings_sub_title_help_alipay" type="id"/>
     <item name="settings_sub_title_help_taobao" type="id"/>
     <item name="settings_sub_title_help_qq" type="id"/>
+    <item name="settings_sub_title_help_unionpay" type="id"/>
     <item name="settings_sub_title_qq_group" type="id"/>
     <item name="settings_sub_title_help_faq" type="id"/>
     <item name="settings_sub_title_license" type="id"/>
@@ -32,6 +34,7 @@
     <item name="settings_title_alipay" type="id"/>
     <item name="settings_title_wechat" type="id"/>
     <item name="settings_title_qq" type="id"/>
+    <item name="settings_title_unionpay" type="id"/>
     <item name="enter_password" type="id"/>
     <item name="settings_title_switch" type="id"/>
     <item name="settings_title_password" type="id"/>

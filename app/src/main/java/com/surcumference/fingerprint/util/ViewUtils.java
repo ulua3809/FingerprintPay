@@ -127,13 +127,18 @@ public class ViewUtils {
 
     @Nullable
     public static View findViewByName(Activity activity, String packageName, String... names) {
-        Resources resources = activity.getResources();
+        View rootView = activity.getWindow().getDecorView();
+        return findViewByName(rootView, packageName, names);
+    }
+
+    @Nullable
+    public static View findViewByName(View rootView, String packageName, String... names) {
+        Resources resources = rootView.getResources();
         for (String name : names) {
             int id = resources.getIdentifier(name, "id", packageName);
             if (id == 0) {
                 continue;
             }
-            View rootView = activity.getWindow().getDecorView();
             List<View> viewList = new ArrayList<>();
             getChildViews((ViewGroup) rootView, id, viewList);
             sortViewListByYPosition(viewList);
@@ -491,5 +496,41 @@ public class ViewUtils {
             return current;
         }
         return getTopestView(parent, (ViewGroup)parent);
+    }
+
+    public static void relayout(View view) {
+        view.measure(View.MeasureSpec.makeMeasureSpec(view.getWidth(), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(view.getHeight(), View.MeasureSpec.EXACTLY));
+        view.layout(view.getLeft(),view.getTop(), view.getRight(), view.getBottom());
+    }
+
+    @Nullable
+    public static <T extends ViewGroup> T findParentViewByClass(View view, Class<T> clz) {
+        ViewParent parentView = view.getParent();
+        if (parentView == null) {
+            return null;
+        }
+        if (clz.isAssignableFrom(parentView.getClass())) {
+            return (T) parentView;
+        }
+        if (parentView instanceof View) {
+            return findParentViewByClass((View) parentView, clz);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static ViewGroup findParentViewByClassNamePart(View view, String classPart) {
+        ViewParent parentView = view.getParent();
+        if (parentView == null) {
+            return null;
+        }
+        if (parentView.getClass().getName().contains(classPart)) {
+            return (ViewGroup) parentView;
+        }
+        if (parentView instanceof ViewGroup) {
+            return findParentViewByClassNamePart((ViewGroup) parentView, classPart);
+        }
+        return null;
     }
 }

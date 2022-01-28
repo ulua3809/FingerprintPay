@@ -10,3 +10,5 @@ bash ./build.sh :module:assembleRelease ./src/gradle/taobao.gradle  Zygisk
 bash ./build.sh :module:assembleRelease ./src/gradle/taobao.gradle  Riru
 bash ./build.sh :module:assembleRelease ./src/gradle/wechat.gradle  Zygisk
 bash ./build.sh :module:assembleRelease ./src/gradle/wechat.gradle  Riru
+bash ./build.sh :module:assembleRelease ./src/gradle/unionpay.gradle  Zygisk
+bash ./build.sh :module:assembleRelease ./src/gradle/unionpay.gradle  Riru

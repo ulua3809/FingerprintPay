@@ -157,7 +157,8 @@ public class WeChatBasePlugin {
         } else if (activityClzName.contains(".WalletPayUI")
                 || activityClzName.contains(".UIPageFragmentActivity")) {
             stopAndRemoveCurrentActivityViewObserver();
-            ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity, ".EditHintPasswdView");
+            ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
+            activityViewObserver.setViewIdentifyType(".EditHintPasswdView");
             activityViewObserver.start(100, new ActivityViewObserver.IActivityViewListener() {
                 @Override
                 public void onViewFounded(ActivityViewObserver observer, View view) {

@@ -2,9 +2,9 @@
 
 ![1](./app/src/main/res/mipmap-xhdpi/ic_launcher.png)
 # FingerprintPay
-让微信、支付宝、淘宝和腾讯QQ在支持指纹识别的手机上使用指纹支付, 即使他们都不打算支持!
+让微信、支付宝、淘宝、腾讯QQ、云闪付在支持指纹识别的手机上使用指纹支付.
 
-## 注意: 支付宝现在支持了刷脸支付, 体验感官跟苹果的Face ID差不多, 请优先使用支付宝自带的刷脸支付
+## 注意: 支付宝支持刷脸支付, 体验感官跟苹果的Face ID差不多, 请优先使用支付宝自带的刷脸支付
 
 ## 最低要求
 * 有指纹硬件
@@ -48,6 +48,7 @@
 2. [淘宝](https://github.com/eritpchy/FingerprintPay/tree/main/doc/Taobao)
 3. [微信](https://github.com/eritpchy/FingerprintPay/tree/main/doc/WeChat)
 4. [QQ](https://github.com/eritpchy/FingerprintPay/tree/main/doc/QQ)
+5. [云闪付](https://github.com/eritpchy/FingerprintPay/tree/main/doc/UnionPay)
 
 ## 常见问题
 1. 因Xposed 造成的开机卡住, 可按电源键禁用Xposed (多次振动后重启手机)
@@ -67,7 +68,7 @@
 
 ## 提示
 1. 本软件的网络功能仅限检查自己软件更新功能, 如不放心, 欢迎REVIEW代码.
-2. 支付宝、淘宝、微信和QQ均可沿用市场中的最新版.
+2. 支付宝、淘宝、微信、QQ、云闪付均可沿用市场中的最新版.
 
 ![qq](./doc/qqGroup.png)
 #### QQ交流群: [665167891](http://shang.qq.com/wpa/qunwpa?idkey=91c2cd8f14532413701607c364f03f43afa1539a24b96b8907c92f3c018894e5)

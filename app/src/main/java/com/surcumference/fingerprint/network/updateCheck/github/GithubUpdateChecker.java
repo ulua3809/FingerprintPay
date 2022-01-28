@@ -60,7 +60,8 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                                     String content = appendUpdateExtInfo(info.content, info.date, info.contentUrl);
                                     L.d("content", content);
                                     GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
-                                    UpdateInfo updateInfo = new UpdateInfo(info.version, content, info.contentUrl, assetsInfo.url, assetsInfo.size);
+                                    UpdateInfo updateInfo = new UpdateInfo(info.version, content,
+                                            info.contentUrl, Constant.CDN_URL + assetsInfo.url, assetsInfo.size);
                                     onHasUpdate(updateInfo);
                                 } else {
                                     onNoUpdate();
