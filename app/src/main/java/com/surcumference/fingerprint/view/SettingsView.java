@@ -175,6 +175,8 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_taobao), Toast.LENGTH_SHORT).show();
             } else if (Constant.PACKAGE_NAME_QQ.equals(packageName)) {
                 Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_qq), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_generic), Toast.LENGTH_SHORT).show();
             }
             return false;
         }

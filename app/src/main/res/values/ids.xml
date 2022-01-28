@@ -80,6 +80,7 @@
     <item name="toast_password_not_set_wechat" type="id"/>
     <item name="toast_password_not_set_qq" type="id"/>
     <item name="toast_password_not_set_taobao" type="id"/>
+    <item name="toast_password_not_set_generic" type="id"/>
     <item name="toast_password_auto_enter_fail" type="id"/>
     <item name="toast_goto_donate_page_fail_alipay" type="id"/>
     <item name="toast_goto_donate_page_fail_wechat" type="id"/>

@@ -3,6 +3,7 @@ package com.surcumference.fingerprint.xposed;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_ALIPAY;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_QQ;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_TAOBAO;
+import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_UNIONPAY;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_WECHAT;
 
 import android.annotation.TargetApi;
@@ -17,6 +18,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.plugin.xposed.AlipayPlugin;
 import com.surcumference.fingerprint.plugin.xposed.QQPlugin;
 import com.surcumference.fingerprint.plugin.xposed.TaobaoPlugin;
+import com.surcumference.fingerprint.plugin.xposed.UnionPayPlugin;
 import com.surcumference.fingerprint.plugin.xposed.WeChatPlugin;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.xposed.loader.XposedPluginLoader;
@@ -44,8 +46,23 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
             initTaobao(lpparam);
         } else if (PACKAGE_NAME_QQ.equals(lpparam.packageName)) {
             initQQ(lpparam);
+        } else if (PACKAGE_NAME_UNIONPAY.equals(lpparam.packageName)) {
+            initUnionPay(lpparam);
         }
         initGeneric(lpparam);
+    }
+
+    private void initUnionPay(LoadPackageParam lpparam) {
+        L.d("loaded: [" + lpparam.packageName + "]" + " version:" + BuildConfig.VERSION_NAME);
+        XposedHelpers.findAndHookMethod(Instrumentation.class, "callApplicationOnCreate", Application.class, new XC_MethodHook() {
+            @TargetApi(21)
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                L.d("Application onCreate");
+                Context context = (Context) param.args[0];
+                XposedPluginLoader.load(UnionPayPlugin.class, context, lpparam);
+            }
+        });
+
     }
 
     private void initWechat(final LoadPackageParam lpparam) {
