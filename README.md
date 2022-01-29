@@ -24,8 +24,8 @@
 4. 下载插件: [riru-module-xfingerprint-pay-wechat-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
 5. 下载插件: [riru-module-xfingerprint-pay-taobao-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
 6. 下载插件: [riru-module-xfingerprint-pay-unionpay-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
-7. 进入 Magisk Manager, 模块, 安装这六个模块, 不要重启
-8. 勾选启用五个模块, 重启手机
+7. 进入 Magisk Manager, 模块, 安装这几个模块, 不要重启
+8. 确认启用模块, 重启手机
 9. Enjoy
 
 ## 使用步骤 Zygisk
@@ -35,8 +35,8 @@
 4. 下载插件: [zygisk-module-xfingerprint-pay-wechat-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
 5. 下载插件: [zygisk-module-xfingerprint-pay-taobao-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
 6. 下载插件: [zygisk-module-xfingerprint-pay-unionpay-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
-7. 进入 Magisk Manager, 模块, 安装这六个模块, 不要重启
-8. 勾选启用五个模块, 重启手机
+7. 进入 Magisk Manager, 模块, 安装这几个模块, 不要重启
+8. 确认启用模块, 重启手机
 9. Enjoy
 
 ## 使用步骤 Xposed
