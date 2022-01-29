@@ -302,11 +302,16 @@ public class UnionPayBasePlugin {
         activityViewObserver.start(100, new ActivityViewObserver.IActivityViewListener() {
             @Override
             public void onViewFounded(ActivityViewObserver observer, View view) {
+                View rootView = view.getRootView();
+                L.d("onViewFounded:", view, " rootView: ", rootView);
+                if (rootView.toString().contains("[UPActivityPayPasswordSet]")) {
+                    //跳过小额免密设置页面
+                    return;
+                }
                 ActivityViewObserver.IActivityViewListener l = this;
                 observer.stop();
-                L.d("onViewFounded:", view, " rootView: ", view.getRootView());
 
-                onPayDialogShown(observer.getTargetActivity(), (ViewGroup) view.getRootView());
+                onPayDialogShown(observer.getTargetActivity(), (ViewGroup) rootView);
                 View.OnAttachStateChangeListener listener = mView2OnAttachStateChangeListenerMap.get(view);
                 if (listener != null) {
                     view.removeOnAttachStateChangeListener(listener);
@@ -467,7 +472,11 @@ public class UnionPayBasePlugin {
         AlertDialog dialog = mFingerPrintAlertDialog;
         L.d("hidePreviousPayDialog", mFingerPrintAlertDialog);
         if (dialog != null) {
-            dialog.dismiss();
+            try {
+                dialog.dismiss();
+            } catch (IllegalArgumentException e) {
+                //for java.lang.IllegalArgumentException: View=DecorView@4eafdfb[UPActivityPayPasswordSet] not attached to window manager
+            }
         }
         mFingerPrintAlertDialog = null;
     }
