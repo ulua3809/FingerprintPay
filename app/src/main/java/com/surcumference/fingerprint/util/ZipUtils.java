@@ -1,8 +1,9 @@
 package com.surcumference.fingerprint.util;
 
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;

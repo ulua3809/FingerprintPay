@@ -2,8 +2,6 @@ package com.surcumference.fingerprint.view;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.method.HideReturnsTransformationMethod;
@@ -13,6 +11,9 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;

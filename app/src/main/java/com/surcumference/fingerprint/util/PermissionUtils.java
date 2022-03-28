@@ -1,12 +1,12 @@
 package com.surcumference.fingerprint.util;
 
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
-
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Process;
-import android.support.v4.app.AppOpsManagerCompat;
+
+import androidx.core.app.AppOpsManagerCompat;
+import androidx.core.content.PermissionChecker;
 
 /**
  * Created by Jason on 2017/11/12.
@@ -53,7 +53,7 @@ public class PermissionUtils {
             return hasSelfPermissionForXiaomi(context, permission);
         }
         try {
-            return checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+            return PermissionChecker.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
         } catch (RuntimeException t) {
             return false;
         }
@@ -66,6 +66,6 @@ public class PermissionUtils {
             return true;
         }
         int noteOp = AppOpsManagerCompat.noteOp(context, permissionToOp, Process.myUid(), context.getPackageName());
-        return noteOp == AppOpsManagerCompat.MODE_ALLOWED && checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
+        return noteOp == AppOpsManagerCompat.MODE_ALLOWED && PermissionChecker.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 }

@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;

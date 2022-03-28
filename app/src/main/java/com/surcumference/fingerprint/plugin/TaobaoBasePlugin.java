@@ -6,8 +6,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -17,6 +15,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
@@ -154,8 +155,10 @@ public class TaobaoBasePlugin {
 
     public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback) {
         mFingerprintIdentify = new FingerprintIdentify(context);
+        mFingerprintIdentify.setSupportAndroidL(true);
+        mFingerprintIdentify.init();
         if (mFingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.FingerprintIdentifyListener() {
+            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
                 @Override
                 public void onSucceed() {
                     // 验证成功，自动结束指纹识别

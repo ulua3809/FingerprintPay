@@ -327,9 +327,11 @@ public class QQBasePlugin {
         cancelFingerprintIdentify();
         mMockCurrentUser = true;
         FingerprintIdentify fingerprintIdentify = new FingerprintIdentify(context);
+        fingerprintIdentify.setSupportAndroidL(true);
+        fingerprintIdentify.init();
         if (fingerprintIdentify.isFingerprintEnable()) {
             mFingerprintScanStateReady = true;
-            fingerprintIdentify.startIdentify(5, new BaseFingerprint.FingerprintIdentifyListener() {
+            fingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
                 @Override
                 public void onSucceed() {
                     // 验证成功，自动结束指纹识别

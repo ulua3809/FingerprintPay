@@ -46,7 +46,7 @@
          android:authorities="com.surcumference.fingerprintpay.XPreferenceProvider"
          android:exported="true"/>
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="com.surcumference.fingerprintpay.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

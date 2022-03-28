@@ -4,7 +4,8 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.os.UserHandle;
-import android.support.annotation.Keep;
+
+import androidx.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.bean.PluginTarget;

@@ -133,8 +133,10 @@ public class AlipayBasePlugin {
 
     public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback) {
         mFingerprintIdentify = new FingerprintIdentify(context);
+        mFingerprintIdentify.setSupportAndroidL(true);
+        mFingerprintIdentify.init();
         if (mFingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.FingerprintIdentifyListener() {
+            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
                 @Override
                 public void onSucceed() {
                     NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_match));
@@ -400,6 +402,7 @@ public class AlipayBasePlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
+        ViewUtils.recursiveLoopChildren(activity.getWindow().getDecorView());
         int versionCode = getAlipayVersionCode(activity);
         AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {

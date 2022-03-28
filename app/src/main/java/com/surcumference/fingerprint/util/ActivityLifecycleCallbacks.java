@@ -3,8 +3,9 @@ package com.surcumference.fingerprint.util;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class ActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
 

@@ -6,11 +6,6 @@ import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.ButtonBarLayout;
-import android.support.v7.widget.ListViewCompat;
-import android.support.v7.widget.SwitchCompat;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,6 +32,11 @@ import android.widget.Switch;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatImageView;
+import androidx.appcompat.widget.ButtonBarLayout;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.surcumference.fingerprint.util.log.L;
 
@@ -229,8 +229,6 @@ public class ViewUtils {
             return AppCompatImageView.class.getName();
         } else if (view instanceof ImageView) {
             return ImageView.class.getName();
-        } else if (view instanceof ListViewCompat) {
-            return ListViewCompat.class.getName();
         } else if (view instanceof ListView) {
             return ListView.class.getName();
         } else if (view instanceof GridView) {

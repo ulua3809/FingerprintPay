@@ -1,10 +1,11 @@
 package com.surcumference.fingerprint.util;
 
 import android.app.Activity;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.util.log.L;
 

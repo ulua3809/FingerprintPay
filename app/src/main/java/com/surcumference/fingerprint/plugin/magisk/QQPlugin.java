@@ -3,8 +3,9 @@ package com.surcumference.fingerprint.plugin.magisk;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.support.annotation.Keep;
 import android.text.TextUtils;
+
+import androidx.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.bean.PluginTarget;
