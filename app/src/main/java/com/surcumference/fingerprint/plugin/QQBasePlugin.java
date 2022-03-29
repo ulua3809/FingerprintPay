@@ -49,7 +49,8 @@ public class QQBasePlugin {
     private static final String TAG_ACTIVITY_PAY = "TAG_ACTIVITY_PAY";
     private static final String TAG_ACTIVITY_FIRST_RESUME = "TAG_ACTIVITY_FIRST_RESUME";
 
-    private static final int QQ_VERSION_CODE_7_3_0 = 750;
+    protected static final int QQ_VERSION_CODE_7_3_0 = 750;
+    protected static final int QQ_VERSION_CODE_8_8_83 = 2654;
 
     private FingerprintIdentify mFingerprintIdentify;
     private LinearLayout mMenuItemLLayout;
@@ -61,8 +62,9 @@ public class QQBasePlugin {
     private WeakHashMap<Activity, String> mActivityResumeMap = new WeakHashMap<>();
     private WeakHashMap<Activity, QQPayDialog> mActivityPayDialogMap = new WeakHashMap<>();
     private int mQQVersionCode;
+    private ViewTreeObserver.OnWindowAttachListener mPayWindowAttachListener;
 
-    private int getQQVersionCode(Context context) {
+    public int getQQVersionCode(Context context) {
         if (mQQVersionCode != 0) {
             return mQQVersionCode;
         }
@@ -94,7 +96,8 @@ public class QQBasePlugin {
             if (activityClzName.contains(".SplashActivity")) {
                 QQUtils.checkBlackListQQ(activity);
             }
-            if (activityClzName.contains(".QWalletPluginProxyActivity")) {
+            if (activityClzName.contains(".QWalletPluginProxyActivity")
+                || activityClzName.contains(".QWalletToolFragmentActivity")) {
                 L.d("found");
                 if (!Config.from(activity).isOn()) {
                     return;
@@ -107,6 +110,7 @@ public class QQBasePlugin {
                 } else if (isPayActivity(activity)) {
                     qqKeyboardFlashBugfixer(activity);
                 }
+                cancelFingerprintIdentify();
                 initPayActivity(activity, 10, 100);
             }
         } catch (Exception e) {
@@ -132,7 +136,7 @@ public class QQBasePlugin {
         }
     }
 
-    private void initPayActivity(Activity activity, int retryDelay, int retryCountdown) {
+    private synchronized void initPayActivity(Activity activity, int retryDelay, int retryCountdown) {
         Context context = activity;
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
 
@@ -153,6 +157,7 @@ public class QQBasePlugin {
         boolean longPassword = payDialog.isLongPassword();
         ViewGroup editCon = longPassword ? (ViewGroup) payDialog.inputEditText.getParent().getParent().getParent()
                 : (ViewGroup) payDialog.inputEditText.getParent().getParent();
+        setupPayWindowAttachListener(payDialog.inputEditText);
         View fingerprintView = prepareFingerprintView(context);
         int versionCode = getQQVersionCode(context);
 
@@ -290,6 +295,28 @@ public class QQBasePlugin {
         }
     }
 
+    private void setupPayWindowAttachListener(View targetView) {
+        ViewTreeObserver viewTreeObserver = targetView.getViewTreeObserver();
+        if (mPayWindowAttachListener != null) {
+            viewTreeObserver.removeOnWindowAttachListener(mPayWindowAttachListener);
+            mPayWindowAttachListener = null;
+        }
+        mPayWindowAttachListener = new ViewTreeObserver.OnWindowAttachListener() {
+            @Override
+            public void onWindowAttached() {
+
+            }
+
+            @Override
+            public void onWindowDetached() {
+                viewTreeObserver.removeOnWindowAttachListener(this);
+                mPayWindowAttachListener = null;
+                cancelFingerprintIdentify();
+            }
+        };
+        viewTreeObserver.addOnWindowAttachListener(mPayWindowAttachListener);
+    }
+
     private void removeAllFingerprintView(ViewGroup viewGroup) {
         List<View> pendingRemoveList = new ArrayList<>();
 
@@ -413,8 +440,11 @@ public class QQBasePlugin {
     private void doSettingsMenuInject(final Activity activity) {
         boolean isDarkMode = StyleUtils.isDarkMode(activity);
         Context context = activity;
+        int versionCode = getQQVersionCode(context);
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
         View itemView = ViewUtils.findViewByText(rootView, "帐号管理");
+        View aboutView = versionCode >= QQ_VERSION_CODE_8_8_83 ?
+                ViewUtils.findViewByText(rootView, "关于QQ与帮助") : itemView;
         LinearLayout linearLayout = (LinearLayout) itemView.getParent().getParent().getParent();
         linearLayout.setPadding(0, 0, 0, 0);
         List<ViewGroup.LayoutParams> childViewParamsList = new ArrayList<>();
@@ -457,7 +487,7 @@ public class QQBasePlugin {
 
         //try use QQ style
         try {
-            View settingsView = itemView;
+            View settingsView = aboutView;
             if (settingsView instanceof TextView) {
                 TextView settingsTextView = (TextView) settingsView;
                 float scale = itemNameText.getTextSize() / settingsTextView.getTextSize();
@@ -465,9 +495,9 @@ public class QQBasePlugin {
                 itemSummerText.setTextSize(TypedValue.COMPLEX_UNIT_PX, itemSummerText.getTextSize() / scale);
                 itemNameText.setTextColor(settingsTextView.getCurrentTextColor());
             }
-            View generalItemView = (View)settingsView.getParent();
-            if (generalItemView != null) {
-                Drawable background = generalItemView.getBackground();
+            View settingsItemView = (View)settingsView.getParent();
+            if (settingsItemView != null) {
+                Drawable background = settingsItemView.getBackground();
                 if (background != null) {
                     Drawable.ConstantState constantState = background.getConstantState();
                     if (constantState != null) {
@@ -498,7 +528,8 @@ public class QQBasePlugin {
         LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         lineParams.topMargin = DpUtils.dip2px(activity, 20);
         menuItemLLayout.addView(lineTopView, lineParams);
-        menuItemLLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(activity, 45)));
+        int menuItemHeight = DpUtils.dip2px(activity, versionCode >= QQ_VERSION_CODE_8_8_83 ? 56 : 45);
+        menuItemLLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, menuItemHeight));
         lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         menuItemLLayout.addView(lineBottomView, lineParams);
 

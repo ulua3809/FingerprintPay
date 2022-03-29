@@ -64,6 +64,21 @@ public class QQPlugin extends QQBasePlugin {
                 && !niceName.contains(":")) {
                 UpdateFactory.lazyUpdateWhenActivityAlive();
             }
+            // for 8.8.83
+            boolean isToolProcess = niceName.endsWith(":tool");
+            if (isToolProcess) {
+                int versionCode = plugin.getQQVersionCode(application);
+                if (versionCode >= QQ_VERSION_CODE_8_8_83) {
+                    Activity activity = ApplicationUtils.getCurrentActivity();
+                    L.d("tool first activity", activity);
+                    if (activity != null) {
+                        if (activity.getClass().getName().contains(".QWalletToolFragmentActivity")) {
+                            Task.onMain(() -> plugin.onActivityResumed(activity));
+                        }
+                    }
+                }
+            }
+
             application.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
                 @Override
                 public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
