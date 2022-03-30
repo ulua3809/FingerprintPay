@@ -74,7 +74,6 @@
     <item name="toast_checking_update" type="id"/>
     <item name="toast_no_update" type="id"/>
     <item name="toast_check_update_fail_net_err" type="id"/>
-    <item name="toast_fingerprint_match" type="id"/>
     <item name="toast_fingerprint_not_match" type="id"/>
     <item name="toast_fingerprint_retry_ended" type="id"/>
     <item name="toast_fingerprint_unlock_reboot" type="id"/>

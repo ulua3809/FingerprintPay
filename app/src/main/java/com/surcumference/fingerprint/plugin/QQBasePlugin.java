@@ -361,8 +361,6 @@ public class QQBasePlugin {
             fingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
                 @Override
                 public void onSucceed() {
-                    // 验证成功，自动结束指纹识别
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_match));
                     L.d("指纹识别成功");
                     onSuccessUnlockCallback.run();
                     mMockCurrentUser = false;

@@ -178,8 +178,6 @@ public class Lang {
                 return tr("已经是最新版本了", "暫無更新", "You already have the latest version");
             case R.id.toast_check_update_fail_net_err:
                 return tr("网络错误, 检查更新失败", "網絡錯誤, 檢查更新失敗", "Network error");
-            case R.id.toast_fingerprint_match:
-                return tr("指纹识别成功", "指紋識別成功", "Fingerprint MATCH");
             case R.id.toast_fingerprint_not_match:
                 return tr("指纹识别失败", "指紋識別失敗", "Fingerprint NOT MATCH");
             case R.id.toast_fingerprint_retry_ended:
