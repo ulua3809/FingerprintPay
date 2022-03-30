@@ -400,7 +400,6 @@ public class AlipayBasePlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
-        ViewUtils.recursiveLoopChildren(activity.getWindow().getDecorView());
         int versionCode = getAlipayVersionCode(activity);
         AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
