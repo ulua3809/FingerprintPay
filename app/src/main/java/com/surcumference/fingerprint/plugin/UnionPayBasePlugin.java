@@ -140,51 +140,6 @@ public class UnionPayBasePlugin {
 
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
-            //for hidePreviousPayDialog
-            Task.onMain(250, () ->
-                initFingerPrintLock(context, () -> {
-                    BlackListUtils.applyIfNeeded(context);
-                    String pwd = Config.from(context).getPassword();
-                    if (TextUtils.isEmpty(pwd)) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    Runnable onCompleteRunnable = () -> {
-                        mPwdActivityReShowDelayTimeMsec = 2000;
-                        AlertDialog dialog = mFingerPrintAlertDialog;
-                        if (dialog != null) {
-                            dialog.dismiss();
-                        }
-                    };
-
-                    boolean tryAgain = false;
-                    try {
-                        inputDigitPassword(rootView, pwd);
-                    } catch (NullPointerException e) {
-                        tryAgain = true;
-                    } catch (Exception e) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
-                        L.e(e);
-                    }
-                    if (tryAgain) {
-                        Task.onMain(1000, ()-> {
-                            try {
-                                inputDigitPassword(rootView, pwd);
-                            } catch (NullPointerException e) {
-                                Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
-                                L.d("inputDigitPassword NPE", e);
-                            } catch (Exception e) {
-                                Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
-                                L.e(e);
-                            }
-                            onCompleteRunnable.run();
-                        });
-                        return;
-                    }
-                    onCompleteRunnable.run();
-                })
-            );
             boolean finalDialogMode = dialogMode;
             DialogFrameLayout payView = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
                 mPwdActivityDontShowFlag = true;
@@ -194,10 +149,18 @@ public class UnionPayBasePlugin {
                 }
 
                 if (finalDialogMode) {
-                    Task.onBackground(() -> {
+                    Task.onBackground(100, () -> {
                         Instrumentation inst = new Instrumentation();
                         inst.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+                        Task.onMain(500, () -> {
+                            //窗口消失了
+                            if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
+                                return;
+                            }
+                            retryWatchPayViewIfPossible(activity, rootView, 10, 500);
+                        });
                     });
+                    Task.onMain(300, () -> finalPayRootLayout.setAlpha(1));
                 } else {
                     if (activity != null) {
                         activity.onBackPressed();
@@ -212,9 +175,78 @@ public class UnionPayBasePlugin {
                 if (!mPwdActivityDontShowFlag) {
                     Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> finalPayRootLayout.setAlpha(1));
                 }
+            }).withOnShowListener(v -> {
+                //for hidePreviousPayDialog
+                Task.onMain(250, () -> {
+                    //窗口消失了
+                    if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
+                        return;
+                    }
+                    initFingerPrintLock(context, () -> {
+                        BlackListUtils.applyIfNeeded(context);
+                        String pwd = Config.from(context).getPassword();
+                        if (TextUtils.isEmpty(pwd)) {
+                            Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        Runnable onCompleteRunnable = () -> {
+                            mPwdActivityReShowDelayTimeMsec = 2000;
+                            AlertDialog dialog = mFingerPrintAlertDialog;
+                            if (dialog != null) {
+                                dialog.dismiss();
+                            }
+                        };
+
+                        boolean tryAgain = false;
+                        try {
+                            inputDigitPassword(rootView, pwd);
+                        } catch (NullPointerException e) {
+                            tryAgain = true;
+                        } catch (Exception e) {
+                            Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                            L.e(e);
+                        }
+                        if (tryAgain) {
+                            Task.onMain(1000, () -> {
+                                try {
+                                    inputDigitPassword(rootView, pwd);
+                                } catch (NullPointerException e) {
+                                    Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                    L.d("inputDigitPassword NPE", e);
+                                } catch (Exception e) {
+                                    Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                    L.e(e);
+                                }
+                                onCompleteRunnable.run();
+                            });
+                            return;
+                        }
+                        onCompleteRunnable.run();
+                    });
+                }
+                );
             });
-            Task.onMain(100,  () -> mFingerPrintAlertDialog = payView.showInDialog());
+            Task.onMain(100,  () -> {
+                L.d("ViewUtils.isViewVisibleInScreen(rootView) ",ViewUtils.isViewVisibleInScreen(rootView) );
+                //窗口消失了
+                if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
+                    return;
+                }
+                mFingerPrintAlertDialog = payView.showInDialog();
+            });
         } catch (OutOfMemoryError e) {
+        }
+    }
+
+    private void retryWatchPayViewIfPossible(Activity activity, View rootView, int countDown, int delayMsec) {
+        View payTitleTextView = ViewUtils.findViewByText(rootView, "请输入支付密码");
+        if (payTitleTextView == null
+                || !(ViewUtils.isViewVisibleInScreen(payTitleTextView) && ViewUtils.isShownInScreen(payTitleTextView))) {
+            watchPayView(activity);
+        }
+        if (countDown > 0) {
+            Task.onMain(delayMsec, () -> retryWatchPayViewIfPossible(activity, rootView, countDown - 1, delayMsec));
         }
     }
 
@@ -304,8 +336,17 @@ public class UnionPayBasePlugin {
         activityViewObserver.start(100, new ActivityViewObserver.IActivityViewListener() {
             @Override
             public void onViewFounded(ActivityViewObserver observer, View view) {
+                //跳过没有显示的view, 云闪付专属
+                if (!ViewUtils.isViewVisibleInScreen(view)) {
+                    L.d("skip invisible view", ViewUtils.getViewInfo(view));
+                    return;
+                }
+                if (!ViewUtils.isShownInScreen(view)) {
+                    L.d("skip invisible view2", ViewUtils.getViewInfo(view));
+                    return;
+                }
                 View rootView = view.getRootView();
-                L.d("onViewFounded:", view, " rootView: ", rootView);
+                L.d("onViewFounded:", ViewUtils.getViewInfo(view), " rootView: ", rootView);
                 if (rootView.toString().contains("[UPActivityPayPasswordSet]")) {
                     //跳过小额免密设置页面
                     return;

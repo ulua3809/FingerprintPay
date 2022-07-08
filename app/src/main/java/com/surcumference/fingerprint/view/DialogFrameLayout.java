@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.listener.OnDismissListener;
+import com.surcumference.fingerprint.listener.OnShowListener;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Umeng;
@@ -35,9 +36,10 @@ import com.surcumference.fingerprint.util.drawable.XDrawable;
  * Created by Jason on 2017/9/9.
  */
 
-public abstract class DialogFrameLayout extends FrameLayout implements DialogInterface.OnDismissListener {
+public abstract class DialogFrameLayout extends FrameLayout implements DialogInterface.OnDismissListener, DialogInterface.OnShowListener {
 
     private OnDismissListener mDismissListener;
+    private OnShowListener mShowListener;
     private DialogInterface.OnClickListener mOnNeutralButtonClickListener;
     private DialogInterface.OnClickListener mOnNegativeButtonClickListener;
     private DialogInterface.OnClickListener mOnPositiveButtonClickListener;
@@ -64,11 +66,12 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         ContextThemeWrapper contextThemeWrapper = new ContextThemeWrapper(context, android.R.style.Theme_Material_NoActionBar_Fullscreen);
         //修复支付宝主页显示更新页面时dialog宽度不正常
         contextThemeWrapper.applyOverrideConfiguration(new Configuration());
-        AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper).setOnDismissListener(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(contextThemeWrapper)
+                .setOnDismissListener(this);
         AlertDialog dialog;
         dialog = builder.create();
         dialog.setView(createDialogContentView(dialog));
-
+        dialog.setOnShowListener(this);
         Window window = dialog.getWindow();
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         window.setBackgroundDrawable(dialogWindowBackground());
@@ -87,8 +90,22 @@ public abstract class DialogFrameLayout extends FrameLayout implements DialogInt
         Umeng.onPause(getContext());
     }
 
+    @Override
+    public void onShow(DialogInterface dialog) {
+        OnShowListener listener = mShowListener;
+        if (listener != null) {
+            listener.onShow(this);
+        }
+        Umeng.onResume(getContext());
+    }
+
     public DialogFrameLayout withOnDismissListener(OnDismissListener listener) {
         mDismissListener = listener;
+        return this;
+    }
+
+    public DialogFrameLayout withOnShowListener(OnShowListener listener) {
+        mShowListener = listener;
         return this;
     }
 

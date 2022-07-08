@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -456,7 +457,6 @@ public class ViewUtils {
         return new ArrayList<View>();
     }
 
-
     public static boolean isShown(View v) {
         Rect r = new Rect();
         v.getGlobalVisibleRect(r);
@@ -464,6 +464,18 @@ public class ViewUtils {
             return false;
         }
         return true;
+    }
+
+    public static boolean isShownInScreen(View v) {
+        Rect r = new Rect();
+        if (false == v.getGlobalVisibleRect(r)) {
+            return false;
+        }
+        if (r.left == 0 && r.right == 0 && r.top == 0 && r.bottom == 0) {
+            return false;
+        }
+        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
+        return Rect.intersects(r, new Rect(0, 0, metrics.widthPixels, metrics.heightPixels));
     }
 
     public static boolean isViewVisibleInScreen(View view) {
