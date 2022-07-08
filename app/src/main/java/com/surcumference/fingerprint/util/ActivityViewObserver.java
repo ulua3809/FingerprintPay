@@ -96,6 +96,8 @@ public class ActivityViewObserver {
             for (View targetView : viewList) {
                 if (ViewUtils.isViewVisibleInScreen(targetView.getRootView())) {
                     onViewFounded(listener, targetView);
+                    // 好像是故意不加的
+                    // break;
                 }
             }
         }

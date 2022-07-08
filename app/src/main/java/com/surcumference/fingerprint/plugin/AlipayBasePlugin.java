@@ -97,6 +97,7 @@ public class AlipayBasePlugin {
                     }
                     if (ViewUtils.findViewByName(activity, (getAlipayVersionCode(activity) >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null
+                            && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaysdk", "mini_linSimplePwdComponent") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
                         return;
                     }
@@ -194,6 +195,7 @@ public class AlipayBasePlugin {
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
+            clickDigitPasswordWidget(activity);
             initFingerPrintLock(context, () -> {
                 BlackListUtils.applyIfNeeded(context);
                 String pwd = Config.from(activity).getPassword();
@@ -221,6 +223,7 @@ public class AlipayBasePlugin {
                         L.e(e);
                     }
                     if (tryAgain) {
+                        clickDigitPasswordWidget(activity);
                         Task.onMain(1000, ()-> {
                             try {
                                 inputDigitPassword(activity, pwd);
@@ -257,6 +260,20 @@ public class AlipayBasePlugin {
             Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
         } catch (OutOfMemoryError e) {
         }
+    }
+
+    /**
+     * 修复某个设备不自动弹出键盘
+     * @param activity
+     */
+    private void clickDigitPasswordWidget(Activity activity) {
+        int versionCode = getAlipayVersionCode(activity);
+        View view = ViewUtils.findViewByName(activity, (versionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout");
+        L.d("digit password widget", view);
+        if (view == null) {
+            return;
+        }
+        ViewUtils.performActionClick(view);
     }
 
     private void doSettingsMenuInject_10_1_38(final Activity activity) {
