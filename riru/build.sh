@@ -32,10 +32,16 @@ perl -0777 -i -pe  's/^/#include "fingerprint.h"\n/'  $MODULE_TEMPLATE/module/sr
 perl -i -pe  's/(main\.cpp)/$1 fingerprint.cpp zygisk_main.cpp/g'  $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
 echo 'add_definitions(-DMODULE_NAME="${MODULE_NAME}")' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
 echo 'target_link_libraries(${MODULE_NAME})' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
-$MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean $MODULE_GRALDE_TASK \
+$MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean \
   -PVERSION=$VERSION \
   -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
-  -PMODULE_LIB_NAME=$MODULE_LIB_NAME
+  -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
+
+$MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE $MODULE_GRALDE_TASK \
+  -PVERSION=$VERSION \
+  -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
+  -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
+
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
 find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/\$(basename {})"
 ZIPNAME=$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
