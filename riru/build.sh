@@ -10,6 +10,9 @@ APP_PRODUCT_TARGET=$(echo "$MODULE_GRALDE_FILE"|sed -E 's/.+\/(.+)\..+/\1/g')
 MODULE_LIB_NAME="$(echo "$PLUGIN_TYPE_NAME" | tr '[:upper:]' '[:lower:]')-module-xfingerprint-pay-$APP_PRODUCT_TARGET"
 echo VERSION: $VERSION
 bash ./reset.sh
+echo "updateJson=\${updateJson}" >> $MODULE_TEMPLATE/template/magisk_module/module.prop
+perl -i -pe  's/(description: moduleDescription,)/$1 \nupdateJson: moduleUpdateJson,/g'  $MODULE_TEMPLATE/module/build.gradle
+
 cp -rfv ./src/cpp/* $MODULE_TEMPLATE/module/src/main/cpp/
 cp -rfv "$MODULE_GRALDE_FILE" $MODULE_TEMPLATE/module.gradle
 cp -rfv "./src/gradle/fingerprint.gradle" $MODULE_TEMPLATE/

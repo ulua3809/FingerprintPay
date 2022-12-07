@@ -21,11 +21,12 @@ ext {
        the older version, please pay attention.
     */
     magiskModuleId = moduleLibraryName.toString()
-
-    moduleName = "${project.property("PLUGIN_TYPE_NAME").toString().capitalize()} - 指纹支付 - 微信"
+    def pluginTypeName = project.property("PLUGIN_TYPE_NAME").toString()
+    moduleName = "${pluginTypeName.capitalize()} - 指纹支付 - 微信"
     moduleAuthor = "Jason Eric"
     moduleDescription = "让微信支持指纹支付 Fingerprint pay for WeChat."
     moduleVersion = "v${project.property("VERSION")}"
     moduleVersionCode = 3
+    moduleUpdateJson = "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/release/update_${pluginTypeName.toLowerCase()}_wechat.json"
 }
 apply from: "$rootDir/fingerprint.gradle"

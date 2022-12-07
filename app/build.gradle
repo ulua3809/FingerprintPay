@@ -8,8 +8,8 @@ android {
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
         targetSdkVersion 30
-        versionCode 21
-        versionName "4.4.1"
+        versionCode 22
+        versionName "4.5.0"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"FingerprintPay\""
     }
 
@@ -51,9 +51,16 @@ android {
         buildTypes.release.signingConfig signingConfigs.release
     }
 }
+project.ext.appInfo = [
+    Alipay:     "com.eg.android.AlipayGphone",
+    Taobao:     "com.taobao.taobao",
+    QQ:         "com.tencent.mobileqq",
+    WeChat:     "com.tencent.mm",
+    UnionPay:   "com.unionpay",
+]
 
 apply from: 'debug.gradle'
-
+apply from: 'update-json.gradle'
 dependencies {
     implementation 'com.wei.android.lib:fingerprintidentify:1.2.6'
     implementation 'com.google.code.gson:gson:2.8.6'

@@ -1,0 +1,18 @@
+import groovy.json.JsonOutput
+project.ext.appInfo.each { entry ->
+    ['zygisk', 'riru'].each {pluginType ->
+        def name = entry.key.toLowerCase()
+        def versionName = android.defaultConfig.versionName
+        def info = [
+                version: "${versionName}",
+                versionCode: "${android.defaultConfig.versionCode}",
+                zipUrl: "https://github.com/eritpchy/FingerprintPay/releases/download/$versionName-ci/$pluginType-module-xfingerprint-pay-$name-v$versionName-release.zip",
+                changelog: "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md",
+        ]
+
+        def json_str = JsonOutput.toJson(info)
+        def json_beauty = JsonOutput.prettyPrint(json_str)
+        File file = rootProject.file("release/update_${pluginType}_${name}.json")
+        file.write(json_beauty)
+    }
+}
