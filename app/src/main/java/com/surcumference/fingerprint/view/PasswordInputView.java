@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.view;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
@@ -121,6 +122,13 @@ public class PasswordInputView extends DialogFrameLayout {
             InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
         }, 200);
+    }
+
+    @Override
+    public AlertDialog showInDialog() {
+        AlertDialog dialog = super.showInDialog();
+        dialog.setCanceledOnTouchOutside(false);
+        return dialog;
     }
 
     @Override
