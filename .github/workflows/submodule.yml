@@ -2,6 +2,8 @@ name: 'Submodules Sync'
 
 on:
   push:
+    branches:
+      - main
   schedule:
     - cron: '1 18 * * *'
   workflow_dispatch:
