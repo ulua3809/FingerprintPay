@@ -25,8 +25,8 @@ ext {
     moduleName = "${pluginTypeName.capitalize()} - 指纹支付 - 微信"
     moduleAuthor = "Jason Eric"
     moduleDescription = "让微信支持指纹支付 Fingerprint pay for WeChat."
-    moduleVersion = "v${project.property("VERSION")}"
-    moduleVersionCode = 3
+    moduleVersion = "v${project.property("VERSION_NAME")}"
+    moduleVersionCode = project.property("VERSION_CODE") as int
     moduleUpdateJson = "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/release/update_${pluginTypeName.toLowerCase()}_wechat.json"
 }
 apply from: "$rootDir/fingerprint.gradle"

@@ -5,10 +5,12 @@ MODULE_GRALDE_TASK="$1"
 MODULE_GRALDE_FILE="$2"
 PLUGIN_TYPE_NAME="$3"
 MODULE_TEMPLATE="./Riru-ModuleTemplate"
-VERSION=$(cat ../app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/\1/g')
+VERSION_NAME=$(cat ../app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/\1/g')
+VERSION_CODE=$(cat ../app/build.gradle| grep versionCode | sed -E 's/.+versionCode +([0-9]+).*/\1/g')
 APP_PRODUCT_TARGET=$(echo "$MODULE_GRALDE_FILE"|sed -E 's/.+\/(.+)\..+/\1/g')
 MODULE_LIB_NAME="$(echo "$PLUGIN_TYPE_NAME" | tr '[:upper:]' '[:lower:]')-module-xfingerprint-pay-$APP_PRODUCT_TARGET"
-echo VERSION: $VERSION
+echo VERSION_NAME: $VERSION_NAME
+echo VERSION_CODE: $VERSION_CODE
 bash ./reset.sh
 echo "updateJson=\${updateJson}" >> $MODULE_TEMPLATE/template/magisk_module/module.prop
 perl -i -pe  's/(description: moduleDescription,)/$1 \nupdateJson: moduleUpdateJson,/g'  $MODULE_TEMPLATE/module/build.gradle
@@ -36,12 +38,14 @@ perl -i -pe  's/(main\.cpp)/$1 fingerprint.cpp zygisk_main.cpp/g'  $MODULE_TEMPL
 echo 'add_definitions(-DMODULE_NAME="${MODULE_NAME}")' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
 echo 'target_link_libraries(${MODULE_NAME})' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
 $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean \
-  -PVERSION=$VERSION \
+  -PVERSION_NAME=$VERSION_NAME \
+  -PVERSION_CODE=$VERSION_CODE \
   -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
   -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
 
 $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE $MODULE_GRALDE_TASK \
-  -PVERSION=$VERSION \
+  -PVERSION_NAME=$VERSION_NAME \
+  -PVERSION_CODE=$VERSION_CODE \
   -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
   -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
 
