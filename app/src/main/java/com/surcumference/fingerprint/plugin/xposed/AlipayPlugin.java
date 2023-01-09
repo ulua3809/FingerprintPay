@@ -43,6 +43,13 @@ public class AlipayPlugin extends AlipayBasePlugin {
                     onActivityCreated((Activity) param.thisObject);
                 }
             });
+            XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
+
+                @TargetApi(21)
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    onActivityResumed((Activity) param.thisObject);
+                }
+            });
         } catch (Throwable l) {
             XposedBridge.log(l);
         }

@@ -5,6 +5,7 @@ import android.app.Application;
 import android.os.Bundle;
 
 import androidx.annotation.Keep;
+import androidx.annotation.NonNull;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -53,6 +54,11 @@ public class AlipayPlugin extends AlipayBasePlugin {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
                 plugin.onActivityCreated(activity);
+            }
+
+            @Override
+            public void onActivityResumed(@NonNull Activity activity) {
+                plugin.onActivityResumed(activity);
             }
         });
     }

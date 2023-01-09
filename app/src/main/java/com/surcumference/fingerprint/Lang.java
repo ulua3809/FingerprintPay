@@ -132,7 +132,7 @@ public class Lang {
             case R.id.settings_sub_title_update_modules_same_time:
                 return tr("将同时升级以下模块", "將同時升級以下模塊", "The following modules will be upgraded at the same time");
             case R.id.fingerprint_verification:
-                return tr("请验证已有指纹", "請驗證已有指紋", "Fingerprint verification");
+                return tr("请验证指纹", "請驗證指紋", "Fingerprint verification");
             case R.id.wechat_general:
                 return tr("通用", "一般", "General");
             case R.id.app_settings_name:

@@ -254,8 +254,9 @@ public class WeChatBasePlugin {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
             fingerPrintLayout.setLayoutParams(layoutParams);
-            ImageView fingerprintImageView = new ImageView(context);
 
+            fingerPrintLayout.setClipChildren(false);
+            ImageView fingerprintImageView = new ImageView(context);
             try {
                 final Bitmap bitmap = ImageUtils.base64ToBitmap(Constant.ICON_FINGER_PRINT_WECHAT_BASE64);
                 fingerprintImageView.setImageBitmap(bitmap);
@@ -279,8 +280,11 @@ public class WeChatBasePlugin {
             } catch (OutOfMemoryError e) {
                 L.d(e);
             }
-            fingerPrintLayout.addView(fingerprintImageView);
-
+            fingerprintImageView.setScaleY(4F);
+            fingerprintImageView.setScaleX(4F);
+            RelativeLayout.LayoutParams fingerprintImageViewLayoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            fingerprintImageViewLayoutParams.topMargin = DpUtils.dip2px(context, 24);
+            fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
 
             final Runnable switchToFingerprintRunnable = ()-> {
                 mInputEditText.setVisibility(View.GONE);
@@ -290,6 +294,9 @@ public class WeChatBasePlugin {
                     passwordLayout.removeView(fingerPrintLayoutLast);
                 }
                 passwordLayout.addView(fingerPrintLayout);
+                passwordLayout.setClipChildren(false);
+                ((ViewGroup)passwordLayout.getParent()).setClipChildren(false);
+                ((ViewGroup)passwordLayout.getParent().getParent()).setClipChildren(false);
 
                 initFingerPrintLock(context, ()-> {
                     BlackListUtils.applyIfNeeded(context);

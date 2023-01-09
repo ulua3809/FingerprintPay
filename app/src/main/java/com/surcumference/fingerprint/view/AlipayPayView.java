@@ -1,7 +1,7 @@
 package com.surcumference.fingerprint.view;
 
 import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_ALIPAY_BASE64;
-import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_CLOSE;
+import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_CLOSE_BASE64;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -61,7 +61,7 @@ public class AlipayPayView extends DialogFrameLayout {
 
         mCloseImageContainer = new FrameLayout(context);
         ImageView closeImage = new ImageView(context);
-        closeImage.setImageBitmap(ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_CLOSE));
+        closeImage.setImageBitmap(ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_CLOSE_BASE64));
         mCloseImageContainer.setPadding(DpUtils.dip2px(context, 10),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 10));
         mCloseImageContainer.addView(closeImage, new FrameLayout.LayoutParams(DpUtils.dip2px(context, 22), DpUtils.dip2px(context, 22)));
 

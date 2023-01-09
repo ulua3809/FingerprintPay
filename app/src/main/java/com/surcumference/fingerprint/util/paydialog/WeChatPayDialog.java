@@ -1,6 +1,5 @@
 package com.surcumference.fingerprint.util.paydialog;
 
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -49,7 +48,6 @@ public class WeChatPayDialog {
                         }
                         if (view instanceof EditText) {
                             payDialog.inputEditText = (EditText)view;
-                            view.setBackgroundColor(Color.RED);
                         }
                     } else if (view.getClass().getName().endsWith(".MyKeyboardWindow")) {
                         L.d("密码键盘:" + view);

@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.plugin;
 
+import static com.surcumference.fingerprint.Constant.ICON_ALIPAY_SETTING_ENTRY_BASE64;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_ALIPAY;
 
 import android.app.Activity;
@@ -13,6 +14,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,6 +28,7 @@ import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
+import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
@@ -66,7 +69,6 @@ public class AlipayBasePlugin {
         L.d("activity", activity);
         try {
             final String activityClzName = activity.getClass().getName();
-            mCurrentActivity = activity;
             if (BuildConfig.DEBUG) {
                 L.d("activity", activity, "clz", activityClzName);
             }
@@ -83,6 +85,7 @@ public class AlipayBasePlugin {
                     return;
                 }
                 mIsViewTreeObserverFirst = true;
+                int alipayVersionCode = getAlipayVersionCode(activity);
                 activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
                     if (mCurrentActivity == null) {
                         return;
@@ -95,7 +98,21 @@ public class AlipayBasePlugin {
                     if (mCurrentActivity != activity) {
                         return;
                     }
-                    if (ViewUtils.findViewByName(activity, (getAlipayVersionCode(activity) >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
+                    if (alipayVersionCode >= 661 /** 10.3.10.8310 */) {
+                        if (ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "simplePwdLayout") == null
+                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "mini_linSimplePwdComponent") == null
+                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
+                            return;
+                        }
+
+                        if (mIsViewTreeObserverFirst) {
+                            if (showFingerPrintDialog(activity)) {
+                                mIsViewTreeObserverFirst = false;
+                            }
+                        }
+                        return;
+                    }
+                    if (ViewUtils.findViewByName(activity, (alipayVersionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaysdk", "mini_linSimplePwdComponent") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
@@ -130,6 +147,12 @@ public class AlipayBasePlugin {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+
+    public void onActivityResumed(Activity activity) {
+        L.d("activity resumed", activity);
+        mCurrentActivity = activity;
     }
 
     public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback) {
@@ -178,7 +201,7 @@ public class AlipayBasePlugin {
         }
     }
 
-    public void showFingerPrintDialog(final Activity activity) {
+    public boolean showFingerPrintDialog(final Activity activity) {
         final Context context = activity;
         try {
             if (getAlipayVersionCode(activity) >= 224) {
@@ -186,7 +209,7 @@ public class AlipayBasePlugin {
                     View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password");
                     L.d("payTextView", payTextView);
                     if (payTextView == null) {
-                        return;
+                        return false;
                     }
                 }
             }
@@ -260,6 +283,7 @@ public class AlipayBasePlugin {
             Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
         } catch (OutOfMemoryError e) {
         }
+        return true;
     }
 
     /**
@@ -321,6 +345,14 @@ public class AlipayBasePlugin {
             L.e(e);
         }
 
+        int versionCode = getAlipayVersionCode(activity);
+        if (versionCode >= 661 /** 10.3.10.8310 */) {
+            ImageView itemIconImageView = new ImageView(activity);
+            itemIconImageView.setImageBitmap(ImageUtils.base64ToBitmap(ICON_ALIPAY_SETTING_ENTRY_BASE64));
+            LinearLayout.LayoutParams itemIconImageViewLayoutParams = new LinearLayout.LayoutParams(DpUtils.dip2px(activity, 24), DpUtils.dip2px(activity, 24));
+            itemIconImageViewLayoutParams.leftMargin = DpUtils.dip2px(activity, 12);
+            itemHlinearLayout.addView(itemIconImageView, itemIconImageViewLayoutParams);
+        }
         itemHlinearLayout.addView(itemNameText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
         itemHlinearLayout.addView(itemSummerText, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -330,9 +362,20 @@ public class AlipayBasePlugin {
         LinearLayout rootLinearLayout = new LinearLayout(activity);
         rootLinearLayout.setOrientation(LinearLayout.VERTICAL);
         rootLinearLayout.addView(lineTopView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        rootLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(activity, 45)));
         LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lineParams.bottomMargin = DpUtils.dip2px(activity, 20);
+
+        if (versionCode >= 661 /** 10.3.10.8310 */) {
+            lineTopView.setVisibility(View.INVISIBLE);
+            itemHlinearLayout.setBackground(new XDrawable.Builder().defaultColor(Color.WHITE)
+                    .pressedColor(0xFFEBEBEB).round(32).create());
+            lineBottomView.setVisibility(View.INVISIBLE);
+            lineParams.bottomMargin = DpUtils.dip2px(activity, 8);
+            rootLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(activity, 50)));
+        } else {
+            rootLinearLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, DpUtils.dip2px(activity, 45)));
+            lineParams.bottomMargin = DpUtils.dip2px(activity, 20);
+        }
+
         rootLinearLayout.addView(lineBottomView, lineParams);
 
         listView.addHeaderView(rootLinearLayout);
