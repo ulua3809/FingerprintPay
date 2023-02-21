@@ -17,6 +17,9 @@
 1. 利用 [Magisk](https://github.com/topjohnwu/Magisk) 的 [Riru](https://github.com/RikkaApps/Riru) 注入 zygote 进程
 2. 加载指纹支付代码
 
+## 国内镜像
+- [点这里](https://file.xdow.net/download/fingerprintpay/)
+
 ## 使用步骤 Magisk
 1. 下载插件: [riru-release.zip](https://github.com/RikkaApps/Riru/releases)
 2. 下载插件: [riru-module-xfingerprint-pay-qq-release.zip](https://github.com/eritpchy/FingerprintPay/releases)
