@@ -74,12 +74,16 @@ jobs:
             riru/build/release/*.zip
           body: "[Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})"
       - name: Upload artifacts
-        uses: bxb100/action-upload-webdav@v1
+        uses: Wandalen/wretry.action@master
         with:
-          webdav_address: ${{secrets.WEBDAV_ADDRESS}}
-          webdav_username: ${{secrets.WEBDAV_USERNAME}}
-          webdav_password: ${{secrets.WEBDAV_PASSWORD}}
-          webdav_upload_path: "/${{ env.release_version }}"
-          files: |
-            app/build/outputs/apk/release/*.apk
-            riru/build/release/*.zip
+          action: bxb100/action-upload-webdav@v1
+          with: |
+            webdav_address: ${{secrets.WEBDAV_ADDRESS}}
+            webdav_username: ${{secrets.WEBDAV_USERNAME}}
+            webdav_password: ${{secrets.WEBDAV_PASSWORD}}
+            webdav_upload_path: "/${{ env.release_version }}"
+            files: |
+              app/build/outputs/apk/release/*.apk
+              riru/build/release/*.zip
+          attempt_limit: 3
+          attempt_delay: 0
