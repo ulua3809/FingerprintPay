@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -72,7 +73,11 @@ public class AlipayBasePlugin {
             if (BuildConfig.DEBUG) {
                 L.d("activity", activity, "clz", activityClzName);
             }
-            if (activityClzName.contains(".MySettingActivity")) {
+            int alipayVersionCode = getAlipayVersionCode(activity);
+            if (alipayVersionCode >= 773 /** 10.3.80.9100 */ && activityClzName.contains(".FBAppWindowActivity")) {
+                Task.onMain(500, () -> doSettingsMenuInject_10_1_38(activity));
+                Task.onMain(1000, () -> doSettingsMenuInject_10_1_38(activity));
+            } else if (activityClzName.contains(".MySettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
             } else if (activityClzName.contains(".UserSettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject(activity));
@@ -85,7 +90,6 @@ public class AlipayBasePlugin {
                     return;
                 }
                 mIsViewTreeObserverFirst = true;
-                int alipayVersionCode = getAlipayVersionCode(activity);
                 activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
                     if (mCurrentActivity == null) {
                         return;
@@ -101,7 +105,7 @@ public class AlipayBasePlugin {
                     if (alipayVersionCode >= 661 /** 10.3.10.8310 */) {
                         if (ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "simplePwdLayout") == null
                                 && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "mini_linSimplePwdComponent") == null
-                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
+                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null) {
                             return;
                         }
 
@@ -301,9 +305,6 @@ public class AlipayBasePlugin {
     }
 
     private void doSettingsMenuInject_10_1_38(final Activity activity) {
-        int listViewId = activity.getResources().getIdentifier("setting_list", "id", "com.alipay.android.phone.openplatform");
-
-        ListView listView = activity.findViewById(listViewId);
 
         View lineTopView = new View(activity);
         lineTopView.setBackgroundColor(0xFFEEEEEE);
@@ -329,10 +330,13 @@ public class AlipayBasePlugin {
         itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
         itemSummerText.setPadding(0, 0, DpUtils.dip2px(activity, 18), 0);
         itemSummerText.setTextColor(0xFF999999);
+        int versionCode = getAlipayVersionCode(activity);
 
         //try use Alipay style
         try {
-            View settingsView = ViewUtils.findViewByName(activity, "com.alipay.mobile.antui", "item_left_text");
+            View settingsView = versionCode >= 773 /** 10.3.80.9100 */
+                    ? ViewUtils.findViewByText(activity.getWindow().getDecorView(), "生物支付", "Biological ID Pay")
+                    : ViewUtils.findViewByName(activity, "com.alipay.mobile.antui", "item_left_text");
             L.d("settingsView", settingsView);
             if (settingsView instanceof TextView) {
                 TextView settingsTextView = (TextView) settingsView;
@@ -345,8 +349,8 @@ public class AlipayBasePlugin {
             L.e(e);
         }
 
-        int versionCode = getAlipayVersionCode(activity);
-        if (versionCode >= 661 /** 10.3.10.8310 */) {
+        if (versionCode >= 773 /** 10.3.80.9100 */) {
+        } else if (versionCode >= 661 /** 10.3.10.8310 */) {
             ImageView itemIconImageView = new ImageView(activity);
             itemIconImageView.setImageBitmap(ImageUtils.base64ToBitmap(ICON_ALIPAY_SETTING_ENTRY_BASE64));
             LinearLayout.LayoutParams itemIconImageViewLayoutParams = new LinearLayout.LayoutParams(DpUtils.dip2px(activity, 24), DpUtils.dip2px(activity, 24));
@@ -378,7 +382,24 @@ public class AlipayBasePlugin {
 
         rootLinearLayout.addView(lineBottomView, lineParams);
 
-        listView.addHeaderView(rootLinearLayout);
+        if (versionCode >= 773 /** 10.3.80.9100 */) {
+            View itemView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "生物支付", "Biological ID Pay");
+            if (itemView != null) {
+                ViewGroup itemViewGroup = (ViewGroup) itemView.getParent().getParent().getParent().getParent();
+                L.d("生物支付item: " + ViewUtils.getViewInfo(itemViewGroup));
+                itemViewGroup.setPadding(0, DpUtils.dip2px(activity, 62), 0, 0);
+                itemViewGroup.setClipToPadding(false);
+                FrameLayout.LayoutParams rootLinearLayoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                rootLinearLayoutParams.topMargin = -DpUtils.dip2px(activity, 50);
+                rootLinearLayoutParams.leftMargin = DpUtils.dip2px(activity, 12);
+                rootLinearLayoutParams.rightMargin = DpUtils.dip2px(activity, 12);
+                itemViewGroup.addView(rootLinearLayout, rootLinearLayoutParams);
+            }
+        } else {
+            int listViewId = activity.getResources().getIdentifier("setting_list", "id", "com.alipay.android.phone.openplatform");
+            ListView listView = activity.findViewById(listViewId);
+            listView.addHeaderView(rootLinearLayout);
+        }
     }
 
     private void doSettingsMenuInject(final Activity activity) {

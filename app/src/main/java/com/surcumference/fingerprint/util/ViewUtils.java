@@ -258,6 +258,9 @@ public class ViewUtils {
             stringBuffer.append(" desc:").append(desc);
         }
         stringBuffer.append(" tag:").append(view.getTag());
+        if (view instanceof ViewGroup) {
+            stringBuffer.append(" child:").append(((ViewGroup) view).getChildCount());
+        }
         return stringBuffer.toString();
     }
 

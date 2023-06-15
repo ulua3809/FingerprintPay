@@ -75,6 +75,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             case Constant.PACKAGE_NAME_WECHAT:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_wechat), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_wechat)));
+                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
                 break;
             case Constant.PACKAGE_NAME_QQ:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_qq), true, Config.from(context).isOn()));
@@ -149,6 +150,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                     mListAdapter.notifyDataSetChanged();
                 }
             }
+        } else if (Lang.getString(R.id.settings_title_no_fingerprint_icon).equals(data.title)) {
+            data.selectionState = !data.selectionState;
+            config.setShowFingerprintIcon(data.selectionState);
+            mListAdapter.notifyDataSetChanged();
         } else if (Lang.getString(R.id.settings_title_password).equals(data.title)) {
             PasswordInputView passwordInputView = new PasswordInputView(context);
             if (!TextUtils.isEmpty(config.getPassword())) {

@@ -109,6 +109,8 @@ public class Lang {
                 return tr("启用", "啟用", "Enable");
             case R.id.settings_title_password:
                 return tr("密码", "密碼", "Password");
+            case R.id.settings_title_no_fingerprint_icon:
+                return tr("显示指纹图标", "顯示指紋圖標", "Fingerprint Icon");
             case R.id.settings_title_donate:
                 return tr("赞助我", "贊助我", "Donate me");
             case R.id.settings_sub_title_switch_alipay:
@@ -123,6 +125,8 @@ public class Lang {
                 return tr("请输入支付宝的支付密码, 密码会加密后保存, 请放心", "請輸入支付宝的支付密碼, 密碼會加密后保存, 請放心", "Please enter your Payment password");
             case R.id.settings_sub_title_password_wechat:
                 return tr("请输入微信的支付密码, 密码会加密后保存, 请放心", "請輸入微信的支付密碼, 密碼會加密后保存, 請放心", "Please enter your Payment password");
+            case R.id.settings_sub_title_no_fingerprint_icon:
+                return tr("非屏下指纹手机需要显示指纹图标", "非屏下指紋手機需要顯示指紋圖標", "Non IN-DISPLAY fingerprint phone need to display the fingerprint icon");
             case R.id.settings_sub_title_password_qq:
                 return tr("请输入QQ的支付密码, 密码会加密后保存, 请放心", "請輸入QQ的支付密碼, 密碼會加密后保存, 請放心", "Please enter your Payment password");
             case R.id.settings_sub_title_password_unionpay:
@@ -138,7 +142,7 @@ public class Lang {
             case R.id.app_settings_name:
                 return tr("指纹设置", "指紋設置", "Fingerprint");
             case R.id.wechat_payview_fingerprint_title:
-                return tr("请验证指纹", "請驗證指紋", "Verify fingerprint");
+                return tr("   请验证指纹", "   請驗證指紋", "   Verify fingerprint");
             case R.id.wechat_payview_password_title:
                 return tr("请输入支付密码", "請輸入付款密碼", "Enter payment password");
             case R.id.wechat_payview_password_switch_text:

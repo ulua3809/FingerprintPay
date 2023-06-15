@@ -39,6 +39,7 @@
     <item name="enter_password" type="id"/>
     <item name="settings_title_switch" type="id"/>
     <item name="settings_title_password" type="id"/>
+    <item name="settings_title_no_fingerprint_icon" type="id"/>
     <item name="settings_title_donate" type="id"/>
     <item name="settings_sub_title_switch_alipay" type="id"/>
     <item name="settings_sub_title_switch_wechat" type="id"/>
@@ -46,6 +47,7 @@
     <item name="settings_sub_title_switch_unionpay" type="id"/>
     <item name="settings_sub_title_password_alipay" type="id"/>
     <item name="settings_sub_title_password_wechat" type="id"/>
+    <item name="settings_sub_title_no_fingerprint_icon" type="id"/>
     <item name="settings_sub_title_password_qq" type="id"/>
     <item name="settings_sub_title_password_unionpay" type="id"/>
     <item name="settings_sub_title_donate" type="id"/>
@@ -88,4 +90,6 @@
     <item name="toast_goto_donate_page_fail_wechat" type="id"/>
     <item name="toast_goto_donate_page_fail_qq" type="id"/>
     <item name="toast_need_qq_7_2_5" type="id"/>
+
+    <item name="tag_password_layout_listener" type="id"/>
 </resources>

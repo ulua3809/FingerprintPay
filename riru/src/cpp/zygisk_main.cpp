@@ -16,6 +16,7 @@ public:
     void onLoad(Api *api, JNIEnv *env) override {
         this->api = api;
         this->env = env;
+        api->setOption(zygisk::DLCLOSE_MODULE_LIBRARY);
     }
 
     void preAppSpecialize(AppSpecializeArgs *args) override {

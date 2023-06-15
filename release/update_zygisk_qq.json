@@ -1,6 +1,6 @@
 {
-    "version": "4.6.0",
+    "version": "4.7.0",
     "versionCode": "23",
-    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.6.0-ci/zygisk-module-xfingerprint-pay-qq-v4.6.0-release.zip",
+    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.0-ci/zygisk-module-xfingerprint-pay-qq-v4.7.0-release.zip",
     "changelog": "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md"
 }

@@ -69,6 +69,14 @@ public class Config {
         mCache.sharedPreferences.edit().putString("password", enc).apply();
     }
 
+    public boolean isShowFingerprintIcon() {
+        return mCache.sharedPreferences.getBoolean("fingerprint_icon", true);
+    }
+
+    public void setShowFingerprintIcon(boolean on) {
+        mCache.sharedPreferences.edit().putBoolean("fingerprint_icon", on).apply();
+    }
+
     public void setSkipVersion(String version) {
         mCache.sharedPreferences.edit().putString("skip_version", version).apply();
         mCache.mainAppSharedPreferences.edit().putString("skip_version", version).apply();

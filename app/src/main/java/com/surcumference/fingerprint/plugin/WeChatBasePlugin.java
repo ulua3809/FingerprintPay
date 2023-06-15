@@ -15,8 +15,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -49,6 +51,7 @@ import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.WeakHashMap;
 
 public class WeChatBasePlugin {
@@ -234,8 +237,10 @@ public class WeChatBasePlugin {
     protected void onPayDialogShown(ViewGroup rootView) {
         L.d("PayDialog show");
         Context context = rootView.getContext();
-        if (Config.from(context).isOn()) {
+        Config config = Config.from(context);
+        if (config.isOn()) {
             int versionCode = getWeChatVersionCode(context);
+            ViewUtils.recursiveLoopChildren(rootView);
             WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
             L.d(payDialogView);
             if (payDialogView == null) {
@@ -245,7 +250,7 @@ public class WeChatBasePlugin {
 
             ViewGroup passwordLayout = payDialogView.passwordLayout;
             EditText mInputEditText = payDialogView.inputEditText;
-            View keyboardView = payDialogView.keyboardView;
+            List<View> keyboardViews = payDialogView.keyboardViews;
             TextView usePasswordText = payDialogView.usePasswordText;
             TextView titleTextView = payDialogView.titleTextView;
 
@@ -280,28 +285,56 @@ public class WeChatBasePlugin {
             } catch (OutOfMemoryError e) {
                 L.d(e);
             }
-            fingerprintImageView.setScaleY(4F);
-            fingerprintImageView.setScaleX(4F);
-            RelativeLayout.LayoutParams fingerprintImageViewLayoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            fingerprintImageViewLayoutParams.topMargin = DpUtils.dip2px(context, 24);
+            RelativeLayout.LayoutParams fingerprintImageViewLayoutParams = new RelativeLayout.LayoutParams(DpUtils.dip2px(context, 70), DpUtils.dip2px(context, 70));
+            fingerprintImageViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            fingerprintImageViewLayoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            fingerprintImageViewLayoutParams.bottomMargin = DpUtils.dip2px(context, 180);
             fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
+            fingerprintImageView.setVisibility(config.isShowFingerprintIcon() ? View.VISIBLE : View.GONE);
+            // 防止从选择支付页面返回时标题出错
+            ViewTreeObserver.OnGlobalLayoutListener layoutListener = (ViewTreeObserver.OnGlobalLayoutListener) passwordLayout.getTag(R.id.tag_password_layout_listener);
+            if (layoutListener != null) {
+                passwordLayout.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
+            }
+            layoutListener = () -> {
+                AccessibilityNodeInfo nodeInfo = AccessibilityNodeInfo.obtain();
+                passwordLayout.onInitializeAccessibilityNodeInfo(nodeInfo);
+                if (nodeInfo.isVisibleToUser()) {
+                    if (fingerPrintLayout.getVisibility() != View.VISIBLE) {
+                        fingerPrintLayout.setVisibility(View.VISIBLE);
+                        // 防止从选择支付页面返回时标题出错
+                        if (titleTextView != null) {
+                            if (mInputEditText.getVisibility() == View.VISIBLE) {
+                                titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
+                            } else {
+                                titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
+                            }
+                        }
+                    }
+                } else {
+                    if (fingerPrintLayout.getVisibility() != View.GONE) {
+                        fingerPrintLayout.setVisibility(View.GONE);
+                    }
+                }
+                nodeInfo.recycle();
+            };
+            passwordLayout.setTag(R.id.tag_password_layout_listener, layoutListener);
+            passwordLayout.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
 
             final Runnable switchToFingerprintRunnable = ()-> {
                 mInputEditText.setVisibility(View.GONE);
-                keyboardView.setVisibility(View.GONE);
-                View fingerPrintLayoutLast = passwordLayout.findViewWithTag("fingerPrintLayout");
-                if (fingerPrintLayoutLast != null) {
-                    passwordLayout.removeView(fingerPrintLayoutLast);
+                for (View keyboardView : keyboardViews) {
+                    keyboardView.setVisibility(View.GONE);
                 }
-                passwordLayout.addView(fingerPrintLayout);
-                passwordLayout.setClipChildren(false);
-                ((ViewGroup)passwordLayout.getParent()).setClipChildren(false);
-                ((ViewGroup)passwordLayout.getParent().getParent()).setClipChildren(false);
+                View fingerPrintLayoutLast = rootView.findViewWithTag("fingerPrintLayout");
+                if (fingerPrintLayoutLast != null) {
+                    rootView.removeView(fingerPrintLayoutLast);
+                }
+                rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
                 initFingerPrintLock(context, ()-> {
                     BlackListUtils.applyIfNeeded(context);
                     //SUCCESS UNLOCK
-                    Config config = Config.from(context);
                     String pwd = config.getPassword();
                     if (TextUtils.isEmpty(pwd)) {
                         Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_wechat), Toast.LENGTH_SHORT).show();
@@ -325,9 +358,9 @@ public class WeChatBasePlugin {
             };
 
             final Runnable switchToPasswordRunnable = ()-> {
-                passwordLayout.removeView(fingerPrintLayout);
+                rootView.removeView(fingerPrintLayout);
                 mInputEditText.setVisibility(View.VISIBLE);
-                keyboardView.setVisibility(View.VISIBLE);
+                keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
                 mInputEditText.performClick();
                 mFingerprintIdentify.cancelIdentify();
                 mMockCurrentUser = false;
@@ -342,6 +375,22 @@ public class WeChatBasePlugin {
             if (usePasswordText != null) {
                 Task.onMain(()-> usePasswordText.setVisibility(View.VISIBLE));
                 usePasswordText.setOnTouchListener((view, motionEvent) -> {
+                    try {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                            if (mInputEditText.getVisibility() == View.GONE) {
+                                switchToPasswordRunnable.run();
+                            } else {
+                                switchToFingerprintRunnable.run();
+                            }
+                        }
+                    } catch (Exception e) {
+                        L.e(e);
+                    }
+                    return true;
+                });
+            }
+            if (titleTextView != null) {
+                titleTextView.setOnTouchListener((view, motionEvent) -> {
                     try {
                         if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                             if (mInputEditText.getVisibility() == View.GONE) {
