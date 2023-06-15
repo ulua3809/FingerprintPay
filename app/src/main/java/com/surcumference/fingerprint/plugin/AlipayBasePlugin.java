@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.AlipayVersionControl;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -57,6 +58,7 @@ public class AlipayBasePlugin {
 
     private boolean mIsViewTreeObserverFirst;
     private int mAlipayVersionCode;
+    private ActivityViewObserver mSettingPageEnteredObserver;
 
     private int getAlipayVersionCode(Context context) {
         if (mAlipayVersionCode != 0) {
@@ -75,8 +77,21 @@ public class AlipayBasePlugin {
             }
             int alipayVersionCode = getAlipayVersionCode(activity);
             if (alipayVersionCode >= 773 /** 10.3.80.9100 */ && activityClzName.contains(".FBAppWindowActivity")) {
-                Task.onMain(500, () -> doSettingsMenuInject_10_1_38(activity));
-                Task.onMain(1000, () -> doSettingsMenuInject_10_1_38(activity));
+
+                ActivityViewObserver activityViewObserver = mSettingPageEnteredObserver;
+                if (activityViewObserver != null) {
+                    activityViewObserver.stop();
+                    mSettingPageEnteredObserver = null;
+                }
+                activityViewObserver = new ActivityViewObserver(activity);
+                activityViewObserver.setViewIdentifyText("支付密码", "支付密碼", "Payment Password");
+                activityViewObserver.start(100, (observer, view) -> doSettingsMenuInject_10_1_38(activity));
+                mSettingPageEnteredObserver = activityViewObserver;
+                ActivityViewObserver finalActivityViewObserver = activityViewObserver;
+                Task.onBackground(30000, () -> {
+                    mSettingPageEnteredObserver = null;
+                    finalActivityViewObserver.stop();
+                });
             } else if (activityClzName.contains(".MySettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
             } else if (activityClzName.contains(".UserSettingActivity")) {

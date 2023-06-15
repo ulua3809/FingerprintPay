@@ -1,6 +1,6 @@
 {
-    "version": "4.7.1",
+    "version": "4.7.3",
     "versionCode": "23",
-    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.1-ci/zygisk-module-xfingerprint-pay-alipay-v4.7.1-release.zip",
+    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.3-ci/zygisk-module-xfingerprint-pay-alipay-v4.7.3-release.zip",
     "changelog": "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md"
 }

@@ -18,7 +18,7 @@ public class ActivityViewObserver {
     private WeakReference<Activity> mActivityRef;
     private boolean mRunning = false;
     private String mViewIdentifyType;
-    private String mViewIdentifyText;
+    private String[] mViewIdentifyTexts;
 
     public ActivityViewObserver(Activity weakRefActivity) {
         this.mActivityRef = new WeakReference<>(weakRefActivity);
@@ -28,13 +28,13 @@ public class ActivityViewObserver {
         this.mViewIdentifyType = viewIdentifyType;
     }
 
-    public void setViewIdentifyText(String viewIdentifyText) {
-        this.mViewIdentifyText = viewIdentifyText;
+    public void setViewIdentifyText(String ...viewIdentifyTexts) {
+        this.mViewIdentifyTexts = viewIdentifyTexts;
     }
 
     public void start(long loopMSec, IActivityViewListener listener) {
-        if (TextUtils.isEmpty(this.mViewIdentifyType) && TextUtils.isEmpty(this.mViewIdentifyText)) {
-            throw new IllegalArgumentException("Error: ViewIdentifyType or ViewIdentifyText not set");
+        if (TextUtils.isEmpty(this.mViewIdentifyType) &&  (mViewIdentifyTexts == null || mViewIdentifyTexts.length == 0)) {
+            throw new IllegalArgumentException("Error: ViewIdentifyType or ViewIdentifyTexts not set");
         }
         if (mRunning) {
             return;
@@ -84,11 +84,15 @@ public class ActivityViewObserver {
                     break;
                 }
             }
-            String viewIdentifyText = this.mViewIdentifyText;
-            if (!TextUtils.isEmpty(viewIdentifyText)) {
-                ViewUtils.getChildViews((ViewGroup) decorView, viewIdentifyText, viewList);
-                if (viewList.size() > 0) {
-                    break;
+            String[] viewIdentifyTexts = this.mViewIdentifyTexts;
+            if (viewIdentifyTexts != null) {
+                for (String viewIdentifyText: this.mViewIdentifyTexts) {
+                    if (!TextUtils.isEmpty(viewIdentifyText)) {
+                        ViewUtils.getChildViews((ViewGroup) decorView, viewIdentifyText, viewList);
+                        if (viewList.size() > 0) {
+                            break;
+                        }
+                    }
                 }
             }
         }
