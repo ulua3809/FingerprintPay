@@ -335,7 +335,7 @@ public class AlipayBasePlugin {
         //try use Alipay style
         try {
             View settingsView = versionCode >= 773 /** 10.3.80.9100 */
-                    ? ViewUtils.findViewByText(activity.getWindow().getDecorView(), "生物支付", "Biological ID Pay")
+                    ? ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付密码", "支付密碼", "Payment Password")
                     : ViewUtils.findViewByName(activity, "com.alipay.mobile.antui", "item_left_text");
             L.d("settingsView", settingsView);
             if (settingsView instanceof TextView) {
@@ -383,7 +383,7 @@ public class AlipayBasePlugin {
         rootLinearLayout.addView(lineBottomView, lineParams);
 
         if (versionCode >= 773 /** 10.3.80.9100 */) {
-            View itemView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "生物支付", "Biological ID Pay");
+            View itemView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付密码", "支付密碼", "Payment Password");
             if (itemView != null) {
                 ViewGroup itemViewGroup = (ViewGroup) itemView.getParent().getParent().getParent().getParent();
                 L.d("生物支付item: " + ViewUtils.getViewInfo(itemViewGroup));

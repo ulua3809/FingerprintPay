@@ -1,6 +1,6 @@
 {
-    "version": "4.7.0",
+    "version": "4.7.1",
     "versionCode": "23",
-    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.0-ci/riru-module-xfingerprint-pay-unionpay-v4.7.0-release.zip",
+    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.1-ci/riru-module-xfingerprint-pay-unionpay-v4.7.1-release.zip",
     "changelog": "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md"
 }
