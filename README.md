@@ -18,7 +18,7 @@
 2. 加载指纹支付代码
 
 ## 国内镜像
-- [点这里](https://file.xdow.net/download/fingerprintpay/)
+- [点这里](https://file.xdow.net/fingerprintpay/)
 
 ## 使用步骤 Magisk
 1. 下载插件: [riru-release.zip](https://github.com/RikkaApps/Riru/releases)
