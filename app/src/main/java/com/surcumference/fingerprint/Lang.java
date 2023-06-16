@@ -142,7 +142,7 @@ public class Lang {
             case R.id.app_settings_name:
                 return tr("指纹设置", "指紋設置", "Fingerprint");
             case R.id.wechat_payview_fingerprint_title:
-                return tr("   请验证指纹", "   請驗證指紋", "   Verify fingerprint");
+                return tr("　请验证指纹　", "　請驗證指紋　", "　Verify fingerprint　");
             case R.id.wechat_payview_password_title:
                 return tr("请输入支付密码", "請輸入付款密碼", "Enter payment password");
             case R.id.wechat_payview_password_switch_text:

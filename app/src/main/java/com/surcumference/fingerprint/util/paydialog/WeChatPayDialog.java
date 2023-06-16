@@ -83,7 +83,7 @@ public class WeChatPayDialog {
 
                 payDialog.titleTextView = (TextView) com.surcumference.fingerprint.util.ViewUtils.findViewByText(rootView,
                         "请验证指纹", "請驗證指紋", "Verify fingerprint",
-                        "   请验证指纹", "   請驗證指紋", "   Verify fingerprint",
+                        "　请验证指纹　", "　請驗證指紋　", "　Verify fingerprint　",
                         "请输入支付密码", "請輸入付款密碼", "Enter payment password");
                 L.d("payDialog.titleTextView", payDialog.titleTextView); // 6.5.16 app:id/dgz
                 if (payDialog.titleTextView == null) {
