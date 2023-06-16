@@ -61,7 +61,7 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                                     L.d("content", content);
                                     GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
                                     UpdateInfo updateInfo = new UpdateInfo(info.version, content,
-                                            info.contentUrl, assetsInfo.url, assetsInfo.size);
+                                            info.contentUrl, assetsInfo.url, assetsInfo.name, assetsInfo.size);
                                     onHasUpdate(updateInfo);
                                 } else {
                                     onNoUpdate();

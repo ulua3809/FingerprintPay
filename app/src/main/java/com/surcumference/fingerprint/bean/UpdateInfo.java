@@ -5,13 +5,15 @@ public class UpdateInfo {
     public String content;
     public String pageUrl;
     public String url;
-    public int size;
+    public String name;
+    public long size;
 
-    public UpdateInfo(String version, String content, String pageUrl, String url, int size) {
+    public UpdateInfo(String version, String content, String pageUrl, String url, String name, long size) {
         this.version = version;
         this.content = content;
         this.pageUrl = pageUrl;
         this.url = url;
+        this.name = name;
         this.size = size;
     }
 

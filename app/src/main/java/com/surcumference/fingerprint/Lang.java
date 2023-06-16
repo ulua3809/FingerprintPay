@@ -87,10 +87,14 @@ public class Lang {
             case R.id.update_now:
                 return tr("立即更新", "立即更新 ", "UPDATE");
             case R.id.update_success_note:
-                return tr("安装更新后, 重启手机使插件生效", "安裝更新後, 重啟手機使插件生效 ",
-                        "After installing the update, restart the phone to enable the plug-in");
+                return tr("安装更新成功, 请重启手机使插件生效", "安裝更新成功, 請重啟手機使插件生效",
+                        "Update Successfully, please restart the phone to enable the plug-in");
             case R.id.downloading:
                 return tr("下载中", "下載中", "Downloading");
+            case R.id.download_title_failed:
+                return tr("下载出错", "下載出錯", "Download failed");
+            case R.id.download_complete_file_size_miss_match:
+                return tr("文件大小不匹配, 当前 %d, 应为 %d", "文件大小不匹配, 當前 %d, 應為 %d", "File size miss match, got %d, expected %d");
             case R.id.ok:
                 return tr("确定", "确定", "OK");
             case R.id.settings_title_taobao:
@@ -164,7 +168,7 @@ public class Lang {
             case R.id.update_time:
                 return tr("更新日期", "更新日期", "Update time");
             case R.id.update_no_root:
-                return tr("未获取到ROOT权限, 无法进行自动更新, 请前往更新页面手动获取更新", "未獲取到ROOT權限, 無法進行自動更新, 請前往更新頁面手動獲取更新", "Update failed, no root permission, please go to update page to manually obtain the updates");
+                return tr("当前应用未获取到ROOT权限, 无法进行自动更新, 请前往更新页面手动获取更新", "當前應用未獲取到ROOT權限, 無法進行自動更新, 請前往更新頁面手動獲取更新", "Update failed, the current application cannot obtain root permission, please go to update page to manually obtain the updates");
             case R.id.update_at_least_select_one:
                 return tr("请至少少选择一项", "請至少少選擇一項", "Please select at least one item");
             case R.id.update_file_corrupted:

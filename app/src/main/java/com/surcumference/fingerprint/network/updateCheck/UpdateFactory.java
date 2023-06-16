@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -36,6 +37,7 @@ import net.lingala.zip4j.exception.ZipException;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -147,8 +149,9 @@ public class UpdateFactory {
                         FileUtils.delete(unzipDir);
                     };
                     cleanTask.run();
+                    String mirrorUrl = String.format(Locale.getDefault(), Constant.UPDATE_URL_MIRROR_FILE, updateInfo.version, updateInfo.name);
                     new DownloadView(context)
-                            .download(updateInfo.url, targetFile, () -> {
+                            .download(new String[]{mirrorUrl, updateInfo.url}, targetFile, updateInfo.size, () -> {
                                     updateInfoViewDialogInterface.dismiss();
                                     ShellExecuteView shellExecuteView = new ShellExecuteView(context);
                                     shellExecuteView.showInDialog();
@@ -221,8 +224,9 @@ public class UpdateFactory {
         String fileName = context.getPackageName() + ".apk";
         File targetFile = FileUtils.getSharableFile(context, fileName);
         FileUtils.delete(targetFile);
+        String mirrorUrl = String.format(Locale.getDefault(), Constant.UPDATE_URL_MIRROR_FILE, updateInfo.version, updateInfo.name);
         new DownloadView(context)
-                .download(updateInfo.url, targetFile, () -> {
+                .download(new String[]{mirrorUrl, updateInfo.url}, targetFile, updateInfo.size, () -> {
                     updateInfoViewDialogInterface.dismiss();
                     UpdateFactory.installApk(context, targetFile);
                     new MessageView(context).text(Lang.getString(R.id.update_success_note)).showInDialog();

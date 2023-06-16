@@ -30,6 +30,8 @@
     <item name="update_now" type="id"/>
     <item name="update_success_note" type="id"/>
     <item name="downloading" type="id"/>
+    <item name="download_title_failed" type="id" />
+    <item name="download_complete_file_size_miss_match" type="id" />
     <item name="ok" type="id"/>
     <item name="settings_title_taobao" type="id"/>
     <item name="settings_title_alipay" type="id"/>

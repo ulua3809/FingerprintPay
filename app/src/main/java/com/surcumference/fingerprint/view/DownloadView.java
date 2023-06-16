@@ -32,6 +32,8 @@ import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Created by Jason on 2021/8/28.
@@ -86,12 +88,23 @@ public class DownloadView extends DialogFrameLayout {
     }
 
     public DownloadView download(String url, File targetFile) {
-        return download(url, targetFile, null);
+        return download(new String[]{url}, targetFile, -1, null);
     }
 
-    public DownloadView download(String url, File targetFile, @Nullable Runnable onSuccessRunnable) {
+    /**
+     *
+     * @param urls
+     * @param targetFile
+     * @param expectedSize -1 for invalid size
+     * @param onSuccessRunnable
+     * @return
+     */
+    public DownloadView download(String[] urls, File targetFile, long expectedSize, @Nullable Runnable onSuccessRunnable) {
+        if (urls.length <= 0) {
+            return this;
+        }
         targetFile.delete();
-        OkGo.<File>get(url)//
+        OkGo.<File>get(urls[0])//
                 .tag(this)//
                 .execute(new FileCallback(targetFile.getParent(), targetFile.getName()) {
 
@@ -103,6 +116,23 @@ public class DownloadView extends DialogFrameLayout {
                     @Override
                     public void onSuccess(Response<File> response) {
                         L.d("下载完成");
+                        if (expectedSize != -1) {
+                            long fileSize = targetFile.length();
+                            if (expectedSize != fileSize) {
+                                if (urls.length <= 1) {
+                                    new MessageView(getContext())
+                                            .title(Lang.getString(R.id.download_title_failed))
+                                            .text(String.format(Locale.getDefault(),
+                                                    Lang.getString(R.id.download_complete_file_size_miss_match),
+                                                    fileSize, expectedSize))
+                                            .showInDialog();
+                                    dismiss();
+                                } else {
+                                    download(Arrays.copyOfRange(urls, 1, urls.length), targetFile, expectedSize, onSuccessRunnable);
+                                }
+                                return;
+                            }
+                        }
                         if (onSuccessRunnable != null) {
                             onSuccessRunnable.run();
                         }
@@ -117,12 +147,17 @@ public class DownloadView extends DialogFrameLayout {
                             L.d("下载取消");
                             return;
                         }
-                        L.d("下载出错", response.code(), exception);
-                        new MessageView(getContext())
-                                .title("下载出错")
-                                .text(exception.getMessage())
-                                .showInDialog();
-                        dismiss();
+                        L.d("下载出错", response.code(), exception, urls);
+                        if (urls.length <= 1) {
+
+                            new MessageView(getContext())
+                                    .title(Lang.getString(R.id.download_title_failed))
+                                    .text(exception.getMessage())
+                                    .showInDialog();
+                            dismiss();
+                        } else {
+                            download(Arrays.copyOfRange(urls, 1, urls.length), targetFile, expectedSize, onSuccessRunnable);
+                        }
                     }
 
                     @Override
