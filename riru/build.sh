@@ -52,6 +52,11 @@ $MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE $MODULE_GRALDE_TASK \
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
 find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/\$(basename {})"
 ZIPNAME=$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
-zip -j -u ./build/release/$ZIPNAME $MODULE_TEMPLATE/out/*.zip
+CURRENT_DIR="$PWD"
+cd "$CURRENT_DIR/$MODULE_TEMPLATE/out"
+zip -u "$CURRENT_DIR/build/release/$ZIPNAME" *.zip
+cd "$CURRENT_DIR/src/installer"
+zip -ur "$CURRENT_DIR/build/release/$ZIPNAME" * || true
+cd "$CURRENT_DIR"
 bash ./reset.sh
 
