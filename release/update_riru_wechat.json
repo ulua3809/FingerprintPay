@@ -1,6 +1,6 @@
 {
-    "version": "4.7.3",
-    "versionCode": "23",
-    "zipUrl": "https://github.com/eritpchy/FingerprintPay/releases/download/4.7.3-ci/riru-module-xfingerprint-pay-wechat-v4.7.3-release.zip",
+    "version": "4.7.4",
+    "versionCode": "24",
+    "zipUrl": "https://file.xdow.net/d/download/fingerprintpay/4.7.4/riru-module-xfingerprint-pay-wechat-v4.7.4-release.zip",
     "changelog": "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md"
 }
