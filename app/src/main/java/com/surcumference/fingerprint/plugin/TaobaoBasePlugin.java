@@ -80,7 +80,8 @@ public class TaobaoBasePlugin {
             }
             mCurrentActivity = activity;
             int versionCode = getTaobaoVersionCode(activity);
-            if (activityClzName.contains(versionCode >= 301 ? ".PayPwdDialogActivity" : ".MspContainerActivity")
+            if (activityClzName.contains(".PayPwdDialogActivity")
+                    || activityClzName.contains(".MspContainerActivity")
                     || activityClzName.contains(".FlyBirdWindowActivity")) {
                 L.d("found");
                 final Config config = Config.from(activity);
