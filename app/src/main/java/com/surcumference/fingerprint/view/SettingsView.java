@@ -2,6 +2,7 @@ package com.surcumference.fingerprint.view;
 
 import static com.surcumference.fingerprint.view.PasswordInputView.DEFAULT_HIDDEN_PASS;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -25,7 +26,9 @@ import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
+import com.surcumference.fingerprint.util.log.L;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +83,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             case Constant.PACKAGE_NAME_QQ:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_qq), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_qq)));
+                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
                 break;
             case Constant.PACKAGE_NAME_TAOBAO:
             case Constant.PACKAGE_NAME_ALIPAY:
@@ -154,6 +158,22 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             data.selectionState = !data.selectionState;
             config.setShowFingerprintIcon(data.selectionState);
             mListAdapter.notifyDataSetChanged();
+            if (Constant.PACKAGE_NAME_QQ.equals(context.getPackageName())) {
+                config.commit();
+                ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
+                for (ActivityManager.RunningAppProcessInfo processInfo : runningAppProcesses) {
+                    if ("com.tencent.mobileqq:tool".equals(processInfo.processName)) {
+                        android.os.Process.killProcess(processInfo.pid);
+                        try {
+                            Runtime.getRuntime().exec(new String[]{"kill", "-9", String.valueOf(processInfo.pid)});
+                        } catch (IOException e) {
+                            L.e(e);
+                        }
+                    }
+                    L.d("processInfo", processInfo.processName, processInfo.pid);
+                }
+            }
         } else if (Lang.getString(R.id.settings_title_password).equals(data.title)) {
             PasswordInputView passwordInputView = new PasswordInputView(context);
             if (!TextUtils.isEmpty(config.getPassword())) {

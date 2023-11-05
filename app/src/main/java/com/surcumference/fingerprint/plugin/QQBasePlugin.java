@@ -1,9 +1,12 @@
 package com.surcumference.fingerprint.plugin;
 
+import static com.surcumference.fingerprint.Constant.ICON_QQ_SETTING_ENTRY_DARK_BASE64;
+import static com.surcumference.fingerprint.Constant.ICON_QQ_SETTING_ENTRY_LIGHT_BASE64;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_QQ;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -13,16 +16,20 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
+import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.KeyboardUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.PermissionUtils;
@@ -30,7 +37,6 @@ import com.surcumference.fingerprint.util.QQUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.QQPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -79,7 +85,8 @@ public class QQBasePlugin {
             if (BuildConfig.DEBUG) {
                 L.d("activity", activity, "clz", activityClzName);
             }
-            if (activityClzName.contains(".QQSettingSettingActivity")) {
+            if (activity.toString().contains(".MainSettingFragment")
+                || activityClzName.contains(".QQSettingSettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject(activity));
             }
         } catch (Exception e) {
@@ -335,18 +342,36 @@ public class QQBasePlugin {
 
     private View prepareFingerprintView(Context context) {
 
+        LinearLayout linearLayout = new LinearLayout(context);
         TextView textView = new TextView(context);
-        textView.setTag(TAG_FINGER_PRINT_IMAGE);
+        linearLayout.setTag(TAG_FINGER_PRINT_IMAGE);
         textView.setText("使用密码");
         textView.setTextSize(16);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.CENTER;
-        if (getQQVersionCode(context) >= QQ_VERSION_CODE_7_3_0) {
-            //QQ居然拿键盘底部来定位... To TP工程师. 你们的Activity太重了
-            params.bottomMargin = DpUtils.dip2px(context, 30);
+//        textView.setLayoutParams(params);
+
+
+        final Bitmap bitmap = ImageUtils.base64ToBitmap(Constant.ICON_FINGER_PRINT_WECHAT_BASE64);
+        ImageView fingerprintImageView = new ImageView(context);
+        fingerprintImageView.setImageBitmap(bitmap);
+        LinearLayout.LayoutParams fingerprintImageViewParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, DpUtils.dip2px(context, 64));
+        fingerprintImageViewParams.topMargin = DpUtils.dip2px(context, 48);
+
+        linearLayout.addView(textView, params);
+        linearLayout.addView(fingerprintImageView, fingerprintImageViewParams);
+
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.CENTER;
+        linearLayout.setLayoutParams(layoutParams);
+
+        if (!Config.from(context).isShowFingerprintIcon()) {
+            fingerprintImageView.setVisibility(View.GONE);
+            layoutParams.bottomMargin = DpUtils.dip2px(context, 48);
         }
-        textView.setLayoutParams(params);
-        return textView;
+
+        return linearLayout;
     }
 
     public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback, final Runnable onFailureUnlockCallback) {
@@ -440,34 +465,39 @@ public class QQBasePlugin {
         Context context = activity;
         int versionCode = getQQVersionCode(context);
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
-        View itemView = ViewUtils.findViewByText(rootView, "帐号管理");
+        View itemView = ViewUtils.findViewByText(rootView, "账号管理", "帐号管理");
         View aboutView = versionCode >= QQ_VERSION_CODE_8_8_83 ?
-                ViewUtils.findViewByText(rootView, "关于QQ与帮助") : itemView;
-        LinearLayout linearLayout = (LinearLayout) itemView.getParent().getParent().getParent();
-        linearLayout.setPadding(0, 0, 0, 0);
+                ViewUtils.findViewByText(rootView, "通用") : itemView;
+        FrameLayout itemContainerLayout = (FrameLayout) itemView.getParent().getParent().getParent();
+        itemContainerLayout.setPadding(0, 0, 0, 0);
+        itemContainerLayout.setClipChildren(false);
+        itemContainerLayout.setClipToPadding(false);
         List<ViewGroup.LayoutParams> childViewParamsList = new ArrayList<>();
         List<View> childViewList = new ArrayList<>();
-        int childViewCount = linearLayout.getChildCount();
+        int childViewCount = itemContainerLayout.getChildCount();
         for (int i = 0; i < childViewCount; i++) {
-            View view = linearLayout.getChildAt(i);
+            View view = itemContainerLayout.getChildAt(i);
             childViewList.add(view);
             childViewParamsList.add(view.getLayoutParams());
+            if (view.getClass().toString().endsWith(".RedTouch")) {
+                ((FrameLayout.LayoutParams) view.getLayoutParams()).topMargin  = DpUtils.dip2px(context, -28);
+            }
         }
 
-        linearLayout.removeAllViews();
+        itemContainerLayout.removeAllViews();
 
         View lineTopView = new View(activity);
-        lineTopView.setBackgroundColor(Color.TRANSPARENT);
+        lineTopView.setBackgroundColor(isDarkMode? 0xFF3e3e3e: 0xFFE5E4E4);
 
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
-        itemHlinearLayout.setBackground(new XDrawable.Builder().defaultColor(isDarkMode? Color.BLACK : Color.WHITE).create());
+        itemHlinearLayout.setBackgroundColor(Color.RED);
         itemHlinearLayout.setGravity(Gravity.CENTER_VERTICAL);
         itemHlinearLayout.setClickable(true);
         itemHlinearLayout.setOnClickListener(view -> new SettingsView(activity).showInDialog());
 
-        int defHPadding = DpUtils.dip2px(activity, 16);
+        int defHPadding = DpUtils.dip2px(activity, 10);
 
         TextView itemNameText = new TextView(activity);
         StyleUtils.apply(itemNameText);
@@ -480,7 +510,7 @@ public class QQBasePlugin {
         StyleUtils.apply(itemSummerText);
         itemSummerText.setText(BuildConfig.VERSION_NAME);
         itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
-        itemSummerText.setPadding(0, 0, defHPadding, 0);
+        itemSummerText.setPadding(0, 0, DpUtils.dip2px(activity, 16), 0);
         itemSummerText.setTextColor(0xFF888888);
 
         //try use QQ style
@@ -507,6 +537,12 @@ public class QQBasePlugin {
             L.e(e);
         }
 
+        ImageView itemIconImageView = new ImageView(activity);
+        itemIconImageView.setImageBitmap(ImageUtils.base64ToBitmap(isDarkMode ? ICON_QQ_SETTING_ENTRY_DARK_BASE64 : ICON_QQ_SETTING_ENTRY_LIGHT_BASE64));
+        LinearLayout.LayoutParams itemIconImageViewLayoutParams = new LinearLayout.LayoutParams(DpUtils.dip2px(activity, 20), DpUtils.dip2px(activity, 24));
+        itemIconImageViewLayoutParams.leftMargin = DpUtils.dip2px(activity, 16);
+
+        itemHlinearLayout.addView(itemIconImageView, itemIconImageViewLayoutParams);
         itemHlinearLayout.addView(itemNameText, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
         itemHlinearLayout.addView(itemSummerText, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -523,22 +559,24 @@ public class QQBasePlugin {
         }
 
         menuItemLLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lineParams.topMargin = DpUtils.dip2px(activity, 20);
+        LinearLayout.LayoutParams lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2);
+        lineParams.topMargin = DpUtils.dip2px(activity, 54);
+        lineParams.leftMargin = DpUtils.dip2px(activity, 48);
+        lineParams.rightMargin = DpUtils.dip2px(activity, 16);
         menuItemLLayout.addView(lineTopView, lineParams);
         int menuItemHeight = DpUtils.dip2px(activity, versionCode >= QQ_VERSION_CODE_8_8_83 ? 56 : 45);
         menuItemLLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, menuItemHeight));
         lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         menuItemLLayout.addView(lineBottomView, lineParams);
 
-        linearLayout.addView(menuItemLLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        itemContainerLayout.addView(menuItemLLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         for (int i = 0; i < childViewCount; i++) {
             View view = childViewList.get(i);
             if (view == menuItemLLayout) {
                 continue;
             }
             ViewGroup.LayoutParams params = childViewParamsList.get(i);
-            linearLayout.addView(view, params);
+            itemContainerLayout.addView(view, params);
         }
     }
 

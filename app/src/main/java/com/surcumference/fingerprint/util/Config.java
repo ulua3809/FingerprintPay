@@ -104,6 +104,11 @@ public class Config {
         return agree;
     }
 
+    public void commit() {
+        mCache.sharedPreferences.edit().commit();
+        mCache.mainAppSharedPreferences.edit().commit();
+    }
+
     private class ObjectCache {
         SharedPreferences sharedPreferences;
         SharedPreferences mainAppSharedPreferences;

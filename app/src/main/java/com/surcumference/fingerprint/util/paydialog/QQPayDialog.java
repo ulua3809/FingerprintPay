@@ -57,7 +57,8 @@ public class QQPayDialog {
                         }
                     }
                 } else {
-                    if (view instanceof EditText && "支付密码输入框".equals(view.getContentDescription())) {
+                    if (view instanceof EditText && ("支付密码".equals(view.getContentDescription())
+                            || "支付密码输入框".equals(view.getContentDescription()))) {
                         if (view.isShown() || TAG_PASSWORD_EDITTEXT.equals(view.getTag())) {
                             payDialog.inputEditText = (EditText)view;
                             view.setTag(TAG_PASSWORD_EDITTEXT);
