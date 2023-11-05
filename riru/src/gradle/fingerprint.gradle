@@ -8,7 +8,7 @@ afterEvaluate {
             }
             file("$magiskDir/system/framework").mkdirs()
             copy {
-                from file("$rootDir/../../app/build/intermediates/dex/release/out/classes.dex")
+                from file("$rootDir/../../app/build/intermediates/dex/release/mergeDexRelease/classes.dex")
                 rename('classes.dex', "lib${moduleLibraryName}.dex")
                 into file("$magiskDir/system/framework")
             }

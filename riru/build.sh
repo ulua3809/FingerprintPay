@@ -14,6 +14,7 @@ echo VERSION_CODE: $VERSION_CODE
 bash ./reset.sh
 echo "updateJson=\${updateJson}" >> $MODULE_TEMPLATE/template/magisk_module/module.prop
 perl -i -pe  's/(description: moduleDescription,)/$1 \nupdateJson: moduleUpdateJson,/g'  $MODULE_TEMPLATE/module/build.gradle
+echo org.gradle.java.home="$(java_home || echo "$JAVA_HOME_15")" >> $MODULE_TEMPLATE/gradle.properties
 
 cp -rfv ./src/cpp/* $MODULE_TEMPLATE/module/src/main/cpp/
 cp -rfv "$MODULE_GRALDE_FILE" $MODULE_TEMPLATE/module.gradle

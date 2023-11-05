@@ -2,14 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
-        targetSdkVersion 30
-        versionCode 25
-        versionName "4.7.5"
+        targetSdkVersion 33
+        versionCode 27
+        versionName "4.8.0"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"FingerprintPay\""
     }
 
@@ -39,6 +38,7 @@ android {
 
     //https://proandroiddev.com/how-to-securely-build-and-sign-your-android-app-with-github-actions-ad5323452ce#fromHistory
     def keystoreFile = file('keystore.jks')
+    namespace 'com.surcumference.fingerprint'
     if (keystoreFile.exists()) {
         signingConfigs {
             release {
@@ -71,5 +71,5 @@ dependencies {
     implementation 'com.lzy.net:okgo:3.0.4'
     implementation 'eu.chainfire:libsuperuser:1.1.0.202004101746'
     implementation 'net.lingala.zip4j:zip4j:1.3.2'
-    provided 'de.robv.android.xposed:api:53'
+    compileOnly 'de.robv.android.xposed:api:53'
 }
