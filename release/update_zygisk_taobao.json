@@ -1,6 +1,6 @@
 {
-    "version": "4.7.4",
-    "versionCode": "24",
-    "zipUrl": "https://file.xdow.net/d/download/fingerprintpay/4.7.4/zygisk-module-xfingerprint-pay-taobao-v4.7.4-release.zip",
-    "changelog": "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md"
+    "version": "4.8.0",
+    "versionCode": "27",
+    "zipUrl": "https://file.xdow.net/d/download/fingerprintpay/4.8.0/zygisk-module-xfingerprint-pay-taobao-v4.8.0-release.zip",
+    "changelog": "https://gitee.com/eritpchy/FingerprintPay/raw/main/CHANGELOG.md"
 }
