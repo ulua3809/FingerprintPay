@@ -31,6 +31,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -42,6 +43,7 @@ import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.WeChatVersionControl;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.WeChatPayDialog;
@@ -237,6 +239,7 @@ public class WeChatBasePlugin {
         L.d("PayDialog show");
         Context context = rootView.getContext();
         Config config = Config.from(context);
+        ViewUtils.recursiveLoopChildren(rootView);
         if (config.isOn()) {
             int versionCode = getWeChatVersionCode(context);
             WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
@@ -333,14 +336,7 @@ public class WeChatBasePlugin {
                         Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_wechat), Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if (getWeChatVersionCode(context) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_18) {
-                        mInputEditText.getText().clear();
-                        for (char c : pwd.toCharArray()) {
-                            mInputEditText.append(String.valueOf(c));
-                        }
-                    } else {
-                        mInputEditText.setText(pwd);
-                    }
+                    inputDigitalPassword(context, mInputEditText, pwd, keyboardViews, smallPayDialogFloating);
                 });
                 if (titleTextView != null) {
                     titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
@@ -441,6 +437,49 @@ public class WeChatBasePlugin {
             passwordLayout.setTag(R.id.tag_password_layout_listener, layoutListener);
             passwordLayout.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
         }
+    }
+
+    private void inputDigitalPassword(Context context, EditText inputEditText, String pwd,
+                                      List<View> keyboardViews, boolean smallPayDialogFloating) {
+        int versionCode = getWeChatVersionCode(context);
+        if (versionCode >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_43) {
+            DigitPasswordKeyPadInfo digitPasswordKeyPad = WeChatVersionControl.getDigitPasswordKeyPad(versionCode);
+            inputEditText.getText().clear();
+            View keyboardView = keyboardViews.get(0);
+            // 在半高支付界面需要先激活inputEditText才能正常输入
+            if (!smallPayDialogFloating) {
+                ((ViewGroup)inputEditText.getParent().getParent()).setAlpha(0.01f);
+                inputEditText.setVisibility(View.VISIBLE);
+            }
+            ViewGroup.LayoutParams keyboardViewParams = keyboardView.getLayoutParams();
+            int keyboardViewHeight = keyboardViewParams.height;
+            keyboardViewParams.height = 2;
+            inputEditText.requestFocus();
+            inputEditText.post(() -> {
+                for (char c : pwd.toCharArray()) {
+                    View digitView = ViewUtils.findViewByName(keyboardView, context.getPackageName(),
+                            digitPasswordKeyPad.keys.get(String.valueOf(c)));
+                    if (digitView != null) {
+                        ViewUtils.performActionClick(digitView);
+                    }
+                }
+                // inputEditText.setVisibility(View.VISIBLE); 副作用反制
+                keyboardView.post(() -> inputEditText.setVisibility(View.GONE));
+                keyboardView.postDelayed(() -> {
+                    ((ViewGroup)inputEditText.getParent().getParent()).setAlpha(1f);
+                    keyboardViewParams.height = keyboardViewHeight;
+                }, 1000);
+            });
+            return;
+        }
+        if (getWeChatVersionCode(context) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_18) {
+            inputEditText.getText().clear();
+            for (char c : pwd.toCharArray()) {
+                inputEditText.append(String.valueOf(c));
+            }
+            return;
+        }
+        inputEditText.setText(pwd);
     }
 
     private boolean isSmallPayDialogFloating(ViewGroup passwordLayout) {

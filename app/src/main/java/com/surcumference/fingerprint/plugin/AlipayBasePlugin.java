@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.AlipayVersionControl;
 import com.surcumference.fingerprint.util.ApplicationUtils;
@@ -152,7 +153,7 @@ public class AlipayBasePlugin {
                 activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
                     int versionCode = getAlipayVersionCode(activity);
-                    AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
+                    DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
                     View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
                         showFingerPrintDialog(activity);
@@ -497,7 +498,7 @@ public class AlipayBasePlugin {
 
     private void inputDigitPassword(Activity activity, String password) {
         int versionCode = getAlipayVersionCode(activity);
-        AlipayVersionControl.DigitPasswordKeyPad digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
+        DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
                 ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1),
                 ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key2),

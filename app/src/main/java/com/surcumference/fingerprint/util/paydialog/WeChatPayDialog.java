@@ -1,6 +1,5 @@
 package com.surcumference.fingerprint.util.paydialog;
 
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -67,7 +66,6 @@ public class WeChatPayDialog {
                                 + " shownInScreen: " + ViewUtils.isShownInScreen(view)
                                 + " attachToParent: " + (view.getParent() != null));
                         if (view.getParent() != null) {
-                            view.setBackgroundColor(Color.RED);
                             payDialog.keyboardViews.add((View)view.getParent());
                         }
                     }
