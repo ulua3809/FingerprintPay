@@ -11,7 +11,9 @@ import com.surcumference.fingerprint.util.log.L;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ActivityViewObserver {
 
@@ -97,7 +99,8 @@ public class ActivityViewObserver {
             }
         }
         if (viewList.size() > 0) {
-            for (View targetView : viewList) {
+            Set<View> viewLinkedHashSet = new LinkedHashSet<>(viewList);
+            for (View targetView : viewLinkedHashSet) {
                 if (ViewUtils.isViewVisibleInScreen(targetView.getRootView())) {
                     onViewFounded(listener, targetView);
                     // 好像是故意不加的

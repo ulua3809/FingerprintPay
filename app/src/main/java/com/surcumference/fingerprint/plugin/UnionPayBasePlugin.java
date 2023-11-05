@@ -120,7 +120,7 @@ public class UnionPayBasePlugin {
         }
     }
 
-    public void showFingerPrintDialog(@Nullable Activity activity, View rootView) {
+    public synchronized void showFingerPrintDialog(@Nullable Activity activity, View rootView) {
         final Context context = rootView.getContext();
         try {
             hidePreviousPayDialog();
