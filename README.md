@@ -79,5 +79,6 @@
 4. 支付宝10.3.80.9100及以上版本请前往 设置-->支付设置 中查找入口
 5. 自4.7.4版本开始, 为减少打扰, 非紧急更新推送暂缓推送
 
-![qq](./doc/qqGroup.png)
-#### QQ交流群: [665167891](http://shang.qq.com/wpa/qunwpa?idkey=91c2cd8f14532413701607c364f03f43afa1539a24b96b8907c92f3c018894e5)
+<img src="./doc/qq_group.jpg" alt="QQ交流群: [665167891]" width="500">
+
+#### QQ交流群: [665167891](https://h5.qun.qq.com/h5/qun-share-page/?_wv=1027&k=fCZf_WEKL1Rj_N0gi9JgkH7bfnKj11Wy&authKey=acNcoIs325Uco7v2JZY4NObRFA3sJU%2FWI1%2FH64DkP50cn6HBRUzBZ9cvZGNqmzGi&market_channel_source=665167891_1&noverify=0&group_code=665167891)
