@@ -7,7 +7,7 @@ project.ext.appInfo.each { entry ->
                 version: "${versionName}",
                 versionCode: "${android.defaultConfig.versionCode}",
                 zipUrl: "https://file.xdow.net/d/download/fingerprintpay/$versionName/$pluginType-module-xfingerprint-pay-$name-v$versionName-release.zip",
-                changelog: "https://raw.githubusercontent.com/eritpchy/FingerprintPay/main/CHANGELOG.md",
+                changelog: "https://gitee.com/eritpchy/FingerprintPay/raw/main/CHANGELOG.md",
         ]
 
         def json_str = JsonOutput.toJson(info)

@@ -17,13 +17,13 @@ public class Constant {
     public static final String AUTHORITY_QQ = "com.tencent.mobileqq.fileprovider";
     public static final String AUTHORITY_UNIONPAY = "com.unionpay.fileProvider";
     public static final String AUTHORITY_FINGERPRINT_PAY = BuildConfig.APPLICATION_ID + ".fileprovider";
-    public static final String HELP_URL_WECHAT = "https://github.com/eritpchy/FingerprintPay/blob/master/doc/WeChat/README.md";
-    public static final String HELP_URL_ALIPAY = "https://github.com/eritpchy/FingerprintPay/blob/master/doc/Alipay/README.md";
-    public static final String HELP_URL_TAOBAO = "https://github.com/eritpchy/FingerprintPay/blob/master/doc/Taobao/README.md";
-    public static final String HELP_URL_QQ = "https://github.com/eritpchy/FingerprintPay/blob/master/doc/QQ/README.md";
-    public static final String HELP_URL_UNIONPAY = "https://github.com/eritpchy/FingerprintPay/blob/master/doc/UnionPay/README.md#%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B";
-    public static final String HELP_URL_FAQ = "https://github.com/eritpchy/FingerprintPay/blob/master/README.md#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98";
-    public static final String HELP_URL_LICENSE = "https://github.com/eritpchy/FingerprintPay/blob/master/license.md";
+    public static final String HELP_URL_WECHAT = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/WeChat/README.md";
+    public static final String HELP_URL_ALIPAY = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/Alipay/README.md";
+    public static final String HELP_URL_TAOBAO = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/Taobao/README.md";
+    public static final String HELP_URL_QQ = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/QQ/README.md";
+    public static final String HELP_URL_UNIONPAY = "https://gitee.com/eritpchy/FingerprintPay/blob/main/doc/UnionPay/README.md#%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B";
+    public static final String HELP_URL_FAQ = "https://gitee.com/eritpchy/FingerprintPay/blob/main/README.md#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98";
+    public static final String HELP_URL_LICENSE = "https://gitee.com/eritpchy/FingerprintPay/blob/main/license.md";
     public static final String PROJECT_URL = "https://github.com/eritpchy/FingerprintPay";
     public static final String UPDATE_URL_GITHUB = "https://api.github.com/repos/eritpchy/FingerprintPay/releases/latest";
     //url/version/name
