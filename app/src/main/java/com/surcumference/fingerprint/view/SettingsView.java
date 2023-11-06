@@ -4,6 +4,7 @@ import static com.surcumference.fingerprint.view.PasswordInputView.DEFAULT_HIDDE
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
@@ -158,22 +159,6 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             data.selectionState = !data.selectionState;
             config.setShowFingerprintIcon(data.selectionState);
             mListAdapter.notifyDataSetChanged();
-            if (Constant.PACKAGE_NAME_QQ.equals(context.getPackageName())) {
-                config.commit();
-                ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-                List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
-                for (ActivityManager.RunningAppProcessInfo processInfo : runningAppProcesses) {
-                    if ("com.tencent.mobileqq:tool".equals(processInfo.processName)) {
-                        android.os.Process.killProcess(processInfo.pid);
-                        try {
-                            Runtime.getRuntime().exec(new String[]{"kill", "-9", String.valueOf(processInfo.pid)});
-                        } catch (IOException e) {
-                            L.e(e);
-                        }
-                    }
-                    L.d("processInfo", processInfo.processName, processInfo.pid);
-                }
-            }
         } else if (Lang.getString(R.id.settings_title_password).equals(data.title)) {
             PasswordInputView passwordInputView = new PasswordInputView(context);
             if (!TextUtils.isEmpty(config.getPassword())) {
@@ -219,5 +204,27 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialogInterface) {
+        Context context = getContext();
+        if (Constant.PACKAGE_NAME_QQ.equals(context.getPackageName())) {
+            Config.from(context).commit();
+            ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
+            for (ActivityManager.RunningAppProcessInfo processInfo : runningAppProcesses) {
+                if ("com.tencent.mobileqq:tool".equals(processInfo.processName)) {
+                    android.os.Process.killProcess(processInfo.pid);
+                    try {
+                        Runtime.getRuntime().exec(new String[]{"kill", "-9", String.valueOf(processInfo.pid)});
+                    } catch (IOException e) {
+                        L.e(e);
+                    }
+                }
+                L.d("processInfo", processInfo.processName, processInfo.pid);
+            }
+        }
+        super.onDismiss(dialogInterface);
     }
 }
