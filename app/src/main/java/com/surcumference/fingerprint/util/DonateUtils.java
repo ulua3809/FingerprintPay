@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.util;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 
@@ -64,8 +65,13 @@ public class DonateUtils {
             donateIntent.putExtra("extra_data", localJSONObject.toString());
             donateIntent.putExtra("app_info", "appid#20000001|bargainor_id#1000026901|channel#wallet");
             donateIntent.putExtra("callbackSn", "0");
-            donateIntent.setClassName(context, "com.tencent.mobileqq.activity.qwallet.TransactionActivity");
-            context.startActivity(donateIntent);
+            donateIntent.setClassName(context, "com.tencent.mobileqq.qwallet.transaction.impl.TransactionActivity");
+            try {
+                context.startActivity(donateIntent);
+            } catch (ActivityNotFoundException e) {
+                donateIntent.setClassName(context, "com.tencent.mobileqq.activity.qwallet.TransactionActivity");
+                context.startActivity(donateIntent);
+            }
             return true;
         } catch (Exception e) {
             L.e(e);
