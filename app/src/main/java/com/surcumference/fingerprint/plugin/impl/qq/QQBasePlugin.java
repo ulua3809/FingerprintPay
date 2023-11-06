@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.plugin;
+package com.surcumference.fingerprint.plugin.impl.qq;
 
 import static com.surcumference.fingerprint.Constant.ICON_QQ_SETTING_ENTRY_DARK_BASE64;
 import static com.surcumference.fingerprint.Constant.ICON_QQ_SETTING_ENTRY_LIGHT_BASE64;
@@ -26,6 +26,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
@@ -47,16 +48,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
-public class QQBasePlugin {
+public class QQBasePlugin implements IAppPlugin {
 
     private static final String TAG_FINGER_PRINT_IMAGE = "FINGER_PRINT_IMAGE";
     private static final String TAG_PASSWORD_EDITTEXT = "TAG_PASSWORD_EDITTEXT";
     private static final String TAG_LONGPASSWORD_OK_BUTTON = "TAG_LONGPASSWORD_OK_BUTTON";
     private static final String TAG_ACTIVITY_PAY = "TAG_ACTIVITY_PAY";
     private static final String TAG_ACTIVITY_FIRST_RESUME = "TAG_ACTIVITY_FIRST_RESUME";
-
-    protected static final int QQ_VERSION_CODE_7_3_0 = 750;
-    protected static final int QQ_VERSION_CODE_8_8_83 = 2654;
 
     private FingerprintIdentify mFingerprintIdentify;
     private LinearLayout mMenuItemLLayout;
@@ -70,7 +68,8 @@ public class QQBasePlugin {
     private int mQQVersionCode;
     private ViewTreeObserver.OnWindowAttachListener mPayWindowAttachListener;
 
-    public int getQQVersionCode(Context context) {
+    @Override
+    public int getVersionCode(Context context) {
         if (mQQVersionCode != 0) {
             return mQQVersionCode;
         }
@@ -78,7 +77,8 @@ public class QQBasePlugin {
         return mQQVersionCode;
     }
 
-    protected void onActivityCreated(Activity activity) {
+    @Override
+    public void onActivityCreated(Activity activity) {
         L.d("activity", activity);
         try {
             final String activityClzName = activity.getClass().getName();
@@ -94,7 +94,8 @@ public class QQBasePlugin {
         }
     }
 
-    protected void onActivityResumed(Activity activity) {
+    @Override
+    public void onActivityResumed(Activity activity) {
         try {
             final String activityClzName = activity.getClass().getName();
             if (BuildConfig.DEBUG) {
@@ -125,7 +126,8 @@ public class QQBasePlugin {
         }
     }
 
-    protected void onActivityPaused(Activity activity) {
+    @Override
+    public void onActivityPaused(Activity activity) {
         try {
             final String activityClzName = activity.getClass().getName();
             if (BuildConfig.DEBUG) {
@@ -141,6 +143,11 @@ public class QQBasePlugin {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return this.mMockCurrentUser;
     }
 
     private synchronized void initPayActivity(Activity activity, int retryDelay, int retryCountdown) {
@@ -166,7 +173,7 @@ public class QQBasePlugin {
                 : (ViewGroup) payDialog.inputEditText.getParent().getParent();
         setupPayWindowAttachListener(payDialog.inputEditText);
         View fingerprintView = prepareFingerprintView(context);
-        int versionCode = getQQVersionCode(context);
+        int versionCode = getVersionCode(context);
 
         Runnable switchToPwdRunnable = () -> {
             if (activity != mCurrentPayActivity) {
@@ -188,7 +195,7 @@ public class QQBasePlugin {
                 fingerprintView.setVisibility(View.GONE);
             }
             if (payDialog.titleTextView != null) {
-                if (versionCode >= QQ_VERSION_CODE_7_3_0) {
+                if (versionCode >= Constant.QQ.QQ_VERSION_CODE_7_3_0) {
                     payDialog.titleTextView.setClickable(true);
                     payDialog.titleTextView.setText("找回密码");
                 } else {
@@ -236,7 +243,7 @@ public class QQBasePlugin {
             }
             if (payDialog.titleTextView != null) {
                 payDialog.titleTextView.setText(Lang.getString(R.id.qq_payview_fingerprint_title));
-                if (versionCode >= QQ_VERSION_CODE_7_3_0) {
+                if (versionCode >= Constant.QQ.QQ_VERSION_CODE_7_3_0) {
                     payDialog.titleTextView.setClickable(false);
                 }
             }
@@ -463,10 +470,10 @@ public class QQBasePlugin {
     private void doSettingsMenuInject(final Activity activity) {
         boolean isDarkMode = StyleUtils.isDarkMode(activity);
         Context context = activity;
-        int versionCode = getQQVersionCode(context);
+        int versionCode = getVersionCode(context);
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
         View itemView = ViewUtils.findViewByText(rootView, "账号管理", "帐号管理");
-        View aboutView = versionCode >= QQ_VERSION_CODE_8_8_83 ?
+        View aboutView = versionCode >= Constant.QQ.QQ_VERSION_CODE_8_8_83 ?
                 ViewUtils.findViewByText(rootView, "通用") : itemView;
         FrameLayout itemContainerLayout = (FrameLayout) itemView.getParent().getParent().getParent();
         itemContainerLayout.setPadding(0, 0, 0, 0);
@@ -564,7 +571,7 @@ public class QQBasePlugin {
         lineParams.leftMargin = DpUtils.dip2px(activity, 48);
         lineParams.rightMargin = DpUtils.dip2px(activity, 16);
         menuItemLLayout.addView(lineTopView, lineParams);
-        int menuItemHeight = DpUtils.dip2px(activity, versionCode >= QQ_VERSION_CODE_8_8_83 ? 56 : 45);
+        int menuItemHeight = DpUtils.dip2px(activity, versionCode >= Constant.QQ.QQ_VERSION_CODE_8_8_83 ? 56 : 45);
         menuItemLLayout.addView(itemHlinearLayout, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, menuItemHeight));
         lineParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
         menuItemLLayout.addView(lineBottomView, lineParams);

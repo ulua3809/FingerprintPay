@@ -10,11 +10,13 @@ import android.text.TextUtils;
 import androidx.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
 import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
-import com.surcumference.fingerprint.plugin.QQBasePlugin;
+import com.surcumference.fingerprint.plugin.PluginFactory;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.FileUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Tools;
@@ -32,7 +34,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  * Created by Jason on 2017/9/8.
  */
 
-public class QQPlugin extends QQBasePlugin {
+public class QQPlugin {
 
     @Keep
     public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
@@ -56,12 +58,13 @@ public class QQPlugin extends QQBasePlugin {
                     && !niceName.contains(":")) {
                 UpdateFactory.lazyUpdateWhenActivityAlive();
             }
+            IAppPlugin plugin = PluginFactory.loadPlugin(context, Constant.PACKAGE_NAME_QQ);
             //for multi user
             if (!Tools.isCurrentUserOwner(context)) {
                 XposedHelpers.findAndHookMethod(UserHandle.class, "getUserId", int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                        if (mMockCurrentUser) {
+                        if (plugin.getMockCurrentUser()) {
                             param.setResult(0);
                         }
                     }
@@ -71,7 +74,7 @@ public class QQPlugin extends QQBasePlugin {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    onActivityCreated((Activity) param.thisObject);
+                    plugin.onActivityCreated((Activity) param.thisObject);
                 }
             });
 
@@ -79,14 +82,14 @@ public class QQPlugin extends QQBasePlugin {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    onActivityResumed((Activity) param.thisObject);
+                    plugin.onActivityResumed((Activity) param.thisObject);
                 }
             });
             XposedHelpers.findAndHookMethod(Activity.class, "onPause", new XC_MethodHook() {
 
                 @TargetApi(21)
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    onActivityPaused((Activity) param.thisObject);
+                    plugin.onActivityPaused((Activity) param.thisObject);
                 }
             });
         } catch (Throwable l) {

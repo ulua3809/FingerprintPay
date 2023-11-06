@@ -7,11 +7,13 @@ import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
 import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
-import com.surcumference.fingerprint.plugin.UnionPayBasePlugin;
+import com.surcumference.fingerprint.plugin.PluginFactory;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ActivityLifecycleCallbacks;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Task;
@@ -21,7 +23,7 @@ import com.surcumference.fingerprint.util.log.L;
 /**
  * Created by Jason on 2022/1/19.
  */
-public class UnionPayPlugin extends UnionPayBasePlugin {
+public class UnionPayPlugin {
 
     /**
      * >= 4.2.0
@@ -45,7 +47,7 @@ public class UnionPayPlugin extends UnionPayBasePlugin {
 
     public static void init() {
         Application application = ApplicationUtils.getApplication();
-        UnionPayPlugin plugin = new UnionPayPlugin();
+        IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_UNIONPAY);
         Task.onMain(1000, ()-> Umeng.init(application));
 
         UpdateFactory.lazyUpdateWhenActivityAlive();

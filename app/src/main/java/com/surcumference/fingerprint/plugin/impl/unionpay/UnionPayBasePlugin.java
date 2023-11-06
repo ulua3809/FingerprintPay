@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.plugin;
+package com.surcumference.fingerprint.plugin.impl.unionpay;
 
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_UNIONPAY;
 
@@ -29,6 +29,7 @@ import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -47,7 +48,7 @@ import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 
 import java.util.WeakHashMap;
 
-public class UnionPayBasePlugin {
+public class UnionPayBasePlugin implements IAppPlugin {
 
     private AlertDialog mFingerPrintAlertDialog;
     private boolean mPwdActivityDontShowFlag;
@@ -60,7 +61,8 @@ public class UnionPayBasePlugin {
 
     private int mWeChatVersionCode = 0;
 
-    private int getUnionPayVersionCode(Context context) {
+    @Override
+    public int getVersionCode(Context context) {
         if (mWeChatVersionCode != 0) {
             return mWeChatVersionCode;
         }
@@ -304,7 +306,8 @@ public class UnionPayBasePlugin {
         }
     }
 
-    protected void onActivityResumed(Activity activity) {
+    @Override
+    public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
         final String activityClzName = activity.getClass().getName();
         if (activityClzName.contains(".UPActivityReactNative")) {
@@ -319,6 +322,12 @@ public class UnionPayBasePlugin {
         }
     }
 
+    @Override
+    public void onActivityCreated(Activity activity) {
+
+    }
+
+    @Override
     public void onActivityPaused(Activity activity) {
         L.d("Activity onPause =", activity);
         final String activityClzName = activity.getClass().getName();
@@ -327,6 +336,11 @@ public class UnionPayBasePlugin {
         } else if (activityClzName.contains(".PayWalletActivity")) {
             hidePreviousPayDialog();
         }
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return this.mMockCurrentUser;
     }
 
     private void watchPayView(Activity activity) {

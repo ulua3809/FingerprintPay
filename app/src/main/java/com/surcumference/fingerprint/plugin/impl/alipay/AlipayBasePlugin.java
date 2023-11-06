@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.plugin;
+package com.surcumference.fingerprint.plugin.impl.alipay;
 
 import static com.surcumference.fingerprint.Constant.ICON_ALIPAY_SETTING_ENTRY_BASE64;
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_ALIPAY;
@@ -25,6 +25,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.AlipayVersionControl;
 import com.surcumference.fingerprint.util.ApplicationUtils;
@@ -47,7 +48,7 @@ import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlipayBasePlugin {
+public class AlipayBasePlugin implements IAppPlugin {
 
 
     private AlertDialog mFingerPrintAlertDialog;
@@ -61,7 +62,8 @@ public class AlipayBasePlugin {
     private int mAlipayVersionCode;
     private ActivityViewObserver mSettingPageEnteredObserver;
 
-    private int getAlipayVersionCode(Context context) {
+    @Override
+    public int getVersionCode(Context context) {
         if (mAlipayVersionCode != 0) {
             return mAlipayVersionCode;
         }
@@ -69,14 +71,15 @@ public class AlipayBasePlugin {
         return mAlipayVersionCode;
     }
 
-    protected void onActivityCreated(Activity activity) {
+    @Override
+    public void onActivityCreated(Activity activity) {
         L.d("activity", activity);
         try {
             final String activityClzName = activity.getClass().getName();
             if (BuildConfig.DEBUG) {
                 L.d("activity", activity, "clz", activityClzName);
             }
-            int alipayVersionCode = getAlipayVersionCode(activity);
+            int alipayVersionCode = getVersionCode(activity);
             if (alipayVersionCode >= 773 /** 10.3.80.9100 */ && activityClzName.contains(".FBAppWindowActivity")) {
 
                 ActivityViewObserver activityViewObserver = mSettingPageEnteredObserver;
@@ -152,7 +155,7 @@ public class AlipayBasePlugin {
                 }
                 activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
-                    int versionCode = getAlipayVersionCode(activity);
+                    int versionCode = getVersionCode(activity);
                     DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
                     View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
@@ -167,6 +170,16 @@ public class AlipayBasePlugin {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return false;
     }
 
 
@@ -224,7 +237,7 @@ public class AlipayBasePlugin {
     public boolean showFingerPrintDialog(final Activity activity) {
         final Context context = activity;
         try {
-            if (getAlipayVersionCode(activity) >= 224) {
+            if (getVersionCode(activity) >= 224) {
                 if (activity.getClass().getName().contains(".MspContainerActivity")) {
                     View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password");
                     L.d("payTextView", payTextView);
@@ -311,7 +324,7 @@ public class AlipayBasePlugin {
      * @param activity
      */
     private void clickDigitPasswordWidget(Activity activity) {
-        int versionCode = getAlipayVersionCode(activity);
+        int versionCode = getVersionCode(activity);
         View view = ViewUtils.findViewByName(activity, (versionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout");
         L.d("digit password widget", view);
         if (view == null) {
@@ -346,7 +359,7 @@ public class AlipayBasePlugin {
         itemSummerText.setGravity(Gravity.CENTER_VERTICAL);
         itemSummerText.setPadding(0, 0, DpUtils.dip2px(activity, 18), 0);
         itemSummerText.setTextColor(0xFF999999);
-        int versionCode = getAlipayVersionCode(activity);
+        int versionCode = getVersionCode(activity);
 
         //try use Alipay style
         try {
@@ -497,7 +510,7 @@ public class AlipayBasePlugin {
     }
 
     private void inputDigitPassword(Activity activity, String password) {
-        int versionCode = getAlipayVersionCode(activity);
+        int versionCode = getVersionCode(activity);
         DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
         View ks[] = new View[] {
                 ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1),

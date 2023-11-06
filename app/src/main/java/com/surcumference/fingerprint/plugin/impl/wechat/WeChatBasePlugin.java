@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.plugin;
+package com.surcumference.fingerprint.plugin.impl.wechat;
 
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_WECHAT;
 
@@ -32,6 +32,7 @@ import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -56,7 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
-public class WeChatBasePlugin {
+public class WeChatBasePlugin implements IAppPlugin {
 
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
@@ -66,7 +67,8 @@ public class WeChatBasePlugin {
 
     private int mWeChatVersionCode = 0;
 
-    private int getWeChatVersionCode(Context context) {
+    @Override
+    public int getVersionCode(Context context) {
         if (mWeChatVersionCode != 0) {
             return mWeChatVersionCode;
         }
@@ -155,14 +157,15 @@ public class WeChatBasePlugin {
         return false;
     }
 
-    protected void onActivityResumed(Activity activity) {
+    @Override
+    public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
         final String activityClzName = activity.getClass().getName();
         if (activityClzName.contains("com.tencent.mm.plugin.setting.ui.setting.SettingsUI")
                 || activityClzName.contains("com.tencent.mm.plugin.wallet.pwd.ui.WalletPasswordSettingUI")
                 || activityClzName.contains("com.tencent.mm.ui.vas.VASCommonActivity") /** 8.0.18 */) {
             Task.onMain(100, () -> doSettingsMenuInject(activity));
-        } else if (getWeChatVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
+        } else if (getVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
             startFragmentObserver(activity);
         } else if (activityClzName.contains(".WalletPayUI")
                 || activityClzName.contains(".UIPageFragmentActivity")) {
@@ -203,7 +206,13 @@ public class WeChatBasePlugin {
         }
     }
 
-    protected void onActivityPaused(Activity activity) {
+    @Override
+    public void onActivityCreated(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
         try {
             L.d("Activity onPause =", activity);
             final String activityClzName = activity.getClass().getName();
@@ -211,12 +220,17 @@ public class WeChatBasePlugin {
                 || activityClzName.contains(".UIPageFragmentActivity")) {
                 stopAndRemoveCurrentActivityViewObserver();
                 onPayDialogDismiss(activity);
-            } else if (getWeChatVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
+            } else if (getVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
                 stopFragmentObserver(activity);
             }
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return this.mMockCurrentUser;
     }
 
     private void startFragmentObserver(Activity activity) {
@@ -241,7 +255,7 @@ public class WeChatBasePlugin {
         Config config = Config.from(context);
         ViewUtils.recursiveLoopChildren(rootView);
         if (config.isOn()) {
-            int versionCode = getWeChatVersionCode(context);
+            int versionCode = getVersionCode(context);
             WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
             L.d(payDialogView);
             if (payDialogView == null) {
@@ -441,7 +455,7 @@ public class WeChatBasePlugin {
 
     private void inputDigitalPassword(Context context, EditText inputEditText, String pwd,
                                       List<View> keyboardViews, boolean smallPayDialogFloating) {
-        int versionCode = getWeChatVersionCode(context);
+        int versionCode = getVersionCode(context);
         if (versionCode >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_43) {
             DigitPasswordKeyPadInfo digitPasswordKeyPad = WeChatVersionControl.getDigitPasswordKeyPad(versionCode);
             inputEditText.getText().clear();
@@ -472,7 +486,7 @@ public class WeChatBasePlugin {
             });
             return;
         }
-        if (getWeChatVersionCode(context) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_18) {
+        if (getVersionCode(context) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_18) {
             inputEditText.getText().clear();
             for (char c : pwd.toCharArray()) {
                 inputEditText.append(String.valueOf(c));
@@ -514,7 +528,7 @@ public class WeChatBasePlugin {
     }
 
     protected void doSettingsMenuInject(Context context, View targetView, String targetClassName) {
-        int versionCode = getWeChatVersionCode(context);
+        int versionCode = getVersionCode(context);
         ListView itemView = (ListView) ViewUtils.findViewByName(targetView, "android", "list");
         if (ViewUtils.findViewByText(itemView, Lang.getString(R.id.app_settings_name)) != null
                 || isHeaderViewExistsFallback(itemView)) {

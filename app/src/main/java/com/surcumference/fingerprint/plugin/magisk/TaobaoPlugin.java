@@ -7,11 +7,13 @@ import android.os.Bundle;
 import androidx.annotation.Keep;
 
 import com.surcumference.fingerprint.BuildConfig;
+import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
 import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
-import com.surcumference.fingerprint.plugin.TaobaoBasePlugin;
+import com.surcumference.fingerprint.plugin.PluginFactory;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ActivityLifecycleCallbacks;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Task;
@@ -22,7 +24,7 @@ import com.surcumference.fingerprint.util.log.L;
  * Created by Jason on 2017/9/8.
  */
 
-public class TaobaoPlugin extends TaobaoBasePlugin {
+public class TaobaoPlugin {
 
     /**
      * >= 4.2.0
@@ -46,7 +48,7 @@ public class TaobaoPlugin extends TaobaoBasePlugin {
 
     public static void init() {
         Application application = ApplicationUtils.getApplication();
-        TaobaoPlugin plugin = new TaobaoPlugin();
+        IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_TAOBAO);
 
         Task.onMain(1000, ()-> Umeng.init(application));
 

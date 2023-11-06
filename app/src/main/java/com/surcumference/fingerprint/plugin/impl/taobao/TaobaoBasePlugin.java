@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.plugin;
+package com.surcumference.fingerprint.plugin.impl.taobao;
 
 import static com.surcumference.fingerprint.Constant.PACKAGE_NAME_TAOBAO;
 
@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
@@ -42,7 +43,7 @@ import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaobaoBasePlugin {
+public class TaobaoBasePlugin implements IAppPlugin {
 
     private AlertDialog mFingerPrintAlertDialog;
     private boolean mPwdActivityDontShowFlag;
@@ -59,7 +60,8 @@ public class TaobaoBasePlugin {
     private boolean mIsViewTreeObserverFirst;
     private int mTaobaoVersionCode = 0;
 
-    private int getTaobaoVersionCode(Context context) {
+    @Override
+    public int getVersionCode(Context context) {
         if (mTaobaoVersionCode != 0) {
             return mTaobaoVersionCode;
         }
@@ -67,11 +69,23 @@ public class TaobaoBasePlugin {
         return mTaobaoVersionCode;
     }
 
+    @Override
     public void onActivityCreated(Activity activity) {
         L.d("activity", activity);
         handleSettingsMenuInjection(activity);
     }
 
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return false;
+    }
+
+    @Override
     public void onActivityResumed(Activity activity) {
         try {
             final String activityClzName = activity.getClass().getName();
@@ -79,7 +93,7 @@ public class TaobaoBasePlugin {
                 L.d("activity", activity, "clz", activityClzName);
             }
             mCurrentActivity = activity;
-            int versionCode = getTaobaoVersionCode(activity);
+            int versionCode = getVersionCode(activity);
             if (activityClzName.contains(".PayPwdDialogActivity")
                     || activityClzName.contains(".MspContainerActivity")
                     || activityClzName.contains(".FlyBirdWindowActivity")) {

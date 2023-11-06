@@ -25,6 +25,7 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.log.L;
@@ -84,7 +85,9 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             case Constant.PACKAGE_NAME_QQ:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_qq), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_qq)));
-                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
+                if (ApplicationUtils.getPackageVersionCode(context, packageName) >= Constant.QQ.QQ_VERSION_CODE_8_8_83) {
+                    mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
+                }
                 break;
             case Constant.PACKAGE_NAME_TAOBAO:
             case Constant.PACKAGE_NAME_ALIPAY:
