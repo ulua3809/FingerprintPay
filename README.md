@@ -42,7 +42,7 @@
 8. 确认启用模块, 重启手机
 9. Enjoy
 
-## 使用步骤 Xposed
+## 使用步骤 Xposed (2023.11.08, 不推荐, Xposed框架会导致大概率触发面部识别验证)
 1. 下载并安装插件: [xposed.com.surcumference.fingerprintpay.release.apk](https://github.com/eritpchy/FingerprintPay/releases/latest)
 2. 启用插件
 3. 重启手机
