@@ -46,6 +46,7 @@ import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
 import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
 
+import java.util.Map;
 import java.util.WeakHashMap;
 
 public class UnionPayBasePlugin implements IAppPlugin {
@@ -61,6 +62,8 @@ public class UnionPayBasePlugin implements IAppPlugin {
 
     private int mWeChatVersionCode = 0;
 
+    private Map<Activity, Boolean> mActivityResumedMap = new WeakHashMap<>();
+
     @Override
     public int getVersionCode(Context context) {
         if (mWeChatVersionCode != 0) {
@@ -71,6 +74,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
     }
 
     protected synchronized void initFingerPrintLock(Context context, Runnable onSuccessUnlockRunnable) {
+        L.d("指纹识别开始");
         mMockCurrentUser = true;
         mFingerprintIdentify = new FingerprintIdentify(context.getApplicationContext());
         mFingerprintIdentify.setSupportAndroidL(true);
@@ -173,6 +177,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
                 FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
+                    L.d("指纹识别取消1");
                 }
                 if (!mPwdActivityDontShowFlag) {
                     Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> finalPayRootLayout.setAlpha(1));
@@ -309,6 +314,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
     @Override
     public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
+        mActivityResumedMap.put(activity, true);
         final String activityClzName = activity.getClass().getName();
         if (activityClzName.contains(".UPActivityReactNative")) {
 
@@ -330,12 +336,14 @@ public class UnionPayBasePlugin implements IAppPlugin {
     @Override
     public void onActivityPaused(Activity activity) {
         L.d("Activity onPause =", activity);
+        mActivityResumedMap.remove(activity);
         final String activityClzName = activity.getClass().getName();
         if (activityClzName.contains(".UPActivityReactNative")) {
             hidePreviousPayDialog();
         } else if (activityClzName.contains(".PayWalletActivity")) {
             hidePreviousPayDialog();
         }
+        stopAndRemoveTargetActivityViewObserver(activity);
     }
 
     @Override
@@ -347,6 +355,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
         stopAndRemoveCurrentActivityViewObserver();
         ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
         activityViewObserver.setViewIdentifyText("请输入支付密码");
+        activityViewObserver.setWatchActivityViewOnly(true);
         activityViewObserver.start(100, new ActivityViewObserver.IActivityViewListener() {
             @Override
             public void onViewFounded(ActivityViewObserver observer, View view) {
@@ -367,6 +376,10 @@ public class UnionPayBasePlugin implements IAppPlugin {
                 }
                 ActivityViewObserver.IActivityViewListener l = this;
                 observer.stop();
+
+                if (!mActivityResumedMap.containsKey(activity)) {
+                    return;
+                }
 
                 onPayDialogShown(observer.getTargetActivity(), (ViewGroup) rootView);
                 View.OnAttachStateChangeListener listener = mView2OnAttachStateChangeListenerMap.get(view);
@@ -406,6 +419,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
             FingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
             if (fingerPrintIdentify != null) {
                 fingerPrintIdentify.cancelIdentify();
+                L.d("指纹识别取消2");
             }
             mMockCurrentUser = false;
         }
@@ -416,6 +430,16 @@ public class UnionPayBasePlugin implements IAppPlugin {
         if (activityViewObserver != null) {
             activityViewObserver.stop();
             mActivityViewObserver = null;
+        }
+    }
+
+    protected void stopAndRemoveTargetActivityViewObserver(Activity activity) {
+        ActivityViewObserver activityViewObserver = mActivityViewObserver;
+        if (activityViewObserver != null) {
+            if (activity == activityViewObserver.getTargetActivity()) {
+                activityViewObserver.stop();
+                mActivityViewObserver = null;
+            }
         }
     }
 

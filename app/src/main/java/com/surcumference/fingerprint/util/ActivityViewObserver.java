@@ -11,6 +11,7 @@ import com.surcumference.fingerprint.util.log.L;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,7 @@ public class ActivityViewObserver {
     private boolean mRunning = false;
     private String mViewIdentifyType;
     private String[] mViewIdentifyTexts;
+    private boolean mWatchActivityViewOnly = false;
 
     public ActivityViewObserver(Activity weakRefActivity) {
         this.mActivityRef = new WeakReference<>(weakRefActivity);
@@ -32,6 +34,10 @@ public class ActivityViewObserver {
 
     public void setViewIdentifyText(String ...viewIdentifyTexts) {
         this.mViewIdentifyTexts = viewIdentifyTexts;
+    }
+
+    public void setWatchActivityViewOnly(boolean on) {
+        this.mWatchActivityViewOnly = on;
     }
 
     public void start(long loopMSec, IActivityViewListener listener) {
@@ -73,7 +79,9 @@ public class ActivityViewObserver {
         }
 
         List<View> viewList = new ArrayList<>();
-        List<View> decorViewList = ViewUtils.getWindowManagerViews();
+        List<View> decorViewList = mWatchActivityViewOnly
+                ? Collections.singletonList(activity.getWindow().getDecorView())
+                : ViewUtils.getWindowManagerViews();
         for (View decorView : decorViewList) {
             if (decorView instanceof ViewGroup) {
             } else {
