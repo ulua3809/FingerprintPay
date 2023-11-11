@@ -89,6 +89,7 @@ public class UpdateFactory {
                             return;
                         }
                     }
+                    Toaster.cancel();
                     UpdateInfoView updateInfoView = new UpdateInfoView(context);
                     updateInfoView.setTitle(Lang.getString(R.id.found_new_version) + updateInfo.version);
                     updateInfoView.setContent(updateInfo.content);
@@ -112,7 +113,7 @@ public class UpdateFactory {
                             });
                         }});
                     });
-                    updateInfoView.showInDialog();
+                    Task.onMain(200, updateInfoView::showInDialog);
                 }
             }).doUpdateCheck();
         } catch (Exception | Error e) {
