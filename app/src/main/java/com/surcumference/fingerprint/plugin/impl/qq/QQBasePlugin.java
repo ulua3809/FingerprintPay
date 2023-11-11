@@ -462,9 +462,6 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
 
         itemContainerLayout.removeAllViews();
 
-        View lineTopView = new View(activity);
-        lineTopView.setBackgroundColor(isDarkMode? 0xFF3e3e3e: 0xFFE5E4E4);
-
         LinearLayout itemHlinearLayout = new LinearLayout(activity);
         itemHlinearLayout.setOrientation(LinearLayout.HORIZONTAL);
         itemHlinearLayout.setWeightSum(1);
@@ -497,7 +494,9 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
                 float scale = itemNameText.getTextSize() / settingsTextView.getTextSize();
                 itemNameText.setTextSize(TypedValue.COMPLEX_UNIT_PX, settingsTextView.getTextSize());
                 itemSummerText.setTextSize(TypedValue.COMPLEX_UNIT_PX, itemSummerText.getTextSize() / scale);
-                itemNameText.setTextColor(settingsTextView.getCurrentTextColor());
+                int textColor = settingsTextView.getCurrentTextColor();
+                itemNameText.setTextColor(textColor);
+                isDarkMode = !StyleUtils.isColorDark(textColor);
             }
             View settingsItemView = (View)settingsView.getParent();
             if (settingsItemView != null) {
@@ -512,6 +511,9 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
         } catch (Exception e) {
             L.e(e);
         }
+
+        View lineTopView = new View(activity);
+        lineTopView.setBackgroundColor(isDarkMode ? 0xFF3e3e3e: 0xFFE5E4E4);
 
         ImageView itemIconImageView = new ImageView(activity);
         itemIconImageView.setImageBitmap(ImageUtils.base64ToBitmap(isDarkMode ? ICON_QQ_SETTING_ENTRY_DARK_BASE64 : ICON_QQ_SETTING_ENTRY_LIGHT_BASE64));

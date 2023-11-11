@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.util.TypedValue;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
+
 /**
  * Created by Jason on 2017/9/9.
  */
@@ -27,5 +29,13 @@ public class StyleUtils {
 
     public static boolean isDarkMode(Context context) {
         return Configuration.UI_MODE_NIGHT_YES == (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK);
+    }
+
+    public static boolean isColorDark(@ColorInt int color) {
+        return getUnsignedInt(color) < getUnsignedInt(0xFF808080);
+    }
+
+    public static long getUnsignedInt(int x) {
+        return x & (-1L >>> 32);
     }
 }
