@@ -31,6 +31,7 @@ import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
+import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 
@@ -178,7 +179,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             new DonateView(context).showInDialog();
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
             com.surcumference.fingerprint.util.UrlUtils.openUrl(context, Constant.PROJECT_URL);
-            Toaster.showLong(Lang.getString(R.id.toast_give_me_star));
+            Task.onMain(1000, () -> Toaster.showLong(Lang.getString(R.id.toast_give_me_star)));
         }
     }
 
