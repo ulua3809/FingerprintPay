@@ -82,11 +82,14 @@
     <item name="toast_fingerprint_retry_ended" type="id"/>
     <item name="toast_fingerprint_unlock_reboot" type="id"/>
     <item name="toast_fingerprint_not_enable" type="id"/>
+    <item name="toast_fingerprint_password_enc_success" type="id"/>
+    <item name="toast_fingerprint_password_dec_failed" type="id"/>
     <item name="toast_password_not_set_alipay" type="id"/>
     <item name="toast_password_not_set_wechat" type="id"/>
     <item name="toast_password_not_set_qq" type="id"/>
     <item name="toast_password_not_set_taobao" type="id"/>
     <item name="toast_password_not_set_generic" type="id"/>
+    <item name="toast_password_not_set_switch_on_failed" type="id"/>
     <item name="toast_password_auto_enter_fail" type="id"/>
     <item name="toast_goto_donate_page_fail_alipay" type="id"/>
     <item name="toast_goto_donate_page_fail_wechat" type="id"/>

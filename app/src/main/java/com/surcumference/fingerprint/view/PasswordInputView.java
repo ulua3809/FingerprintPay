@@ -133,6 +133,6 @@ public class PasswordInputView extends DialogFrameLayout {
 
     @Override
     public String getDialogTitle() {
-        return Lang.getString(R.id.enter_password);
+        return Lang.getString(R.id.settings_title_password);
     }
 }

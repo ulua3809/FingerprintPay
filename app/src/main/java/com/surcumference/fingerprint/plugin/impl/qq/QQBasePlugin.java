@@ -20,35 +20,38 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
+import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
+import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.KeyboardUtils;
-import com.surcumference.fingerprint.util.NotifyUtils;
-import com.surcumference.fingerprint.util.PermissionUtils;
 import com.surcumference.fingerprint.util.QQUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.QQPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
-import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
-import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
+import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
-public class QQBasePlugin implements IAppPlugin {
+import javax.crypto.Cipher;
+
+public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private static final String TAG_FINGER_PRINT_IMAGE = "FINGER_PRINT_IMAGE";
     private static final String TAG_PASSWORD_EDITTEXT = "TAG_PASSWORD_EDITTEXT";
@@ -56,7 +59,7 @@ public class QQBasePlugin implements IAppPlugin {
     private static final String TAG_ACTIVITY_PAY = "TAG_ACTIVITY_PAY";
     private static final String TAG_ACTIVITY_FIRST_RESUME = "TAG_ACTIVITY_FIRST_RESUME";
 
-    private FingerprintIdentify mFingerprintIdentify;
+    private XFingerprintIdentify mFingerprintIdentify;
     private LinearLayout mMenuItemLLayout;
 
     protected boolean mMockCurrentUser = false;
@@ -148,6 +151,11 @@ public class QQBasePlugin implements IAppPlugin {
     @Override
     public boolean getMockCurrentUser() {
         return this.mMockCurrentUser;
+    }
+
+    @Override
+    public void setMockCurrentUser(boolean mock) {
+        this.mMockCurrentUser = mock;
     }
 
     private synchronized void initPayActivity(Activity activity, int retryDelay, int retryCountdown) {
@@ -287,20 +295,23 @@ public class QQBasePlugin implements IAppPlugin {
         }
 
         mCurrentPayActivity = activity;
-        initFingerPrintLock(context, () -> { // success
+        initFingerPrintLock(context, (cipher) -> { // success
             Config config = Config.from(context);
-            String pwd = config.getPassword();
-            if (TextUtils.isEmpty(pwd)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_qq), Toast.LENGTH_SHORT).show();
+            String passwordEncrypted = config.getPasswordEncrypted();
+            if (TextUtils.isEmpty(passwordEncrypted)) {
+                Toaster.showShort(Lang.getString(R.id.toast_password_not_set_qq));
                 return;
             }
-            payDialog.inputEditText.setText(pwd);
+            String password = AESUtils.decrypt(cipher, passwordEncrypted);
+            if (TextUtils.isEmpty(password)) {
+                Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
+                return;
+            }
+            payDialog.inputEditText.setText(password);
             if (longPassword) {
                 payDialog.okButton.performClick();
             }
-        }, () -> { //fail
-            switchToPwdRunnable.run();
-        });
+        }, switchToPwdRunnable /** fail */);
 
         markAsPayActivity(activity);
         switchToFingerprintRunnable.run();
@@ -381,90 +392,48 @@ public class QQBasePlugin implements IAppPlugin {
         return linearLayout;
     }
 
-    public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback, final Runnable onFailureUnlockCallback) {
+    public void initFingerPrintLock(final Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback, final Runnable onFailureUnlockCallback) {
         L.d("initFingerPrintLock");
         cancelFingerprintIdentify();
-        mMockCurrentUser = true;
-        FingerprintIdentify fingerprintIdentify = new FingerprintIdentify(context);
-        fingerprintIdentify.setSupportAndroidL(true);
-        fingerprintIdentify.init();
-        if (fingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintScanStateReady = true;
-            fingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
-                @Override
-                public void onSucceed() {
-                    L.d("指纹识别成功");
-                    onSuccessUnlockCallback.run();
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onNotMatch(int availableTimes) {
-                    // 指纹不匹配，并返回可用剩余次数并自动继续验证
-                    L.d("指纹识别失败，还可尝试" + String.valueOf(availableTimes) + "次");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_match));
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onFailed(boolean isDeviceLocked) {
-                    // 错误次数达到上限或者API报错停止了验证，自动结束指纹识别
-                    // isDeviceLocked 表示指纹硬件是否被暂时锁定
-                    if (mFingerprintScanStateReady) {
-                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
+        mFingerprintIdentify = new XFingerprintIdentify(context)
+                .withMockCurrentUserCallback(this)
+                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                    @Override
+                    public void onSucceed(Cipher cipher) {
+                        super.onSucceed(cipher);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
                     }
-                    L.d("多次尝试错误，请确认指纹 isDeviceLocked", isDeviceLocked);
-                    onFailureUnlockCallback.run();
-                    mMockCurrentUser = false;
-                }
 
-                @Override
-                public void onStartFailedByDeviceLocked() {
-                    // 第一次调用startIdentify失败，因为设备被暂时锁定
-                    L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot));
-                    onFailureUnlockCallback.run();
-                    mMockCurrentUser = false;
-                }
-            });
-        } else {
-            if (PermissionUtils.hasFingerprintPermission(context)) {
-                L.d("系统指纹功能未启用");
-                NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_enable));
-            } else {
-                L.d("QQ 版本过低");
-                Toast.makeText(context, Lang.getString(R.id.toast_need_qq_7_2_5), Toast.LENGTH_LONG).show();
-            }
-            mMockCurrentUser = false;
-            mFingerprintScanStateReady = false;
-        }
-        mFingerprintIdentify = fingerprintIdentify;
+                    @Override
+                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(failInfo);
+                        onFailureUnlockCallback.run();
+                    }
+                });
     }
 
     private void cancelFingerprintIdentify() {
-        if (!mFingerprintScanStateReady) {
+        L.d("cancelFingerprintIdentify");
+        XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+        if (fingerprintIdentify == null) {
             return;
         }
-        L.d("cancelFingerprintIdentify");
-        mFingerprintScanStateReady = false;
-        FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-        if (fingerprintIdentify != null) {
-            fingerprintIdentify.cancelIdentify();
+        if (!fingerprintIdentify.fingerprintScanStateReady) {
+            return;
         }
-        mMockCurrentUser = false;
+        fingerprintIdentify.cancelIdentify();
     }
 
     private void resumeFingerprintIdentify() {
-        if (mFingerprintScanStateReady) {
+        L.d("resumeFingerprintIdentify");
+        XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+        if (fingerprintIdentify == null) {
             return;
         }
-        L.d("resumeFingerprintIdentify");
-        FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-        if (fingerprintIdentify != null) {
-            mMockCurrentUser = true;
-            fingerprintIdentify.resumeIdentify();
-            mFingerprintScanStateReady = true;
+        if (fingerprintIdentify.fingerprintScanStateReady) {
+            return;
         }
+        fingerprintIdentify.resumeIdentify();
     }
 
     private void doSettingsMenuInject(final Activity activity) {

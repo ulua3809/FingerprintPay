@@ -7,6 +7,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.Keep;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -50,6 +51,7 @@ public class QQPlugin {
         try {
             Application application = ApplicationUtils.getApplication();
             IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_QQ);
+            Toaster.init(application);
             /**
              * FIX java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.ref.WeakReference.get()' on a null object reference
              *     at com.tencent.mqq.shared_file_accessor.n.<init>(Unknown Source)

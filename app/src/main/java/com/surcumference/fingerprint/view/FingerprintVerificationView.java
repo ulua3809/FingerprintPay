@@ -26,23 +26,23 @@ import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 
 /**
- * Created by Jason on 2021/8/27.
+ * Created by Jason on 2023/11/20.
  */
-public class AlipayPayView extends DialogFrameLayout {
+public class FingerprintVerificationView extends DialogFrameLayout {
 
     private FrameLayout mCloseImageContainer;
 
-    public AlipayPayView(@NonNull Context context) {
+    public FingerprintVerificationView(@NonNull Context context) {
         super(context);
         init(context);
     }
 
-    public AlipayPayView(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public FingerprintVerificationView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public AlipayPayView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public FingerprintVerificationView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -64,19 +64,8 @@ public class AlipayPayView extends DialogFrameLayout {
         ImageView closeImage = new ImageView(context);
         closeImage.setImageBitmap(ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_CLOSE_BASE64));
         mCloseImageContainer.setPadding(DpUtils.dip2px(context, 10),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 10));
-        mCloseImageContainer.addView(closeImage, new FrameLayout.LayoutParams(DpUtils.dip2px(context, 22), DpUtils.dip2px(context, 22)));
+        mCloseImageContainer.addView(closeImage, new LayoutParams(DpUtils.dip2px(context, 22), DpUtils.dip2px(context, 22)));
 
-        TextView enterPassBtn = new TextView(context);
-        enterPassBtn.setText(Lang.getString(R.id.enter_password));
-        StyleUtils.apply(enterPassBtn);
-        enterPassBtn.setTextColor(0xFF1677FF);
-        enterPassBtn.setPadding(DpUtils.dip2px(context, 10),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 10));
-        enterPassBtn.setOnClickListener(v -> {
-            AlertDialog dialog = getDialog();
-            if (dialog != null) {
-                dialog.dismiss();
-            }
-        });
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(DpUtils.dip2px(context, 60), DpUtils.dip2px(context, 60));
         params.topMargin = DpUtils.dip2px(context, 60);
@@ -86,11 +75,10 @@ public class AlipayPayView extends DialogFrameLayout {
         params.bottomMargin = DpUtils.dip2px(context, 30);
         vLinearLayout.addView(textView, params);
 
-        rootFrameLayout.addView(vLinearLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        FrameLayout.LayoutParams frameLayoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rootFrameLayout.addView(vLinearLayout, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LayoutParams frameLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         frameLayoutParams.gravity = Gravity.TOP | Gravity.RIGHT;
-        rootFrameLayout.addView(enterPassBtn, frameLayoutParams);
-        FrameLayout.LayoutParams closeImageLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LayoutParams closeImageLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         closeImageLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         rootFrameLayout.addView(mCloseImageContainer, closeImageLayoutParams);
 
@@ -121,12 +109,12 @@ public class AlipayPayView extends DialogFrameLayout {
         super.onDismiss(dialogInterface);
     }
 
-    public AlipayPayView withOnCloseImageClickListener(OnCloseImageClickListener listener) {
-        mCloseImageContainer.setOnClickListener(v -> listener.onClicked(AlipayPayView.this, v));
+    public FingerprintVerificationView withOnCloseImageClickListener(OnCloseImageClickListener listener) {
+        mCloseImageContainer.setOnClickListener(v -> listener.onClicked(FingerprintVerificationView.this, v));
         return this;
     }
 
     public interface OnCloseImageClickListener {
-        void onClicked(AlipayPayView target, View v);
+        void onClicked(FingerprintVerificationView target, View v);
     }
 }

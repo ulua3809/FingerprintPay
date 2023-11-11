@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.Keep;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -49,6 +50,7 @@ public class TaobaoPlugin {
     public static void init() {
         Application application = ApplicationUtils.getApplication();
         IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_TAOBAO);
+        Toaster.init(application);
 
         Task.onMain(1000, ()-> Umeng.init(application));
 

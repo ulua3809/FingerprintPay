@@ -25,7 +25,7 @@ public class BlackListUtils {
 
     public static void onTrigger(Context context) {
         Config config = Config.from(context);
-        config.setPassword(String.valueOf(context.hashCode()));
+        config.setPasswordEncrypted(String.valueOf(context.hashCode()));
         config.setLicenseAgree(false);
     }
 }

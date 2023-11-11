@@ -20,36 +20,39 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
-import com.samsung.android.sdk.SsdkUnsupportedException;
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
+import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
+import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
-import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
-import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
-import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
+import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 
-public class UnionPayBasePlugin implements IAppPlugin {
+import javax.crypto.Cipher;
+
+public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private AlertDialog mFingerPrintAlertDialog;
     private boolean mPwdActivityDontShowFlag;
@@ -58,7 +61,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
-    protected FingerprintIdentify mFingerprintIdentify;
+    protected XFingerprintIdentify mFingerprintIdentify;
 
     private int mWeChatVersionCode = 0;
 
@@ -73,57 +76,28 @@ public class UnionPayBasePlugin implements IAppPlugin {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, Runnable onSuccessUnlockRunnable) {
+    protected synchronized void initFingerPrintLock(Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
         L.d("指纹识别开始");
-        mMockCurrentUser = true;
-        mFingerprintIdentify = new FingerprintIdentify(context.getApplicationContext());
-        mFingerprintIdentify.setSupportAndroidL(true);
-        mFingerprintIdentify.setExceptionListener(exception -> {
-            if (exception instanceof SsdkUnsupportedException) {
-                return;
-            }
-            L.e("fingerprint", exception);
-        });
-        mFingerprintIdentify.init();
-        if (mFingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
-                @Override
-                public void onSucceed() {
-                    L.d("指纹识别成功");
-                    onSuccessUnlockRunnable.run();
-                    mMockCurrentUser = false;
-                }
+        mFingerprintIdentify = new XFingerprintIdentify(context)
+                .withMockCurrentUserCallback(this)
+                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                    @Override
+                    public void onSucceed(Cipher cipher) {
+                        super.onSucceed(cipher);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    }
 
-                @Override
-                public void onNotMatch(int availableTimes) {
-                    // 指纹不匹配，并返回可用剩余次数并自动继续验证
-                    L.d("指纹识别失败，还可尝试" + String.valueOf(availableTimes) + "次");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_match));
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onFailed(boolean isDeviceLocked) {
-                    // 错误次数达到上限或者API报错停止了验证，自动结束指纹识别
-                    // isDeviceLocked 表示指纹硬件是否被暂时锁定
-                    L.d("多次尝试错误，请确认指纹 isDeviceLocked", isDeviceLocked);
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onStartFailedByDeviceLocked() {
-                    // 第一次调用startIdentify失败，因为设备被暂时锁定
-                    L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot));
-                    mMockCurrentUser = false;
-                }
-            });
-        } else {
-            L.d("系统指纹功能未启用");
-            NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_enable));
-            mMockCurrentUser = false;
-        }
+                    @Override
+                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(failInfo);
+                        AlertDialog dialog = mFingerPrintAlertDialog;
+                        if (dialog != null) {
+                            if (dialog.isShowing()) {
+                                dialog.dismiss();
+                            }
+                        }
+                    }
+                });
     }
 
     public synchronized void showFingerPrintDialog(@Nullable Activity activity, View rootView) {
@@ -147,12 +121,9 @@ public class UnionPayBasePlugin implements IAppPlugin {
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
             boolean finalDialogMode = dialogMode;
-            DialogFrameLayout payView = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
+            DialogFrameLayout payView = new AlipayPayView(context).withOnCloseImageClickListener((target, v) -> {
                 mPwdActivityDontShowFlag = true;
-                AlertDialog dialog1 = mFingerPrintAlertDialog;
-                if (dialog1 != null) {
-                    dialog1.dismiss();
-                }
+                target.getDialog().dismiss();
 
                 if (finalDialogMode) {
                     Task.onBackground(100, () -> {
@@ -174,7 +145,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
                     Task.onMain(300, () -> finalPayRootLayout.setAlpha(1));
                 }
             }).withOnDismissListener(v -> {
-                FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                     L.d("指纹识别取消1");
@@ -189,11 +160,16 @@ public class UnionPayBasePlugin implements IAppPlugin {
                     if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
                         return;
                     }
-                    initFingerPrintLock(context, () -> {
+                    initFingerPrintLock(context, (cipher) -> {
                         BlackListUtils.applyIfNeeded(context);
-                        String pwd = Config.from(context).getPassword();
-                        if (TextUtils.isEmpty(pwd)) {
-                            Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
+                        String passwordEncrypted = Config.from(context).getPasswordEncrypted();
+                        if (TextUtils.isEmpty(passwordEncrypted)) {
+                            Toaster.showShort(Lang.getString(R.id.toast_password_not_set_generic));
+                            return;
+                        }
+                        String password = AESUtils.decrypt(cipher, passwordEncrypted);
+                        if (TextUtils.isEmpty(password)) {
+                            Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
                             return;
                         }
 
@@ -207,22 +183,22 @@ public class UnionPayBasePlugin implements IAppPlugin {
 
                         boolean tryAgain = false;
                         try {
-                            inputDigitPassword(rootView, pwd);
+                            inputDigitPassword(rootView, password);
                         } catch (NullPointerException e) {
                             tryAgain = true;
                         } catch (Exception e) {
-                            Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                            Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                             L.e(e);
                         }
                         if (tryAgain) {
                             Task.onMain(1000, () -> {
                                 try {
-                                    inputDigitPassword(rootView, pwd);
+                                    inputDigitPassword(rootView, password);
                                 } catch (NullPointerException e) {
-                                    Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                    Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                                     L.d("inputDigitPassword NPE", e);
                                 } catch (Exception e) {
-                                    Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                    Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                                     L.e(e);
                                 }
                                 onCompleteRunnable.run();
@@ -351,6 +327,12 @@ public class UnionPayBasePlugin implements IAppPlugin {
         return this.mMockCurrentUser;
     }
 
+
+    @Override
+    public void setMockCurrentUser(boolean mock) {
+        this.mMockCurrentUser = mock;
+    }
+
     private void watchPayView(Activity activity) {
         stopAndRemoveCurrentActivityViewObserver();
         ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
@@ -416,7 +398,7 @@ public class UnionPayBasePlugin implements IAppPlugin {
     protected void onPayDialogDismiss(Context context) {
         L.d("PayDialog dismiss");
         if (Config.from(context).isOn()) {
-            FingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
+            XFingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
             if (fingerPrintIdentify != null) {
                 fingerPrintIdentify.cancelIdentify();
                 L.d("指纹识别取消2");

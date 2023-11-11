@@ -8,11 +8,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
@@ -85,15 +85,15 @@ public class DonateView extends DialogFrameLayout implements AdapterView.OnItemC
         final Context context = getContext();
         if (Lang.getString(R.id.settings_title_alipay).equals(data.title)) {
             if (!DonateUtils.openAlipayPayPage(context)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_goto_donate_page_fail_alipay), Toast.LENGTH_LONG).show();
+                Toaster.showLong(Lang.getString(R.id.toast_goto_donate_page_fail_alipay));
             }
         } else if (Lang.getString(R.id.settings_title_wechat).equals(data.title)) {
             if (!DonateUtils.openWeChatPay(context)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_goto_donate_page_fail_wechat), Toast.LENGTH_LONG).show();
+                Toaster.showLong(Lang.getString(R.id.toast_goto_donate_page_fail_wechat));
             }
         } else if (Lang.getString(R.id.settings_title_qq).equals(data.title)) {
             if (!DonateUtils.openQQPay(context)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_goto_donate_page_fail_qq), Toast.LENGTH_LONG).show();
+                Toaster.showLong(Lang.getString(R.id.toast_goto_donate_page_fail_qq));
             }
         }
     }

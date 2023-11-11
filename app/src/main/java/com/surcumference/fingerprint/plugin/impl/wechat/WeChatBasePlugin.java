@@ -24,15 +24,16 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.samsung.android.sdk.SsdkUnsupportedException;
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
+import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -45,24 +46,26 @@ import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.WeChatVersionControl;
+import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.WeChatPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
-import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
-import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
+import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import javax.crypto.Cipher;
+
 public class WeChatBasePlugin implements IAppPlugin {
 
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
-    protected FingerprintIdentify mFingerprintIdentify;
+    protected XFingerprintIdentify mFingerprintIdentify;
     private FragmentObserver mFragmentObserver;
 
     private int mWeChatVersionCode = 0;
@@ -76,56 +79,22 @@ public class WeChatBasePlugin implements IAppPlugin {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, Runnable onSuccessUnlockRunnable) {
-        mMockCurrentUser = true;
-        mFingerprintIdentify = new FingerprintIdentify(context.getApplicationContext());
-        mFingerprintIdentify.setSupportAndroidL(true);
-        mFingerprintIdentify.setExceptionListener(exception -> {
-            if (exception instanceof SsdkUnsupportedException) {
-                return;
-            }
-            L.e("fingerprint", exception);
-        });
-        mFingerprintIdentify.init();
-        if (mFingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintIdentify.startIdentify(8, new BaseFingerprint.IdentifyListener() {
-                @Override
-                public void onSucceed() {
-                    L.d("指纹识别成功");
-                    onSuccessUnlockRunnable.run();
-                    mMockCurrentUser = false;
-                }
+    protected synchronized void initFingerPrintLock(Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback,
+                                                    final Runnable onFailureUnlockCallback) {
+        mFingerprintIdentify = new XFingerprintIdentify(context)
+                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                    @Override
+                    public void onSucceed(Cipher cipher) {
+                        super.onSucceed(cipher);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    }
 
-                @Override
-                public void onNotMatch(int availableTimes) {
-                    // 指纹不匹配，并返回可用剩余次数并自动继续验证
-                    L.d("指纹识别失败，还可尝试" + availableTimes + "次");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_match));
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onFailed(boolean isDeviceLocked) {
-                    // 错误次数达到上限或者API报错停止了验证，自动结束指纹识别
-                    // isDeviceLocked 表示指纹硬件是否被暂时锁定
-                    L.d("多次尝试错误，请确认指纹 isDeviceLocked", isDeviceLocked);
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
-                    mMockCurrentUser = false;
-                }
-
-                @Override
-                public void onStartFailedByDeviceLocked() {
-                    // 第一次调用startIdentify失败，因为设备被暂时锁定
-                    L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot));
-                    mMockCurrentUser = false;
-                }
-            });
-        } else {
-            L.d("系统指纹功能未启用");
-            NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_enable));
-            mMockCurrentUser = false;
-        }
+                    @Override
+                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(failInfo);
+                        onFailureUnlockCallback.run();
+                    }
+                });
     }
 
     protected boolean isHeaderViewExistsFallback(ListView listView) {
@@ -253,7 +222,6 @@ public class WeChatBasePlugin implements IAppPlugin {
         L.d("PayDialog show");
         Context context = rootView.getContext();
         Config config = Config.from(context);
-        ViewUtils.recursiveLoopChildren(rootView);
         if (config.isOn()) {
             int versionCode = getVersionCode(context);
             WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
@@ -314,6 +282,28 @@ public class WeChatBasePlugin implements IAppPlugin {
                 fingerprintImageView.setVisibility(config.isShowFingerprintIcon() ? View.VISIBLE : View.GONE);
             }
 
+            final Runnable switchToPasswordRunnable = ()-> {
+                if (smallPayDialogFloating) {
+                    passwordLayout.removeView(fingerPrintLayout);
+                } else {
+                    rootView.removeView(fingerPrintLayout);
+                }
+                mInputEditText.setVisibility(View.VISIBLE);
+                keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
+                mInputEditText.performClick();
+                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                if (fingerprintIdentify != null) {
+                    fingerprintIdentify.cancelIdentify();
+                }
+                mMockCurrentUser = false;
+                if (titleTextView != null) {
+                    titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
+                }
+                if (usePasswordText != null) {
+                    usePasswordText.setText(Lang.getString(R.id.wechat_payview_fingerprint_switch_text));
+                }
+            };
+
             final Runnable switchToFingerprintRunnable = ()-> {
                 mInputEditText.setVisibility(View.GONE);
                 for (View keyboardView : keyboardViews) {
@@ -342,40 +332,26 @@ public class WeChatBasePlugin implements IAppPlugin {
                     }
                     rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 }
-                initFingerPrintLock(context, ()-> {
+                initFingerPrintLock(context, (cipher)-> {
                     BlackListUtils.applyIfNeeded(context);
                     //SUCCESS UNLOCK
-                    String pwd = config.getPassword();
-                    if (TextUtils.isEmpty(pwd)) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_wechat), Toast.LENGTH_SHORT).show();
+                    String passwordEncrypted = config.getPasswordEncrypted();
+                    if (TextUtils.isEmpty(passwordEncrypted)) {
+                        Toaster.showShort(Lang.getString(R.id.toast_password_not_set_wechat));
                         return;
                     }
-                    inputDigitalPassword(context, mInputEditText, pwd, keyboardViews, smallPayDialogFloating);
-                });
+                    String password = AESUtils.decrypt(cipher, passwordEncrypted);
+                    if (TextUtils.isEmpty(password)) {
+                        Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
+                        return;
+                    }
+                    inputDigitalPassword(context, mInputEditText, password, keyboardViews, smallPayDialogFloating);
+                }, switchToPasswordRunnable);
                 if (titleTextView != null) {
                     titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
                 }
                 if (usePasswordText != null) {
                     usePasswordText.setText(Lang.getString(R.id.wechat_payview_password_switch_text));
-                }
-            };
-
-            final Runnable switchToPasswordRunnable = ()-> {
-                if (smallPayDialogFloating) {
-                    passwordLayout.removeView(fingerPrintLayout);
-                } else {
-                    rootView.removeView(fingerPrintLayout);
-                }
-                mInputEditText.setVisibility(View.VISIBLE);
-                keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
-                mInputEditText.performClick();
-                mFingerprintIdentify.cancelIdentify();
-                mMockCurrentUser = false;
-                if (titleTextView != null) {
-                    titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
-                }
-                if (usePasswordText != null) {
-                    usePasswordText.setText(Lang.getString(R.id.wechat_payview_fingerprint_switch_text));
                 }
             };
 
@@ -441,8 +417,9 @@ public class WeChatBasePlugin implements IAppPlugin {
                 } else {
                     if (fingerPrintLayout.getVisibility() != View.GONE) {
                         fingerPrintLayout.setVisibility(View.GONE);
-                        if (mFingerprintIdentify != null) {
-                            mFingerprintIdentify.cancelIdentify();
+                        XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                        if (fingerprintIdentify != null) {
+                            fingerprintIdentify.cancelIdentify();
                         }
                     }
                 }
@@ -507,7 +484,7 @@ public class WeChatBasePlugin implements IAppPlugin {
     protected void onPayDialogDismiss(Context context) {
         L.d("PayDialog dismiss");
         if (Config.from(context).isOn()) {
-            FingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
+            XFingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
             if (fingerPrintIdentify != null) {
                 fingerPrintIdentify.cancelIdentify();
             }

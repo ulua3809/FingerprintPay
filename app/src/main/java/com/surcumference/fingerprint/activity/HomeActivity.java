@@ -19,10 +19,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
@@ -95,7 +95,7 @@ public class HomeActivity extends AppCompatActivity implements AdapterView.OnIte
             WebActivity.openUrl(this, HELP_URL_LICENSE);
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
             com.surcumference.fingerprint.util.UrlUtils.openUrl(this, PROJECT_URL);
-            Toast.makeText(this, Lang.getString(R.id.toast_give_me_star), Toast.LENGTH_LONG).show();
+            Toaster.showLong(Lang.getString(R.id.toast_give_me_star));
         }
     }
 

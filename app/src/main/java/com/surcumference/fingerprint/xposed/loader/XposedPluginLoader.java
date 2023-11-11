@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.xposed.loader;
 
+import android.app.Application;
 import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,7 +18,7 @@ public class XposedPluginLoader {
 
     private static Map<Class, Object> sPluginCache = new HashMap<>();
 
-    public static void load(Class pluginClz, Context context, XC_LoadPackage.LoadPackageParam lpparam) throws Exception {
+    public static void load(Class pluginClz, Application application, XC_LoadPackage.LoadPackageParam lpparam) throws Exception {
         Object pluginObj;
         if ((pluginObj = sPluginCache.get(pluginClz)) == null) {
             synchronized (pluginClz) {
@@ -27,7 +28,7 @@ public class XposedPluginLoader {
                 }
             }
         }
-        callPluginMain(pluginObj, context, lpparam);
+        callPluginMain(pluginObj, application, lpparam);
     }
 
     private static Object loadFromLocal(Class pluginClz) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
@@ -35,7 +36,7 @@ public class XposedPluginLoader {
     }
 
     private static void callPluginMain(Object pluginObj, Context context, XC_LoadPackage.LoadPackageParam lpparam) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
-        Method method = pluginObj.getClass().getDeclaredMethod("main", Context.class, XC_LoadPackage.LoadPackageParam.class);
+        Method method = pluginObj.getClass().getDeclaredMethod("main", Application.class, XC_LoadPackage.LoadPackageParam.class);
         method.invoke(pluginObj, context, lpparam);
     }
 

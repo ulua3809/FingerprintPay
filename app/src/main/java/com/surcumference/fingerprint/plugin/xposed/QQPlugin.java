@@ -2,13 +2,14 @@ package com.surcumference.fingerprint.plugin.xposed;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
+import android.app.Application;
 import android.os.Bundle;
 import android.os.UserHandle;
 import android.text.TextUtils;
 
 import androidx.annotation.Keep;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -37,10 +38,11 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 public class QQPlugin {
 
     @Keep
-    public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
+    public void main(final Application application, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
             PluginApp.setup(PluginType.Xposed, PluginTarget.QQ);
+            Toaster.init(application);
             /**
              * FIX java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object java.lang.ref.WeakReference.get()' on a null object reference
              *     at com.tencent.mqq.shared_file_accessor.n.<init>(Unknown Source)
@@ -51,16 +53,16 @@ public class QQPlugin {
              *     at com.umeng.analytics.pro.cc.f(StoreHelper.java:127)
              *     at com.umeng.analytics.AnalyticsConfig.getVerticalType(AnalyticsConfig.java:133)
              */
-            Task.onMain(1000, ()-> Umeng.init(context));
+            Task.onMain(1000, ()-> Umeng.init(application));
             XposedLogNPEBugFixer.fix();
             String niceName = FileUtils.getCmdLineContentByPid(android.os.Process.myPid());
             if (!TextUtils.isEmpty(niceName)
                     && !niceName.contains(":")) {
                 UpdateFactory.lazyUpdateWhenActivityAlive();
             }
-            IAppPlugin plugin = PluginFactory.loadPlugin(context, Constant.PACKAGE_NAME_QQ);
+            IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_QQ);
             //for multi user
-            if (!Tools.isCurrentUserOwner(context)) {
+            if (!Tools.isCurrentUserOwner(application)) {
                 XposedHelpers.findAndHookMethod(UserHandle.class, "getUserId", int.class, new XC_MethodHook() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {

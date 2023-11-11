@@ -112,7 +112,7 @@ public class Lang {
             case R.id.settings_title_switch:
                 return tr("启用", "啟用", "Enable");
             case R.id.settings_title_password:
-                return tr("密码", "密碼", "Password");
+                return tr("支付密码", "支付密碼", "Payment Password");
             case R.id.settings_title_no_fingerprint_icon:
                 return tr("显示指纹图标", "顯示指紋圖標", "Fingerprint Icon");
             case R.id.settings_title_donate:
@@ -194,6 +194,10 @@ public class Lang {
                 return tr("系统限制，重启后必须验证密码后才能使用指纹验证", "系統限制，重啟後必須驗證密碼後才能使用指紋驗證", "Reboot and enable fingerprint verification with your PIN");
             case R.id.toast_fingerprint_not_enable:
                 return tr("系统指纹功能未启用", "系統指紋功能未啟用", "Fingerprint verification has been closed by system");
+            case R.id.toast_fingerprint_password_enc_success:
+                return tr("支付密码加密成功", "支付密碼加密成功", "Payment password encryption successful");
+            case R.id.toast_fingerprint_password_dec_failed:
+                return tr("支付密码解密失败, 请重新设定支付密码", "支付密码解密失败, 请重新设定支付密码", "Decryption of payment password failed, please reset the payment password");
             case R.id.toast_password_not_set_alipay:
                 return tr("未设定支付密码，请前往設置->指紋設置中设定支付宝的支付密码", "未設定支付密碼，請前往設置 -> 指紋設置中設定支付寶的支付密碼", "Payment password not set, please goto Settings -> Fingerprint to enter you payment password");
             case R.id.toast_password_not_set_taobao:
@@ -204,6 +208,8 @@ public class Lang {
                 return tr("未设定支付密码，请前往設置->指紋設置中设定QQ的支付密码", "未設定支付密碼，請前往設置 -> 指紋設置中設定QQ的支付密碼", "Payment password not set, please goto Settings -> Fingerprint to enter you payment password");
             case R.id.toast_password_not_set_generic:
                 return tr("未设定支付密码，请前往設置->指紋設置中设定支付密码", "未設定支付密碼，請前往設置 -> 指紋設置中設定支付密碼", "Payment password not set, please goto Settings -> Fingerprint to enter you payment password");
+            case R.id.toast_password_not_set_switch_on_failed:
+                return tr("启用失败, 请先设定支付密码", "啟用失敗, 請先設定支付密碼", "Enabled failed, please set a payment password first");
             case R.id.toast_password_auto_enter_fail:
                 return tr("Oops.. 输入失败了. 请手动输入密码", "Oops.. 輸入失敗了. 請手動輸入密碼", "Oops... auto input failure, switch to manual input");
             case R.id.toast_goto_donate_page_fail_alipay:

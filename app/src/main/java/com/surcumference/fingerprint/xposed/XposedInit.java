@@ -10,7 +10,6 @@ import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.app.Instrumentation;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
 
@@ -58,8 +57,8 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 L.d("Application onCreate");
-                Context context = (Context) param.args[0];
-                XposedPluginLoader.load(UnionPayPlugin.class, context, lpparam);
+                Application application = (Application) param.args[0];
+                XposedPluginLoader.load(UnionPayPlugin.class, application, lpparam);
             }
         });
 
@@ -71,8 +70,8 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
             @TargetApi(21)
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 L.d("Application onCreate");
-                Context context = (Context) param.args[0];
-                XposedPluginLoader.load(WeChatPlugin.class, context, lpparam);
+                Application application = (Application) param.args[0];
+                XposedPluginLoader.load(WeChatPlugin.class, application, lpparam);
             }
         });
     }
@@ -86,8 +85,8 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.args[0];
-                    XposedPluginLoader.load(AlipayPlugin.class, context, lpparam);
+                    Application application = (Application) param.args[0];
+                    XposedPluginLoader.load(AlipayPlugin.class, application, lpparam);
                 }
             }
         });
@@ -103,12 +102,12 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.args[0];
-                    if (context == null) {
+                    Application application = (Application) param.args[0];
+                    if (application == null) {
                         L.d("context eq null what the hell.");
                         return;
                     }
-                    XposedPluginLoader.load(TaobaoPlugin.class, context, lpparam);
+                    XposedPluginLoader.load(TaobaoPlugin.class, application, lpparam);
                 }
             }
         });
@@ -126,8 +125,8 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
                 L.d("Application onCreate");
                 if (mCalled == false) {
                     mCalled = true;
-                    Context context = (Context) param.args[0];
-                    XposedPluginLoader.load(QQPlugin.class, context, lpparam);
+                    Application application = (Application) param.args[0];
+                    XposedPluginLoader.load(QQPlugin.class, application, lpparam);
                 }
             }
         });

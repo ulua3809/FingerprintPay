@@ -1,6 +1,9 @@
 package com.surcumference.fingerprint.util;
 
+import com.surcumference.fingerprint.util.log.L;
+
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,19 +36,32 @@ private static SecretKeySpec createKey(String password) {
     return new SecretKeySpec(data, "AES");
 }
 
-// /** 加密字节数据 **/
+public static byte[] encrypt(Cipher cipher, byte[] content) {
+    try {
+        return cipher.doFinal(content);
+    } catch (Exception e) {
+        L.e(e);
+    }
+    return null;
+}
+
+    // /** 加密字节数据 **/
 public static byte[] encrypt(byte[] content, String password) {
     try {
         SecretKeySpec key = createKey(password);
         System.out.println(key);
         Cipher cipher = Cipher.getInstance(CipherMode);
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        byte[] result = cipher.doFinal(content);
-        return result;
+        return encrypt(cipher, content);
     } catch (Exception e) {
-        e.printStackTrace();
+        L.e(e);
     }
     return null;
+}
+
+
+public static String encrypt(Cipher cipher, String content) {
+    return AESUtils.byte2hex(encrypt(cipher, content.getBytes(StandardCharsets.UTF_8)));
 }
 
 // /** 加密(结果为16进制字符串) **/
@@ -57,8 +73,16 @@ public static String encrypt(String content, String password) {
         e.printStackTrace();
     }
     data = encrypt(data, password);
-    String result = byte2hex(data);
-    return result;
+    return byte2hex(data);
+}
+
+public static byte[] decrypt(Cipher cipher, byte[] content) {
+    try {
+        return cipher.doFinal(content);
+    } catch (Exception e) {
+        L.e(e);
+    }
+    return null;
 }
 
 // /** 解密字节数组 **/
@@ -67,12 +91,19 @@ public static byte[] decrypt(byte[] content, String password) {
         SecretKeySpec key = createKey(password);
         Cipher cipher = Cipher.getInstance(CipherMode);
         cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] result = cipher.doFinal(content);
-        return result;
+        return decrypt(cipher, content);
     } catch (Exception e) {
-        e.printStackTrace();
+        L.e(e);
     }
     return null;
+}
+
+public static String decrypt(Cipher cipher, String content) {
+    byte[] data = decrypt(cipher, AESUtils.hex2byte(content));
+    if (data == null) {
+        return null;
+    }
+    return new String(data);
 }
 
 // /** 解密16进制的字符串为字符串 **/
@@ -97,6 +128,9 @@ public static String decrypt(String content, String password) {
 
 // /** 字节数组转成16进制字符串 **/
 public static String byte2hex(byte[] b) { // 一个字节的数，
+    if (b == null) {
+        return null;
+    }
     StringBuffer sb = new StringBuffer(b.length * 2);
     String tmp = "";
     for (int n = 0; n < b.length; n++) {
@@ -111,7 +145,7 @@ public static String byte2hex(byte[] b) { // 一个字节的数，
 }
 
 // /** 将hex字符串转换成字节数组 **/
-private static byte[] hex2byte(String inputString) {
+public static byte[] hex2byte(String inputString) {
     if (inputString == null || inputString.length() < 2) {
         return new byte[0];
     }

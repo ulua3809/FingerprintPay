@@ -6,10 +6,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
@@ -55,7 +55,7 @@ public class UpdateFactory {
 
     public static void doUpdateCheck(final Context context, final boolean quite, final boolean dontSkip) {
         if (!quite) {
-            Toast.makeText(context, Lang.getString(R.id.toast_checking_update), Toast.LENGTH_LONG).show();
+            Toaster.showLong(Lang.getString(R.id.toast_checking_update));
         }
         try {
             String packageName = context.getPackageName();
@@ -70,14 +70,14 @@ public class UpdateFactory {
                 @Override
                 public void onNoUpdate() {
                     if (!quite) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_no_update), Toast.LENGTH_LONG).show();
+                        Toaster.showLong(Lang.getString(R.id.toast_no_update));
                     }
                 }
 
                 @Override
                 public void onNetErr() {
                     if (!quite) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_check_update_fail_net_err), Toast.LENGTH_LONG).show();
+                        Toaster.showLong(Lang.getString(R.id.toast_check_update_fail_net_err));
                     }
                 }
 
@@ -136,7 +136,7 @@ public class UpdateFactory {
                     Map<PluginTarget, Boolean> instPluginTargetSelectionMap = instPluginTargetSelectionView.getSelection();
                     L.d("instPluginTargetSelectionMap", instPluginTargetSelectionMap);
                     if (!instPluginTargetSelectionMap.values().contains(true)) {
-                        Toast.makeText(context, Lang.getString(R.id.update_at_least_select_one), Toast.LENGTH_SHORT).show();
+                        Toaster.showShort(Lang.getString(R.id.update_at_least_select_one));
                         return;
                     }
                     dialog.dismiss();

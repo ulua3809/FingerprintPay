@@ -2,10 +2,11 @@ package com.surcumference.fingerprint.plugin.xposed;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
+import android.app.Application;
 
 import androidx.annotation.Keep;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
@@ -30,14 +31,15 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 public class UnionPayPlugin {
 
     @Keep
-    public void main(final Context context, final XC_LoadPackage.LoadPackageParam lpparam) {
+    public void main(final Application application, final XC_LoadPackage.LoadPackageParam lpparam) {
         L.d("Xposed plugin init version: " + BuildConfig.VERSION_NAME);
         try {
             PluginApp.setup(PluginType.Xposed, PluginTarget.WeChat);
-            Umeng.init(context);
+            Toaster.init(application);
+            Umeng.init(application);
             XposedLogNPEBugFixer.fix();
             UpdateFactory.lazyUpdateWhenActivityAlive();
-            IAppPlugin plugin = PluginFactory.loadPlugin(context, Constant.PACKAGE_NAME_UNIONPAY);
+            IAppPlugin plugin = PluginFactory.loadPlugin(application, Constant.PACKAGE_NAME_UNIONPAY);
             XposedHelpers.findAndHookMethod(Activity.class, "onResume", new XC_MethodHook() {
                 @TargetApi(21)
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {

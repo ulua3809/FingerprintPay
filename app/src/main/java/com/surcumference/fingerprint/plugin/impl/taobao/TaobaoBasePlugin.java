@@ -14,34 +14,37 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
+import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
-import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.TaobaoVersionControl;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
+import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
-import com.wei.android.lib.fingerprintidentify.FingerprintIdentify;
-import com.wei.android.lib.fingerprintidentify.base.BaseFingerprint;
+import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
 
 public class TaobaoBasePlugin implements IAppPlugin {
 
@@ -53,7 +56,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
     private LinearLayout mLineTopCon;
     private View mLineBottomView;
 
-    private FingerprintIdentify mFingerprintIdentify;
+    private XFingerprintIdentify mFingerprintIdentify;
 
     private Activity mCurrentActivity;
 
@@ -168,50 +171,26 @@ public class TaobaoBasePlugin implements IAppPlugin {
         return false;
     }
 
-    public void initFingerPrintLock(final Context context, final Runnable onSuccessUnlockCallback) {
-        mFingerprintIdentify = new FingerprintIdentify(context);
-        mFingerprintIdentify.setSupportAndroidL(true);
-        mFingerprintIdentify.init();
-        if (mFingerprintIdentify.isFingerprintEnable()) {
-            mFingerprintIdentify.startIdentify(5, new BaseFingerprint.IdentifyListener() {
-                @Override
-                public void onSucceed() {
-                    L.d("指纹识别成功");
-                    onSuccessUnlockCallback.run();
-                }
+    public void initFingerPrintLock(final Context context, final OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
+        mFingerprintIdentify = new XFingerprintIdentify(context)
+                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                    @Override
+                    public void onSucceed(Cipher cipher) {
+                        super.onSucceed(cipher);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    }
 
-                @Override
-                public void onNotMatch(int availableTimes) {
-                    // 指纹不匹配，并返回可用剩余次数并自动继续验证
-                    L.d("指纹识别失败，还可尝试" + String.valueOf(availableTimes) + "次");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_match));
-                }
-
-                @Override
-                public void onFailed(boolean isDeviceLocked) {
-                    // 错误次数达到上限或者API报错停止了验证，自动结束指纹识别
-                    // isDeviceLocked 表示指纹硬件是否被暂时锁定
-                    L.d("多次尝试错误，请确认指纹 isDeviceLocked", isDeviceLocked);
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_retry_ended));
-                    AlertDialog dialog = mFingerPrintAlertDialog;
-                    if (dialog != null) {
-                        if (dialog.isShowing()) {
-                            dialog.dismiss();
+                    @Override
+                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(failInfo);
+                        AlertDialog dialog = mFingerPrintAlertDialog;
+                        if (dialog != null) {
+                            if (dialog.isShowing()) {
+                                dialog.dismiss();
+                            }
                         }
                     }
-                }
-
-                @Override
-                public void onStartFailedByDeviceLocked() {
-                    // 第一次调用startIdentify失败，因为设备被暂时锁定
-                    L.d("系统限制，重启后必须验证密码后才能使用指纹验证");
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_unlock_reboot));
-                }
-            });
-        } else {
-            L.d("系统指纹功能未启用");
-            NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_not_enable));
-        }
+                });
     }
 
     public void showFingerPrintDialog(final Activity activity) {
@@ -220,11 +199,16 @@ public class TaobaoBasePlugin implements IAppPlugin {
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
-            initFingerPrintLock(context, () -> {
+            initFingerPrintLock(context, (cipher) -> {
                 BlackListUtils.applyIfNeeded(context);
-                String pwd = Config.from(activity).getPassword();
-                if (TextUtils.isEmpty(pwd)) {
-                    Toast.makeText(activity, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
+                String passwordEncrypted = Config.from(activity).getPasswordEncrypted();
+                if (TextUtils.isEmpty(passwordEncrypted)) {
+                    Toaster.showShort(Lang.getString(R.id.toast_password_not_set_taobao));
+                    return;
+                }
+                String password = AESUtils.decrypt(cipher, passwordEncrypted);
+                if (TextUtils.isEmpty(password)) {
+                    Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
                     return;
                 }
 
@@ -236,24 +220,24 @@ public class TaobaoBasePlugin implements IAppPlugin {
                     }
                 };
 
-                if (!tryInputGenericPassword(activity, pwd)) {
+                if (!tryInputGenericPassword(activity, password)) {
                     boolean tryAgain = false;
                     try {
-                        inputDigitPassword(activity, pwd);
+                        inputDigitPassword(activity, password);
                     } catch (NullPointerException e) {
                         tryAgain = true;
                     } catch (Exception e) {
-                        Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                         L.e(e);
                     }
                     if (tryAgain) {
                         Task.onMain(1000, ()-> {
                             try {
-                                inputDigitPassword(activity, pwd);
+                                inputDigitPassword(activity, password);
                             } catch (NullPointerException e) {
-                                Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                             } catch (Exception e) {
-                                Toast.makeText(context, Lang.getString(R.id.toast_password_auto_enter_fail), Toast.LENGTH_LONG).show();
+                                Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                                 L.e(e);
                             }
                             onCompleteRunnable.run();
@@ -263,15 +247,12 @@ public class TaobaoBasePlugin implements IAppPlugin {
                 }
                 onCompleteRunnable.run();
             });
-            DialogFrameLayout alipayPayView = new AlipayPayView(context).withOnCloseImageClickListener(v -> {
+            DialogFrameLayout alipayPayView = new AlipayPayView(context).withOnCloseImageClickListener((target, v) -> {
                 mPwdActivityDontShowFlag = true;
-                AlertDialog dialog = mFingerPrintAlertDialog;
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
+                target.getDialog().dismiss();
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
-                FingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                 }

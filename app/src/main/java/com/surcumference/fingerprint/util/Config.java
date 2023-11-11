@@ -56,17 +56,29 @@ public class Config {
     }
 
     @Nullable
-    public String getPassword() {
-        String enc = mCache.sharedPreferences.getString("password", null);
-        if (TextUtils.isEmpty(enc)) {
+    public String getPasswordEncrypted() {
+        String pwd = mCache.sharedPreferences.getString("password_2", null);
+        if (TextUtils.isEmpty(pwd)) {
             return null;
         }
-        return AESUtils.decrypt(enc, String.valueOf(mCache.passwordEncKey));
+        return pwd;
     }
 
-    public void setPassword(String password) {
-        String enc = AESUtils.encrypt(password, String.valueOf(mCache.passwordEncKey));
-        mCache.sharedPreferences.edit().putString("password", enc).apply();
+    public void setPasswordEncrypted(String password) {
+        mCache.sharedPreferences.edit().putString("password_2", password).apply();
+    }
+
+    @Nullable
+    public String getPasswordIV() {
+        return mCache.sharedPreferences.getString("password_iv", null);
+    }
+
+    public void setPasswordIV(String iv) {
+        mCache.sharedPreferences.edit().putString("password_iv", iv).apply();
+    }
+
+    public String getPasswordEncKey() {
+        return String.valueOf(mCache.passwordEncKey);
     }
 
     public boolean isShowFingerprintIcon() {

@@ -3,6 +3,7 @@ package com.surcumference.fingerprint.view;
 import static com.surcumference.fingerprint.view.PasswordInputView.DEFAULT_HIDDEN_PASS;
 
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -14,25 +15,30 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
+import com.surcumference.fingerprint.util.NotifyUtils;
+import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.Cipher;
 
 /**
  * Created by Jason on 2017/9/9.
@@ -152,58 +158,85 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                         mListAdapter.notifyDataSetChanged();
                     }).showInDialog();
             } else {
-                if (data.selectionState || checkPasswordAndNotify(context)) {
-                    data.selectionState = !data.selectionState;
-                    config.setOn(data.selectionState);
-                    mListAdapter.notifyDataSetChanged();
+                if (!data.selectionState && !checkPasswordAndNotify(context)) {
+                    showUpdatePasswordViewDialog();
+                    return;
                 }
+                data.selectionState = !data.selectionState;
+                config.setOn(data.selectionState);
+                mListAdapter.notifyDataSetChanged();
             }
         } else if (Lang.getString(R.id.settings_title_no_fingerprint_icon).equals(data.title)) {
             data.selectionState = !data.selectionState;
             config.setShowFingerprintIcon(data.selectionState);
             mListAdapter.notifyDataSetChanged();
         } else if (Lang.getString(R.id.settings_title_password).equals(data.title)) {
-            PasswordInputView passwordInputView = new PasswordInputView(context);
-            if (!TextUtils.isEmpty(config.getPassword())) {
-                passwordInputView.setDefaultText(DEFAULT_HIDDEN_PASS);
-            }
-            passwordInputView.withOnDismissListener(v -> {
-                PasswordInputView inputView = (PasswordInputView) v;
-                String inputText = inputView.getInput();
-                if (TextUtils.isEmpty(inputText)) {
-                    config.setPassword("");
-                    return;
-                }
-                if (DEFAULT_HIDDEN_PASS.equals(inputText)) {
-                    return;
-                }
-                config.setPassword(inputText);
-            }).showInDialog();
+            showUpdatePasswordViewDialog();
         } else if (Lang.getString(R.id.settings_title_checkupdate).equals(data.title)) {
             UpdateFactory.doUpdateCheck(context, false, true);
         } else if (Lang.getString(R.id.settings_title_donate).equals(data.title)) {
             new DonateView(context).showInDialog();
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
             com.surcumference.fingerprint.util.UrlUtils.openUrl(context, Constant.PROJECT_URL);
-            Toast.makeText(context, Lang.getString(R.id.toast_give_me_star), Toast.LENGTH_LONG).show();
+            Toaster.showLong(Lang.getString(R.id.toast_give_me_star));
         }
     }
 
-    private boolean checkPasswordAndNotify(Context context) {
-        String pwd = Config.from(context).getPassword();
-        if (TextUtils.isEmpty(pwd)) {
-            String packageName = context.getPackageName();
-            if (Constant.PACKAGE_NAME_WECHAT.equals(packageName)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_wechat), Toast.LENGTH_SHORT).show();
-            } else if (Constant.PACKAGE_NAME_ALIPAY.equals(packageName)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_alipay), Toast.LENGTH_SHORT).show();
-            } else if (Constant.PACKAGE_NAME_TAOBAO.equals(packageName)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_taobao), Toast.LENGTH_SHORT).show();
-            } else if (Constant.PACKAGE_NAME_QQ.equals(packageName)) {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_qq), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(context, Lang.getString(R.id.toast_password_not_set_generic), Toast.LENGTH_SHORT).show();
+    private void showUpdatePasswordViewDialog() {
+        Context context = getContext();
+        Config config = Config.from(context);
+        PasswordInputView passwordInputView = new PasswordInputView(context);
+        if (!TextUtils.isEmpty(config.getPasswordEncrypted())) {
+            passwordInputView.setDefaultText(DEFAULT_HIDDEN_PASS);
+        }
+        passwordInputView.withOnPositiveButtonClickListener((dialog, which) -> {
+            String inputText = passwordInputView.getInput();
+            if (TextUtils.isEmpty(inputText)) {
+                config.setPasswordEncrypted("");
+                config.setPasswordIV("");
+                dialog.dismiss();
+                return;
             }
+            if (DEFAULT_HIDDEN_PASS.equals(inputText)) {
+                dialog.dismiss();
+                return;
+            }
+            updatePassword(dialog, inputText);
+        }).showInDialog();
+    }
+
+    private void updatePassword(DialogInterface passwordInputDialog, String password) {
+        Context context = this.getContext();
+        Config config = Config.from(context);
+        XFingerprintIdentify fingerprintIdentify = new XFingerprintIdentify(context)
+                .withEncryptionMode();
+
+        AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
+                .withOnCloseImageClickListener((target, v) -> {
+            target.getDialog().dismiss();
+            fingerprintIdentify.cancelIdentify();
+        }).withOnDismissListener(v -> {
+            fingerprintIdentify.cancelIdentify();
+        }).showInDialog();
+        fingerprintIdentify.startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                    @Override
+                    public void onSucceed(Cipher cipher) {
+                        super.onSucceed(cipher);
+                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
+                        String encrypted = AESUtils.encrypt(cipher, password);
+                        config.setPasswordEncrypted(encrypted);
+                        config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
+
+                        passwordInputDialog.dismiss();
+                        fingerprintVerificationDialog.dismiss();
+                    }
+                });
+    }
+
+    private boolean checkPasswordAndNotify(Context context) {
+        String pwd = Config.from(context).getPasswordEncrypted();
+        if (TextUtils.isEmpty(pwd)) {
+            Toaster.showLong(Lang.getString(R.id.toast_password_not_set_switch_on_failed));
             return false;
         }
         return true;
