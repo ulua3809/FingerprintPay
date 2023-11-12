@@ -26,7 +26,7 @@ jobs:
           distribution: 'adopt'
           cache: gradle
       - name: Build Riru modules
-        run: cd ./riru && bash ./make.sh
+        run: cd ./module && bash ./make.sh
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
@@ -41,5 +41,5 @@ jobs:
         with:
           name: magisk.${{ steps.current-time.outputs.formattedTime }}
           path: |
-            riru/build/release/*.zip
-            !riru/build/release/*-all-*.zip
+            module/build/release/*.zip
+            !module/build/release/*-all-*.zip

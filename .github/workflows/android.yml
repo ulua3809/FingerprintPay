@@ -21,8 +21,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Build Riru modules
-        run: ls riru/Riru-ModuleTemplate
       - name: Decode Keystore
         env:
           ENCODED_STRING: ${{ secrets.SIGNING_STORE_BASE64 }}
@@ -37,7 +35,7 @@ jobs:
           architecture: x64
           targets: 'JAVA_HOME_15'
       - name: Build Riru modules
-        run: cd ./riru && bash ./make.sh
+        run: cd ./module && bash ./make.sh
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
@@ -56,8 +54,8 @@ jobs:
         with:
           name: magisk.${{ steps.current-time.outputs.formattedTime }}
           path: |
-            riru/build/release/*.zip
-            !riru/build/release/*-all-*.zip
+            module/build/release/*.zip
+            !module/build/release/*-all-*.zip
       - name: Assign release version from version.properties to Env variable
         run: |
           cat ./app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/release_version=\1/g' >> $GITHUB_ENV
@@ -76,7 +74,7 @@ jobs:
           tag_name: "${{ env.release_version }}-ci"
           files: |
             app/build/outputs/apk/release/*.apk
-            riru/build/release/*.zip
+            module/build/release/*.zip
           body: "[Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})"
       - name: Upload artifacts - Xposed
         uses: Wandalen/wretry.action@master
@@ -101,7 +99,7 @@ jobs:
             webdav_password: ${{secrets.WEBDAV_PASSWORD}}
             webdav_upload_path: "/${{ env.release_version }}"
             files: |
-              riru/build/release/zygisk-*.zip
+              module/build/release/zygisk-*.zip
           attempt_limit: 3
           attempt_delay: 0
       - name: Upload artifacts - Riru
@@ -114,6 +112,6 @@ jobs:
             webdav_password: ${{secrets.WEBDAV_PASSWORD}}
             webdav_upload_path: "/${{ env.release_version }}"
             files: |
-              riru/build/release/riru-*.zip
+              module/build/release/riru-*.zip
           attempt_limit: 3
           attempt_delay: 0
