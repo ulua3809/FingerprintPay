@@ -117,6 +117,10 @@ public class Lang {
                 return tr("显示指纹图标", "顯示指紋圖標", "Fingerprint Icon");
             case R.id.settings_title_donate:
                 return tr("赞助我", "贊助我", "Donate me");
+            case R.id.settings_title_advance:
+                return tr("通用设置", "一般选项", "General");
+            case R.id.settings_title_use_biometric_api:
+                return tr("使用 Biometric Api", "使用 Biometric Api", "Use Biometric Api");
             case R.id.settings_sub_title_switch_alipay:
                 return tr("启用支付宝指纹支付", "啟用支付宝指紋支付", "Enable fingerprint payment for Alipay");
             case R.id.settings_sub_title_switch_wechat:
@@ -137,8 +141,12 @@ public class Lang {
                 return tr("请输入云闪付的支付密码, 密码会加密后保存, 请放心", "請輸入雲閃付的支付密碼, 密碼會加密后保存, 請放心", "Please enter your Payment password");
             case R.id.settings_sub_title_donate:
                 return tr("如果您觉得本软件好用, 欢迎赞助, 多少都是心意", "如果您覺得本軟件好用, 歡迎贊助, 多少都是心意", "Donate me, If you like this project");
+            case R.id.settings_sub_title_advance:
+                return tr("指纹图标、Biometric Api...", "指紋圖標、Biometric Api...", "Fingerprint icon, Biometric API...");
             case R.id.settings_sub_title_update_modules_same_time:
                 return tr("将同时升级以下模块", "將同時升級以下模塊", "The following modules will be upgraded at the same time");
+            case R.id.settings_sub_title_use_biometric_api:
+                return tr("实验性, 仅 Android 9+ 可用", "實驗性, 僅 Android 9+ 可用", "Experimental, available only on Android 9+");
             case R.id.fingerprint_verification:
                 return tr("请验证指纹", "請驗證指紋", "Fingerprint verification");
             case R.id.wechat_general:
@@ -198,6 +206,8 @@ public class Lang {
                 return tr("支付密码加密成功", "支付密碼加密成功", "Payment password encryption successful");
             case R.id.toast_fingerprint_password_dec_failed:
                 return tr("支付密码解密失败, 请重新设定支付密码", "支付密码解密失败, 请重新设定支付密码", "Decryption of payment password failed, please reset the payment password");
+            case R.id.toast_fingerprint_operation_cancel:
+                return tr("操作已取消", "操作已取消", "The operation has been canceled");
             case R.id.toast_password_not_set_alipay:
                 return tr("未设定支付密码，请前往設置->指紋設置中设定支付宝的支付密码", "未設定支付密碼，請前往設置 -> 指紋設置中設定支付寶的支付密碼", "Payment password not set, please goto Settings -> Fingerprint to enter you payment password");
             case R.id.toast_password_not_set_taobao:

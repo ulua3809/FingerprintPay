@@ -27,13 +27,14 @@ import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
 import com.surcumference.fingerprint.util.AESUtils;
-import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.Task;
+import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
+import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -87,14 +88,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             case Constant.PACKAGE_NAME_WECHAT:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_wechat), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_wechat)));
-                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
                 break;
             case Constant.PACKAGE_NAME_QQ:
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_qq), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_qq)));
-                if (ApplicationUtils.getPackageVersionCode(context, packageName) >= Constant.QQ.QQ_VERSION_CODE_8_8_83) {
-                    mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_no_fingerprint_icon), Lang.getString(R.id.settings_sub_title_no_fingerprint_icon), true, Config.from(context).isShowFingerprintIcon()));
-                }
                 break;
             case Constant.PACKAGE_NAME_TAOBAO:
             case Constant.PACKAGE_NAME_ALIPAY:
@@ -109,6 +106,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 throw new RuntimeException("Package " + packageName + " not supported yet!");
         }
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_donate), Lang.getString(R.id.settings_sub_title_donate)));
+        mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_advance), Lang.getString(R.id.settings_sub_title_advance)));
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_checkupdate), Lang.getString(R.id.settings_sub_title_checkupdate)));
         mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_webside), Constant.PROJECT_URL));
         mListAdapter = new PreferenceAdapter(mSettingsDataList);
@@ -167,14 +165,12 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 config.setOn(data.selectionState);
                 mListAdapter.notifyDataSetChanged();
             }
-        } else if (Lang.getString(R.id.settings_title_no_fingerprint_icon).equals(data.title)) {
-            data.selectionState = !data.selectionState;
-            config.setShowFingerprintIcon(data.selectionState);
-            mListAdapter.notifyDataSetChanged();
         } else if (Lang.getString(R.id.settings_title_password).equals(data.title)) {
             showUpdatePasswordViewDialog();
         } else if (Lang.getString(R.id.settings_title_checkupdate).equals(data.title)) {
             UpdateFactory.doUpdateCheck(context, false, true);
+        } else if (Lang.getString(R.id.settings_title_advance).equals(data.title)) {
+            new AdvanceSettingsView(context).showInDialog();
         } else if (Lang.getString(R.id.settings_title_donate).equals(data.title)) {
             new DonateView(context).showInDialog();
         } else if (Lang.getString(R.id.settings_title_webside).equals(data.title)) {
@@ -220,9 +216,18 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             fingerprintIdentify.cancelIdentify();
         }).showInDialog();
         fingerprintIdentify.startIdentify(new XFingerprintIdentify.IdentifyListener() {
-                    @Override
-                    public void onSucceed(Cipher cipher) {
-                        super.onSucceed(cipher);
+
+            @Override
+            public void onInited(XFingerprintIdentify identify) {
+                super.onInited(identify);
+                if (identify.isUsingBiometricApi()) {
+                    ViewUtils.setAlpha(fingerprintVerificationDialog, 0);
+                }
+            }
+
+            @Override
+                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                        super.onSucceed(target, cipher);
                         NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
                         String encrypted = AESUtils.encrypt(cipher, password);
                         config.setPasswordEncrypted(encrypted);
@@ -231,7 +236,16 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                         passwordInputDialog.dismiss();
                         fingerprintVerificationDialog.dismiss();
                     }
-                });
+
+            @Override
+            public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                super.onFailed(target, failInfo);
+                ViewUtils.setAlpha(fingerprintVerificationDialog, 1);
+                ViewUtils.setDimAmount(fingerprintVerificationDialog, 0.6f);
+                fingerprintVerificationDialog.dismiss();
+                Toaster.showShort(Lang.getString(R.id.toast_fingerprint_operation_cancel));
+            }
+        });
     }
 
     private boolean checkPasswordAndNotify(Context context) {

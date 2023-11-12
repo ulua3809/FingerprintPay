@@ -57,24 +57,30 @@ public class Config {
 
     @Nullable
     public String getPasswordEncrypted() {
-        String pwd = mCache.sharedPreferences.getString("password_2", null);
-        if (TextUtils.isEmpty(pwd)) {
+        String enc = mCache.sharedPreferences.getString("password", null);
+        if (TextUtils.isEmpty(enc)) {
             return null;
         }
-        return pwd;
+        return AESUtils.decrypt(enc, String.valueOf(mCache.passwordEncKey));
     }
 
     public void setPasswordEncrypted(String password) {
-        mCache.sharedPreferences.edit().putString("password_2", password).apply();
+        String enc = AESUtils.encrypt(password, String.valueOf(mCache.passwordEncKey));
+        mCache.sharedPreferences.edit().putString("password", enc).apply();
     }
 
     @Nullable
     public String getPasswordIV() {
-        return mCache.sharedPreferences.getString("password_iv", null);
+        String enc = mCache.sharedPreferences.getString("password_iv", null);
+        if (TextUtils.isEmpty(enc)) {
+            return null;
+        }
+        return AESUtils.decrypt(enc, String.valueOf(mCache.passwordEncKey));
     }
 
     public void setPasswordIV(String iv) {
-        mCache.sharedPreferences.edit().putString("password_iv", iv).apply();
+        String enc = AESUtils.encrypt(iv, String.valueOf(mCache.passwordEncKey));
+        mCache.sharedPreferences.edit().putString("password_iv", enc).apply();
     }
 
     public String getPasswordEncKey() {
@@ -87,6 +93,14 @@ public class Config {
 
     public void setShowFingerprintIcon(boolean on) {
         mCache.sharedPreferences.edit().putBoolean("fingerprint_icon", on).apply();
+    }
+
+    public boolean isUseBiometricApi() {
+        return mCache.sharedPreferences.getBoolean("biometric_api", false);
+    }
+
+    public void setUseBiometricApi(boolean on) {
+        mCache.sharedPreferences.edit().putBoolean("biometric_api", on).apply();
     }
 
     public void setSkipVersion(String version) {

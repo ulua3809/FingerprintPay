@@ -43,7 +43,6 @@ import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
-import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
@@ -76,22 +75,32 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
+    protected synchronized void initFingerPrintLock(Context context, AlertDialog dialog,
+                                                    OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
         L.d("指纹识别开始");
         mFingerprintIdentify = new XFingerprintIdentify(context)
                 .withMockCurrentUserCallback(this)
                 .startIdentify(new XFingerprintIdentify.IdentifyListener() {
                     @Override
-                    public void onSucceed(Cipher cipher) {
-                        super.onSucceed(cipher);
+                    public void onInited(XFingerprintIdentify identify) {
+                        super.onInited(identify);
+                        if (identify.isUsingBiometricApi()) {
+                            ViewUtils.setAlpha(dialog, 0);
+                            ViewUtils.setDimAmount(dialog, 0);
+                        }
+                    }
+                    @Override
+                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                        super.onSucceed(target, cipher);
                         onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
                     }
 
                     @Override
-                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
-                        super.onFailed(failInfo);
-                        AlertDialog dialog = mFingerPrintAlertDialog;
+                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(target, failInfo);
                         if (dialog != null) {
+                            ViewUtils.setAlpha(dialog, 1);
+                            ViewUtils.setDimAmount(dialog, 0.6f);
                             if (dialog.isShowing()) {
                                 dialog.dismiss();
                             }
@@ -102,7 +111,13 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     public synchronized void showFingerPrintDialog(@Nullable Activity activity, View rootView) {
         final Context context = rootView.getContext();
+        final Config config = Config.from(context);
         try {
+            String passwordEncrypted = config.getPasswordEncrypted();
+            if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+                Toaster.showLong(Lang.getString(R.id.toast_password_not_set_generic));
+                return;
+            }
             hidePreviousPayDialog();
             boolean dialogMode = false;
             View payRootLayout = ViewUtils.findViewByName(rootView, PACKAGE_NAME_UNIONPAY, "fl_container");
@@ -121,7 +136,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
             boolean finalDialogMode = dialogMode;
-            DialogFrameLayout payView = new AlipayPayView(context).withOnCloseImageClickListener((target, v) -> {
+            AlipayPayView payView = new AlipayPayView(context).withOnCloseImageClickListener((target, v) -> {
                 mPwdActivityDontShowFlag = true;
                 target.getDialog().dismiss();
 
@@ -153,20 +168,19 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
                 if (!mPwdActivityDontShowFlag) {
                     Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> finalPayRootLayout.setAlpha(1));
                 }
-            }).withOnShowListener(v -> {
+            }).withOnShowListener(target -> {
+                ViewUtils.setAlpha(target.getDialog(), 0);
+                ViewUtils.setDimAmount(target.getDialog(), 0);
                 //for hidePreviousPayDialog
                 Task.onMain(250, () -> {
                     //窗口消失了
                     if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
                         return;
                     }
-                    initFingerPrintLock(context, (cipher) -> {
+                    ViewUtils.setAlpha(target.getDialog(), 1);
+                    ViewUtils.setDimAmount(target.getDialog(), 0.6f);
+                    initFingerPrintLock(context, target.getDialog(), (cipher) -> {
                         BlackListUtils.applyIfNeeded(context);
-                        String passwordEncrypted = Config.from(context).getPasswordEncrypted();
-                        if (TextUtils.isEmpty(passwordEncrypted)) {
-                            Toaster.showShort(Lang.getString(R.id.toast_password_not_set_generic));
-                            return;
-                        }
                         String password = AESUtils.decrypt(cipher, passwordEncrypted);
                         if (TextUtils.isEmpty(password)) {
                             Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));

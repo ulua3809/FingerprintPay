@@ -42,7 +42,6 @@ import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
-import com.surcumference.fingerprint.view.DialogFrameLayout;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
@@ -103,7 +102,32 @@ public class AlipayBasePlugin implements IAppPlugin {
                 Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
             } else if (activityClzName.contains(".UserSettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject(activity));
-            } else if (activityClzName.contains(".PayPwdDialogActivity")
+            }
+        } catch (Exception e) {
+            L.e(e);
+        }
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public boolean getMockCurrentUser() {
+        return false;
+    }
+
+
+    public void onActivityResumed(Activity activity) {
+        try {
+            final String activityClzName = activity.getClass().getName();
+            if (BuildConfig.DEBUG) {
+                L.d("activity", activity, "clz", activityClzName);
+            }
+            mCurrentActivity = activity;
+            int versionCode = getVersionCode(activity);
+            if (activityClzName.contains(".PayPwdDialogActivity")
                     || activityClzName.contains(".MspContainerActivity")
                     || activityClzName.contains(".FlyBirdWindowActivity")) {
                 L.d("found");
@@ -124,7 +148,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                     if (mCurrentActivity != activity) {
                         return;
                     }
-                    if (alipayVersionCode >= 661 /** 10.3.10.8310 */) {
+                    if (versionCode >= 661 /** 10.3.10.8310 */) {
                         if (ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "simplePwdLayout") == null
                                 && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "mini_linSimplePwdComponent") == null
                                 && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null) {
@@ -138,7 +162,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                         }
                         return;
                     }
-                    if (ViewUtils.findViewByName(activity, (alipayVersionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
+                    if (ViewUtils.findViewByName(activity, (versionCode >= 352 /** 10.2.13.7000 */ ? "com.alipay.android.safepaysdk" : "com.alipay.android.app"), "simplePwdLayout") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaybase", "mini_linSimplePwdComponent") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.safepaysdk", "mini_linSimplePwdComponent") == null
                             && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null ) {
@@ -158,7 +182,6 @@ public class AlipayBasePlugin implements IAppPlugin {
                 }
                 activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
-                    int versionCode = getVersionCode(activity);
                     DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
                     View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
@@ -175,36 +198,32 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
     }
 
-    @Override
-    public void onActivityPaused(Activity activity) {
-
-    }
-
-    @Override
-    public boolean getMockCurrentUser() {
-        return false;
-    }
-
-
-    public void onActivityResumed(Activity activity) {
-        L.d("activity resumed", activity);
-        mCurrentActivity = activity;
-    }
-
-    public void initFingerPrintLock(final Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
+    public void initFingerPrintLock(final Context context, AlertDialog dialog,
+                                    OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
         mFingerprintIdentify = new XFingerprintIdentify(context)
                 .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+
                     @Override
-                    public void onSucceed(Cipher cipher) {
-                        super.onSucceed(cipher);
+                    public void onInited(XFingerprintIdentify identify) {
+                        super.onInited(identify);
+                        if (identify.isUsingBiometricApi()) {
+                            ViewUtils.setAlpha(dialog, 0);
+                            ViewUtils.setDimAmount(dialog, 0);
+                        }
+                    }
+
+                    @Override
+                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                        super.onSucceed(target, cipher);
                         onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
                     }
 
                     @Override
-                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
-                        super.onFailed(failInfo);
-                        AlertDialog dialog = mFingerPrintAlertDialog;
+                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(target, failInfo);
                         if (dialog != null) {
+                            ViewUtils.setAlpha(dialog, 1);
+                            ViewUtils.setDimAmount(dialog, 0.6f);
                             if (dialog.isShowing()) {
                                 dialog.dismiss();
                             }
@@ -215,6 +234,7 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     public boolean showFingerPrintDialog(final Activity activity) {
         final Context context = activity;
+        final Config config = Config.from(context);
         try {
             if (getVersionCode(activity) >= 224) {
                 if (activity.getClass().getName().contains(".MspContainerActivity")) {
@@ -227,61 +247,64 @@ public class AlipayBasePlugin implements IAppPlugin {
             }
 
             hidePreviousPayDialog();
+            String passwordEncrypted = config.getPasswordEncrypted();
+            if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+                Toaster.showLong(Lang.getString(R.id.toast_password_not_set_alipay));
+                return true;
+            }
+
             activity.getWindow().getDecorView().setAlpha(0);
             mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
             clickDigitPasswordWidget(activity);
-            initFingerPrintLock(context, (cipher) -> {
-                BlackListUtils.applyIfNeeded(context);
-                String passwordEncrypted = Config.from(activity).getPasswordEncrypted();
-                if (TextUtils.isEmpty(passwordEncrypted)) {
-                    Toaster.showShort(Lang.getString(R.id.toast_password_not_set_alipay));
-                    return;
-                }
-                String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                if (TextUtils.isEmpty(password)) {
-                    Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                    return;
-                }
+            AlipayPayView alipayPayView = new AlipayPayView(context)
+                .withOnShowListener((target) -> {
+                    initFingerPrintLock(context, target.getDialog(), (cipher) -> {
+                        BlackListUtils.applyIfNeeded(context);
+                        String password = AESUtils.decrypt(cipher, passwordEncrypted);
+                        if (TextUtils.isEmpty(password)) {
+                            Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
+                            return;
+                        }
 
-                Runnable onCompleteRunnable = () -> {
-                    mPwdActivityReShowDelayTimeMsec = 1000;
-                    AlertDialog dialog = mFingerPrintAlertDialog;
-                    if (dialog != null) {
-                        dialog.dismiss();
-                    }
-                };
+                        Runnable onCompleteRunnable = () -> {
+                            mPwdActivityReShowDelayTimeMsec = 1000;
+                            AlertDialog dialog = mFingerPrintAlertDialog;
+                            if (dialog != null) {
+                                dialog.dismiss();
+                            }
+                        };
 
-                if (!tryInputGenericPassword(activity, password)) {
-                    boolean tryAgain = false;
-                    try {
-                        inputDigitPassword(activity, password);
-                    } catch (NullPointerException e) {
-                        tryAgain = true;
-                    } catch (Exception e) {
-                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                        L.e(e);
-                    }
-                    if (tryAgain) {
-                        clickDigitPasswordWidget(activity);
-                        Task.onMain(1000, ()-> {
+                        if (!tryInputGenericPassword(activity, password)) {
+                            boolean tryAgain = false;
                             try {
                                 inputDigitPassword(activity, password);
                             } catch (NullPointerException e) {
-                                Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
-                                L.d("inputDigitPassword NPE", e);
+                                tryAgain = true;
                             } catch (Exception e) {
                                 Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
                                 L.e(e);
                             }
-                            onCompleteRunnable.run();
-                        });
-                        return;
-                    }
-                }
-                onCompleteRunnable.run();
-            });
-            DialogFrameLayout alipayPayView = new AlipayPayView(context).withOnCloseImageClickListener((target, v) -> {
+                            if (tryAgain) {
+                                clickDigitPasswordWidget(activity);
+                                Task.onMain(1000, ()-> {
+                                    try {
+                                        inputDigitPassword(activity, password);
+                                    } catch (NullPointerException e) {
+                                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
+                                        L.d("inputDigitPassword NPE", e);
+                                    } catch (Exception e) {
+                                        Toaster.showLong(Lang.getString(R.id.toast_password_auto_enter_fail));
+                                        L.e(e);
+                                    }
+                                    onCompleteRunnable.run();
+                                });
+                                return;
+                            }
+                        }
+                        onCompleteRunnable.run();
+                    });
+            }).withOnCloseImageClickListener((target, v) -> {
                 mPwdActivityDontShowFlag = true;
                 target.getDialog().dismiss();
                 activity.onBackPressed();

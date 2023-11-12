@@ -155,6 +155,13 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
 
     private synchronized void initPayActivity(Activity activity, int retryDelay, int retryCountdown) {
         Context context = activity;
+        Config config = Config.from(context);
+        String passwordEncrypted = config.getPasswordEncrypted();
+        if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+            Toaster.showLong(Lang.getString(R.id.toast_password_not_set_qq));
+            return;
+        }
+
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
 
         QQPayDialog _payDialog = mActivityPayDialogMap.get(activity);
@@ -291,12 +298,6 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
 
         mCurrentPayActivity = activity;
         initFingerPrintLock(context, (cipher) -> { // success
-            Config config = Config.from(context);
-            String passwordEncrypted = config.getPasswordEncrypted();
-            if (TextUtils.isEmpty(passwordEncrypted)) {
-                Toaster.showShort(Lang.getString(R.id.toast_password_not_set_qq));
-                return;
-            }
             String password = AESUtils.decrypt(cipher, passwordEncrypted);
             if (TextUtils.isEmpty(password)) {
                 Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
@@ -376,14 +377,14 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
                 .withMockCurrentUserCallback(this)
                 .startIdentify(new XFingerprintIdentify.IdentifyListener() {
                     @Override
-                    public void onSucceed(Cipher cipher) {
-                        super.onSucceed(cipher);
+                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                        super.onSucceed(target, cipher);
                         onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
                     }
 
                     @Override
-                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
-                        super.onFailed(failInfo);
+                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(target, failInfo);
                         onFailureUnlockCallback.run();
                     }
                 });

@@ -25,7 +25,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
@@ -79,19 +78,22 @@ public class WeChatBasePlugin implements IAppPlugin {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback,
+    protected synchronized void initFingerPrintLock(Context context, boolean smallPayDialogFloating,
+                                                    OnFingerprintVerificationOKListener onSuccessUnlockCallback,
                                                     final Runnable onFailureUnlockCallback) {
         mFingerprintIdentify = new XFingerprintIdentify(context)
+                // 仅大支付框可用, 小支付框冲突严重
+                .withUseBiometricApi(!smallPayDialogFloating && Config.from(context).isUseBiometricApi())
                 .startIdentify(new XFingerprintIdentify.IdentifyListener() {
                     @Override
-                    public void onSucceed(Cipher cipher) {
-                        super.onSucceed(cipher);
+                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
+                        super.onSucceed(target, cipher);
                         onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
                     }
 
                     @Override
-                    public void onFailed(FingerprintIdentifyFailInfo failInfo) {
-                        super.onFailed(failInfo);
+                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                        super.onFailed(target, failInfo);
                         onFailureUnlockCallback.run();
                     }
                 });
@@ -222,212 +224,214 @@ public class WeChatBasePlugin implements IAppPlugin {
         L.d("PayDialog show");
         Context context = rootView.getContext();
         Config config = Config.from(context);
-        if (config.isOn()) {
-            int versionCode = getVersionCode(context);
-            WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
-            L.d(payDialogView);
-            if (payDialogView == null) {
-                NotifyUtils.notifyVersionUnSupport(context, Constant.PACKAGE_NAME_WECHAT);
-                return;
-            }
-
-            ViewGroup passwordLayout = payDialogView.passwordLayout;
-            EditText mInputEditText = payDialogView.inputEditText;
-            List<View> keyboardViews = payDialogView.keyboardViews;
-            TextView usePasswordText = payDialogView.usePasswordText;
-            TextView titleTextView = payDialogView.titleTextView;
-
-            boolean smallPayDialogFloating = isSmallPayDialogFloating(passwordLayout);
-            RelativeLayout fingerPrintLayout = new RelativeLayout(context);
-            fingerPrintLayout.setTag("fingerPrintLayout");
-            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-            fingerPrintLayout.setLayoutParams(layoutParams);
-
-            fingerPrintLayout.setClipChildren(false);
-            ImageView fingerprintImageView = new ImageView(context);
-            try {
-                final Bitmap bitmap = ImageUtils.base64ToBitmap(Constant.ICON_FINGER_PRINT_WECHAT_BASE64);
-                fingerprintImageView.setImageBitmap(bitmap);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    fingerprintImageView.getViewTreeObserver().addOnWindowAttachListener(new ViewTreeObserver.OnWindowAttachListener() {
-                        @Override
-                        public void onWindowAttached() {
-
-                        }
-
-                        @Override
-                        public void onWindowDetached() {
-                            fingerprintImageView.getViewTreeObserver().removeOnWindowAttachListener(this);
-                            try {
-                                bitmap.recycle();
-                            } catch (Exception e) {
-                            }
-                        }
-                    });
-                }
-            } catch (OutOfMemoryError e) {
-                L.d(e);
-            }
-            RelativeLayout.LayoutParams fingerprintImageViewLayoutParams = new RelativeLayout.LayoutParams(DpUtils.dip2px(context, 70), DpUtils.dip2px(context, 70));
-            fingerprintImageViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            fingerprintImageViewLayoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-            if (smallPayDialogFloating) {
-                fingerprintImageViewLayoutParams.topMargin = DpUtils.dip2px(context, -14);
-                fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
-                fingerprintImageView.setVisibility(View.VISIBLE);
-            } else {
-                fingerprintImageViewLayoutParams.bottomMargin = DpUtils.dip2px(context, 180);
-                fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
-                fingerprintImageView.setVisibility(config.isShowFingerprintIcon() ? View.VISIBLE : View.GONE);
-            }
-
-            final Runnable switchToPasswordRunnable = ()-> {
-                if (smallPayDialogFloating) {
-                    passwordLayout.removeView(fingerPrintLayout);
-                } else {
-                    rootView.removeView(fingerPrintLayout);
-                }
-                mInputEditText.setVisibility(View.VISIBLE);
-                keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
-                mInputEditText.performClick();
-                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-                if (fingerprintIdentify != null) {
-                    fingerprintIdentify.cancelIdentify();
-                }
-                mMockCurrentUser = false;
-                if (titleTextView != null) {
-                    titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
-                }
-                if (usePasswordText != null) {
-                    usePasswordText.setText(Lang.getString(R.id.wechat_payview_fingerprint_switch_text));
-                }
-            };
-
-            final Runnable switchToFingerprintRunnable = ()-> {
-                mInputEditText.setVisibility(View.GONE);
-                for (View keyboardView : keyboardViews) {
-                    keyboardView.setVisibility(View.GONE);
-                }
-                if (smallPayDialogFloating) {
-                    View fingerPrintLayoutLast = passwordLayout.findViewWithTag("fingerPrintLayout");
-                    if (fingerPrintLayoutLast != null) {
-                        passwordLayout.removeView(fingerPrintLayoutLast);
-                    }
-                    fingerPrintLayout.setVisibility(View.GONE);
-                    passwordLayout.addView(fingerPrintLayout);
-                    passwordLayout.post(() -> fingerPrintLayout.setVisibility(View.VISIBLE));
-                    // ensure image icon visibility
-                    Task.onMain(1000, fingerPrintLayout::requestLayout);
-                    passwordLayout.setClipChildren(false);
-                    ((ViewGroup) passwordLayout.getParent()).setClipChildren(false);
-                    ((ViewGroup) passwordLayout.getParent().getParent()).setTop(((ViewGroup) passwordLayout.getParent().getParent()).getTop() + 200);
-                    ((ViewGroup) passwordLayout.getParent().getParent()).setClipChildren(false);
-                    ((ViewGroup) passwordLayout.getParent().getParent()).setBackgroundColor(Color.TRANSPARENT);
-                    ((ViewGroup) passwordLayout.getParent()).setBackgroundColor(Color.TRANSPARENT);
-                } else {
-                    View fingerPrintLayoutLast = rootView.findViewWithTag("fingerPrintLayout");
-                    if (fingerPrintLayoutLast != null) {
-                        rootView.removeView(fingerPrintLayoutLast);
-                    }
-                    rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                }
-                initFingerPrintLock(context, (cipher)-> {
-                    BlackListUtils.applyIfNeeded(context);
-                    //SUCCESS UNLOCK
-                    String passwordEncrypted = config.getPasswordEncrypted();
-                    if (TextUtils.isEmpty(passwordEncrypted)) {
-                        Toaster.showShort(Lang.getString(R.id.toast_password_not_set_wechat));
-                        return;
-                    }
-                    String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                    if (TextUtils.isEmpty(password)) {
-                        Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                        return;
-                    }
-                    inputDigitalPassword(context, mInputEditText, password, keyboardViews, smallPayDialogFloating);
-                }, switchToPasswordRunnable);
-                if (titleTextView != null) {
-                    titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
-                }
-                if (usePasswordText != null) {
-                    usePasswordText.setText(Lang.getString(R.id.wechat_payview_password_switch_text));
-                }
-            };
-
-            if (usePasswordText != null) {
-                Task.onMain(()-> usePasswordText.setVisibility(View.VISIBLE));
-                usePasswordText.setOnTouchListener((view, motionEvent) -> {
-                    try {
-                        if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                            if (mInputEditText.getVisibility() == View.GONE) {
-                                switchToPasswordRunnable.run();
-                            } else {
-                                switchToFingerprintRunnable.run();
-                            }
-                        }
-                    } catch (Exception e) {
-                        L.e(e);
-                    }
-                    return true;
-                });
-            }
-            if (titleTextView != null) {
-                titleTextView.setOnTouchListener((view, motionEvent) -> {
-                    try {
-                        if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                            if (mInputEditText.getVisibility() == View.GONE) {
-                                switchToPasswordRunnable.run();
-                            } else {
-                                switchToFingerprintRunnable.run();
-                            }
-                        }
-                    } catch (Exception e) {
-                        L.e(e);
-                    }
-                    return true;
-                });
-            }
-
-            fingerprintImageView.setOnClickListener(view -> switchToPasswordRunnable.run());
-            switchToFingerprintRunnable.run();
-
-
-            // 防止从选择支付页面返回时标题出错
-            ViewTreeObserver.OnGlobalLayoutListener layoutListener = (ViewTreeObserver.OnGlobalLayoutListener) passwordLayout.getTag(R.id.tag_password_layout_listener);
-            if (layoutListener != null) {
-                passwordLayout.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
-            }
-            layoutListener = () -> {
-                AccessibilityNodeInfo nodeInfo = AccessibilityNodeInfo.obtain();
-                passwordLayout.onInitializeAccessibilityNodeInfo(nodeInfo);
-                if (nodeInfo.isVisibleToUser()) {
-                    if (fingerPrintLayout.getVisibility() != View.VISIBLE) {
-                        fingerPrintLayout.setVisibility(View.VISIBLE);
-                        switchToFingerprintRunnable.run();
-                        // 防止从选择支付页面返回时标题出错
-                        if (titleTextView != null) {
-                            if (mInputEditText.getVisibility() == View.VISIBLE) {
-                                titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
-                            } else {
-                                titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
-                            }
-                        }
-                    }
-                } else {
-                    if (fingerPrintLayout.getVisibility() != View.GONE) {
-                        fingerPrintLayout.setVisibility(View.GONE);
-                        XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-                        if (fingerprintIdentify != null) {
-                            fingerprintIdentify.cancelIdentify();
-                        }
-                    }
-                }
-                nodeInfo.recycle();
-            };
-            passwordLayout.setTag(R.id.tag_password_layout_listener, layoutListener);
-            passwordLayout.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
+        if (!config.isOn()) {
+            return;
         }
+        String passwordEncrypted = config.getPasswordEncrypted();
+        if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
+            NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_password_not_set_wechat));
+            return;
+        }
+
+        int versionCode = getVersionCode(context);
+        WeChatPayDialog payDialogView = WeChatPayDialog.findFrom(versionCode, rootView);
+        L.d(payDialogView);
+        if (payDialogView == null) {
+            NotifyUtils.notifyVersionUnSupport(context, Constant.PACKAGE_NAME_WECHAT);
+            return;
+        }
+
+        ViewGroup passwordLayout = payDialogView.passwordLayout;
+        EditText mInputEditText = payDialogView.inputEditText;
+        List<View> keyboardViews = payDialogView.keyboardViews;
+        TextView usePasswordText = payDialogView.usePasswordText;
+        TextView titleTextView = payDialogView.titleTextView;
+
+        boolean smallPayDialogFloating = isSmallPayDialogFloating(passwordLayout);
+        RelativeLayout fingerPrintLayout = new RelativeLayout(context);
+        fingerPrintLayout.setTag("fingerPrintLayout");
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+        fingerPrintLayout.setLayoutParams(layoutParams);
+
+        fingerPrintLayout.setClipChildren(false);
+        ImageView fingerprintImageView = new ImageView(context);
+        try {
+            final Bitmap bitmap = ImageUtils.base64ToBitmap(Constant.ICON_FINGER_PRINT_WECHAT_BASE64);
+            fingerprintImageView.setImageBitmap(bitmap);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                fingerprintImageView.getViewTreeObserver().addOnWindowAttachListener(new ViewTreeObserver.OnWindowAttachListener() {
+                    @Override
+                    public void onWindowAttached() {
+
+                    }
+
+                    @Override
+                    public void onWindowDetached() {
+                        fingerprintImageView.getViewTreeObserver().removeOnWindowAttachListener(this);
+                        try {
+                            bitmap.recycle();
+                        } catch (Exception e) {
+                        }
+                    }
+                });
+            }
+        } catch (OutOfMemoryError e) {
+            L.d(e);
+        }
+        RelativeLayout.LayoutParams fingerprintImageViewLayoutParams = new RelativeLayout.LayoutParams(DpUtils.dip2px(context, 70), DpUtils.dip2px(context, 70));
+        fingerprintImageViewLayoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        fingerprintImageViewLayoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        if (smallPayDialogFloating) {
+            fingerprintImageViewLayoutParams.topMargin = DpUtils.dip2px(context, -14);
+            fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
+            fingerprintImageView.setVisibility(View.VISIBLE);
+        } else {
+            fingerprintImageViewLayoutParams.bottomMargin = DpUtils.dip2px(context, 180);
+            fingerPrintLayout.addView(fingerprintImageView, fingerprintImageViewLayoutParams);
+            fingerprintImageView.setVisibility(config.isShowFingerprintIcon() ? View.VISIBLE : View.GONE);
+        }
+
+        final Runnable switchToPasswordRunnable = ()-> {
+            if (smallPayDialogFloating) {
+                passwordLayout.removeView(fingerPrintLayout);
+            } else {
+                rootView.removeView(fingerPrintLayout);
+            }
+            mInputEditText.setVisibility(View.VISIBLE);
+            keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
+            mInputEditText.performClick();
+            XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+            if (fingerprintIdentify != null) {
+                fingerprintIdentify.cancelIdentify();
+            }
+            mMockCurrentUser = false;
+            if (titleTextView != null) {
+                titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
+            }
+            if (usePasswordText != null) {
+                usePasswordText.setText(Lang.getString(R.id.wechat_payview_fingerprint_switch_text));
+            }
+        };
+
+        final Runnable switchToFingerprintRunnable = ()-> {
+            mInputEditText.setVisibility(View.GONE);
+            for (View keyboardView : keyboardViews) {
+                keyboardView.setVisibility(View.GONE);
+            }
+            if (smallPayDialogFloating) {
+                View fingerPrintLayoutLast = passwordLayout.findViewWithTag("fingerPrintLayout");
+                if (fingerPrintLayoutLast != null) {
+                    passwordLayout.removeView(fingerPrintLayoutLast);
+                }
+                fingerPrintLayout.setVisibility(View.GONE);
+                passwordLayout.addView(fingerPrintLayout);
+                passwordLayout.post(() -> fingerPrintLayout.setVisibility(View.VISIBLE));
+                // ensure image icon visibility
+                Task.onMain(1000, fingerPrintLayout::requestLayout);
+                passwordLayout.setClipChildren(false);
+                ((ViewGroup) passwordLayout.getParent()).setClipChildren(false);
+                ((ViewGroup) passwordLayout.getParent().getParent()).setTop(((ViewGroup) passwordLayout.getParent().getParent()).getTop() + 200);
+                ((ViewGroup) passwordLayout.getParent().getParent()).setClipChildren(false);
+                ((ViewGroup) passwordLayout.getParent().getParent()).setBackgroundColor(Color.TRANSPARENT);
+                ((ViewGroup) passwordLayout.getParent()).setBackgroundColor(Color.TRANSPARENT);
+            } else {
+                View fingerPrintLayoutLast = rootView.findViewWithTag("fingerPrintLayout");
+                if (fingerPrintLayoutLast != null) {
+                    rootView.removeView(fingerPrintLayoutLast);
+                }
+                rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            }
+            initFingerPrintLock(context, smallPayDialogFloating, (cipher)-> {
+                BlackListUtils.applyIfNeeded(context);
+                //SUCCESS UNLOCK
+                String password = AESUtils.decrypt(cipher, passwordEncrypted);
+                if (TextUtils.isEmpty(password)) {
+                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_dec_failed));
+                    return;
+                }
+                inputDigitalPassword(context, mInputEditText, password, keyboardViews, smallPayDialogFloating);
+            }, switchToPasswordRunnable);
+            if (titleTextView != null) {
+                titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
+            }
+            if (usePasswordText != null) {
+                usePasswordText.setText(Lang.getString(R.id.wechat_payview_password_switch_text));
+            }
+        };
+
+        if (usePasswordText != null) {
+            Task.onMain(()-> usePasswordText.setVisibility(View.VISIBLE));
+            usePasswordText.setOnTouchListener((view, motionEvent) -> {
+                try {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        if (mInputEditText.getVisibility() == View.GONE) {
+                            switchToPasswordRunnable.run();
+                        } else {
+                            switchToFingerprintRunnable.run();
+                        }
+                    }
+                } catch (Exception e) {
+                    L.e(e);
+                }
+                return true;
+            });
+        }
+        if (titleTextView != null) {
+            titleTextView.setOnTouchListener((view, motionEvent) -> {
+                try {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        if (mInputEditText.getVisibility() == View.GONE) {
+                            switchToPasswordRunnable.run();
+                        } else {
+                            switchToFingerprintRunnable.run();
+                        }
+                    }
+                } catch (Exception e) {
+                    L.e(e);
+                }
+                return true;
+            });
+        }
+
+        fingerprintImageView.setOnClickListener(view -> switchToPasswordRunnable.run());
+        switchToFingerprintRunnable.run();
+
+
+        // 防止从选择支付页面返回时标题出错
+        ViewTreeObserver.OnGlobalLayoutListener layoutListener = (ViewTreeObserver.OnGlobalLayoutListener) passwordLayout.getTag(R.id.tag_password_layout_listener);
+        if (layoutListener != null) {
+            passwordLayout.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
+        }
+        layoutListener = () -> {
+            AccessibilityNodeInfo nodeInfo = AccessibilityNodeInfo.obtain();
+            passwordLayout.onInitializeAccessibilityNodeInfo(nodeInfo);
+            if (nodeInfo.isVisibleToUser()) {
+                if (fingerPrintLayout.getVisibility() != View.VISIBLE) {
+                    fingerPrintLayout.setVisibility(View.VISIBLE);
+                    switchToFingerprintRunnable.run();
+                    // 防止从选择支付页面返回时标题出错
+                    if (titleTextView != null) {
+                        if (mInputEditText.getVisibility() == View.VISIBLE) {
+                            titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
+                        } else {
+                            titleTextView.setText(Lang.getString(R.id.wechat_payview_fingerprint_title));
+                        }
+                    }
+                }
+            } else {
+                if (fingerPrintLayout.getVisibility() != View.GONE) {
+                    fingerPrintLayout.setVisibility(View.GONE);
+                    XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                    if (fingerprintIdentify != null) {
+                        fingerprintIdentify.cancelIdentify();
+                    }
+                }
+            }
+            nodeInfo.recycle();
+        };
+        passwordLayout.setTag(R.id.tag_password_layout_listener, layoutListener);
+        passwordLayout.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
     }
 
     private void inputDigitalPassword(Context context, EditText inputEditText, String pwd,

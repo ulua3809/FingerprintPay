@@ -2,6 +2,7 @@ package com.surcumference.fingerprint.util;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Build;
@@ -12,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.Window;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.EditText;
@@ -545,5 +547,31 @@ public class ViewUtils {
             return findParentViewByClassNamePart((ViewGroup) parentView, classPart);
         }
         return null;
+    }
+
+    public static void setAlpha(AlertDialog dialog, float value) {
+        if (dialog == null) {
+            return;
+        }
+        Window window = dialog.getWindow();
+        if (window == null) {
+            return;
+        }
+        View view = window.getDecorView();
+        if (view == null) {
+            return;
+        }
+        view.setAlpha(value);
+    }
+
+    public static void setDimAmount(AlertDialog dialog, float value) {
+        if (dialog == null) {
+            return;
+        }
+        Window window = dialog.getWindow();
+        if (window == null) {
+            return;
+        }
+        window.setDimAmount(value);
     }
 }

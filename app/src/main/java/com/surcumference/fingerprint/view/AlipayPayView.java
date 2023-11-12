@@ -28,7 +28,7 @@ import com.surcumference.fingerprint.util.StyleUtils;
 /**
  * Created by Jason on 2021/8/27.
  */
-public class AlipayPayView extends DialogFrameLayout {
+public class AlipayPayView extends DialogFrameLayout<AlipayPayView> {
 
     private FrameLayout mCloseImageContainer;
 
