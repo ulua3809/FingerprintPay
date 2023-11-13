@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
 cd ${0%/*}
-git submodule update -f --remote
-git submodule foreach git clean -df .
+cd ../3rdparty/Riru-ModuleTemplate
+git reset --hard HEAD
+git clean -df .
