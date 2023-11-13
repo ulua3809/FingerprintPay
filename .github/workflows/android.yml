@@ -79,39 +79,45 @@ jobs:
       - name: Upload artifacts - Xposed
         uses: Wandalen/wretry.action@master
         with:
-          action: bxb100/action-upload-webdav@v1
+          action: bxb100/action-upload@main
           with: |
-            webdav_address: ${{secrets.WEBDAV_ADDRESS}}
-            webdav_username: ${{secrets.WEBDAV_USERNAME}}
-            webdav_password: ${{secrets.WEBDAV_PASSWORD}}
-            webdav_upload_path: "/${{ env.release_version }}"
-            files: |
+            provider: webdav
+            provider_options: |
+              endpoint=${{secrets.WEBDAV_ADDRESS}}
+              username=${{secrets.WEBDAV_USERNAME}}
+              password=${{secrets.WEBDAV_PASSWORD}}
+              root=/${{ env.release_version }}
+            include: |
               app/build/outputs/apk/release/*.apk
           attempt_limit: 3
           attempt_delay: 0
       - name: Upload artifacts - Zygisk
         uses: Wandalen/wretry.action@master
         with:
-          action: bxb100/action-upload-webdav@v1
+          action: bxb100/action-upload@main
           with: |
-            webdav_address: ${{secrets.WEBDAV_ADDRESS}}
-            webdav_username: ${{secrets.WEBDAV_USERNAME}}
-            webdav_password: ${{secrets.WEBDAV_PASSWORD}}
-            webdav_upload_path: "/${{ env.release_version }}"
-            files: |
+            provider: webdav
+            provider_options: |
+              endpoint=${{secrets.WEBDAV_ADDRESS}}
+              username=${{secrets.WEBDAV_USERNAME}}
+              password=${{secrets.WEBDAV_PASSWORD}}
+              root=/${{ env.release_version }}
+            include: |
               module/build/release/zygisk-*.zip
           attempt_limit: 3
           attempt_delay: 0
       - name: Upload artifacts - Riru
         uses: Wandalen/wretry.action@master
         with:
-          action: bxb100/action-upload-webdav@v1
+          action: bxb100/action-upload@main
           with: |
-            webdav_address: ${{secrets.WEBDAV_ADDRESS}}
-            webdav_username: ${{secrets.WEBDAV_USERNAME}}
-            webdav_password: ${{secrets.WEBDAV_PASSWORD}}
-            webdav_upload_path: "/${{ env.release_version }}"
-            files: |
+            provider: webdav
+            provider_options: |
+              endpoint=${{secrets.WEBDAV_ADDRESS}}
+              username=${{secrets.WEBDAV_USERNAME}}
+              password=${{secrets.WEBDAV_PASSWORD}}
+              root=/${{ env.release_version }}
+            include: |
               module/build/release/riru-*.zip
           attempt_limit: 3
           attempt_delay: 0
