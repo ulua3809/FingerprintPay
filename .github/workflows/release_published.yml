@@ -1,0 +1,24 @@
+name: Release Published
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        run: |
+          RCLONE_CONFIG_WEBDAV_PASS=$(docker run --rm rclone/rclone obscure $WEBDAV_PASSWORD)
+          docker run --rm \
+            -e RCLONE_CONFIG_WEBDAV_TYPE=webdav \
+            -e RCLONE_CONFIG_WEBDAV_USER=$RCLONE_CONFIG_WEBDAV_USER \
+            -e RCLONE_CONFIG_WEBDAV_URL=$RCLONE_CONFIG_WEBDAV_URL \
+            -e RCLONE_CONFIG_WEBDAV_PASS=$RCLONE_CONFIG_WEBDAV_PASS \
+            rclone/rclone moveto webdav:/${{ github.event.release.name }}-dev webdav:/${{ github.event.release.name }}
+        env:
+          RCLONE_CONFIG_WEBDAV_USER: ${{secrets.WEBDAV_USERNAME}}
+          RCLONE_CONFIG_WEBDAV_URL: ${{secrets.WEBDAV_ADDRESS}}
+          WEBDAV_PASSWORD: ${{secrets.WEBDAV_PASSWORD}}
