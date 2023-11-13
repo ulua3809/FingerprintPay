@@ -63,7 +63,6 @@ apply from: 'debug.gradle'
 apply from: 'update-json.gradle'
 dependencies {
     implementation project(":3rdparty:FingerprintIdentify:FingerprintIdentifyLib")
-    implementation 'co.infinum:goldfinger:2.1.0'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.squareup.okhttp3:okhttp:3.12.8'
     implementation 'com.umeng.analytics:analytics:6.1.2'
