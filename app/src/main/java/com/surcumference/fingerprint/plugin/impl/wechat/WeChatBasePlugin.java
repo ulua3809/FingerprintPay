@@ -31,6 +31,7 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
+import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
 import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
@@ -59,7 +60,7 @@ import java.util.WeakHashMap;
 
 import javax.crypto.Cipher;
 
-public class WeChatBasePlugin implements IAppPlugin {
+public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
@@ -84,6 +85,7 @@ public class WeChatBasePlugin implements IAppPlugin {
         mFingerprintIdentify = new XFingerprintIdentify(context)
                 // 仅大支付框可用, 小支付框冲突严重
                 .withUseBiometricApi(!smallPayDialogFloating && Config.from(context).isUseBiometricApi())
+                .withMockCurrentUserCallback(this)
                 .startIdentify(new XFingerprintIdentify.IdentifyListener() {
                     @Override
                     public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
@@ -202,6 +204,11 @@ public class WeChatBasePlugin implements IAppPlugin {
     @Override
     public boolean getMockCurrentUser() {
         return this.mMockCurrentUser;
+    }
+
+    @Override
+    public void setMockCurrentUser(boolean mock) {
+        this.mMockCurrentUser = mock;
     }
 
     private void startFragmentObserver(Activity activity) {
