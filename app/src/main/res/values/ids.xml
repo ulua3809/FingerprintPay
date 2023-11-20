@@ -45,6 +45,8 @@
     <item name="settings_title_no_fingerprint_icon" type="id"/>
     <item name="settings_title_donate" type="id"/>
     <item name="settings_title_use_biometric_api" type="id"/>
+    <item name="settings_title_start_logcat" type="id"/>
+    <item name="settings_title_stop_logcat" type="id"/>
     <item name="settings_sub_title_switch_alipay" type="id"/>
     <item name="settings_sub_title_switch_wechat" type="id"/>
     <item name="settings_sub_title_switch_qq" type="id"/>
@@ -58,6 +60,8 @@
     <item name="settings_sub_title_advance" type="id"/>
     <item name="settings_sub_title_update_modules_same_time" type="id"/>
     <item name="settings_sub_title_use_biometric_api" type="id"/>
+    <item name="settings_sub_title_start_logcat" type="id"/>
+    <item name="settings_sub_title_stop_logcat" type="id"/>
     <item name="fingerprint_verification" type="id"/>
     <item name="wechat_general" type="id"/>
     <item name="app_settings_name" type="id"/>
@@ -100,6 +104,8 @@
     <item name="toast_goto_donate_page_fail_wechat" type="id"/>
     <item name="toast_goto_donate_page_fail_qq" type="id"/>
     <item name="toast_need_qq_7_2_5" type="id"/>
+    <item name="toast_start_logging" type="id"/>
+    <item name="toast_stop_logging" type="id"/>
 
     <item name="tag_password_layout_listener" type="id"/>
 </resources>

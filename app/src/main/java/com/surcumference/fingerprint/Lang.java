@@ -121,6 +121,10 @@ public class Lang {
                 return tr("通用设置", "一般选项", "General");
             case R.id.settings_title_use_biometric_api:
                 return tr("使用 Biometric Api", "使用 Biometric Api", "Use Biometric Api");
+            case R.id.settings_title_start_logcat:
+                return tr("开始记录日志", "開始記錄日誌", "Start logging");
+            case R.id.settings_title_stop_logcat:
+                return tr("停止记录日志", "停止記錄日誌", "Stop logging");
             case R.id.settings_sub_title_switch_alipay:
                 return tr("启用支付宝指纹支付", "啟用支付宝指紋支付", "Enable fingerprint payment for Alipay");
             case R.id.settings_sub_title_switch_wechat:
@@ -147,6 +151,10 @@ public class Lang {
                 return tr("将同时升级以下模块", "將同時升級以下模塊", "The following modules will be upgraded at the same time");
             case R.id.settings_sub_title_use_biometric_api:
                 return tr("实验性, 仅 Android 9+ 可用", "實驗性, 僅 Android 9+ 可用", "Experimental, available only on Android 9+");
+            case R.id.settings_sub_title_start_logcat:
+                return tr("开始 --> 你的表演 --> 停止 --> 发送给开发者", "開始 --> 你的表演 --> 停止 --> 發送給開發者", "Start --> Payment operation --> Stop --> Send to developer");
+            case R.id.settings_sub_title_stop_logcat:
+                return tr("开始 --> 你的表演 --> 停止 --> 发送给开发者", "開始 --> 你的表演 --> 停止 --> 發送給開發者", "Start --> Payment operation --> Stop --> Send to developer");
             case R.id.fingerprint_verification:
                 return tr("请验证指纹", "請驗證指紋", "Fingerprint verification");
             case R.id.wechat_general:
@@ -230,6 +238,10 @@ public class Lang {
                 return tr("调用QQ捐赠页失败, 您可以手动转账捐赠哦, 账号: " + Constant.AUTHOR_QQ, "調用QQ捐贈頁失敗, 您可以手動轉賬捐贈哦, 帳號: " + Constant.AUTHOR_QQ, "Can't jump to QQ donate page, You can do it manually by transfer to account: " + Constant.AUTHOR_QQ);
             case R.id.toast_need_qq_7_2_5:
                 return tr("您的QQ版本过低, 不支持指纹功能, 请升级至7.2.5以上的版本", "您的QQ版本過低, 不支持指紋功能, 請升級至7.2.5以上的版本", "Your QQ version is too low, does not support the fingerprint function, please upgrade to version 7.2.5 and above");
+            case R.id.toast_start_logging:
+                return tr("请开始你的表演, 日志已开始记录\n日志路径: %s", "請開始你的表演, 日誌已開始記錄\n日誌路徑: %s", "Star logging\nlog path: %s");
+            case R.id.toast_stop_logging:
+                return tr("表演结束, 请将日志文件分享给开发者\n日志路径: %s", "表演结束, 请将日志文件分享给开发者\n日誌路徑: %s", "Stop logging\nlog path: %s");
             case R.id.template:
                 return tr("", "", "");
         }
