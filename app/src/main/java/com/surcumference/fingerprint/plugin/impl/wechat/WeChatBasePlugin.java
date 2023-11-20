@@ -25,6 +25,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
@@ -33,9 +35,9 @@ import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
-import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
@@ -46,7 +48,7 @@ import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.WeChatVersionControl;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
+import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.WeChatPayDialog;
@@ -57,15 +59,14 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
-
-import javax.crypto.Cipher;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
-    protected XFingerprintIdentify mFingerprintIdentify;
+    protected XBiometricIdentify mFingerprintIdentify;
     private FragmentObserver mFragmentObserver;
 
     private int mWeChatVersionCode = 0;
@@ -79,22 +80,23 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, boolean smallPayDialogFloating,
+    protected synchronized void initFingerPrintLock(Context context, Config config,
+                                                    boolean smallPayDialogFloating, String passwordEncrypted,
                                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback,
                                                     final Runnable onFailureUnlockCallback) {
-        mFingerprintIdentify = new XFingerprintIdentify(context)
-                // 仅大支付框可用, 小支付框冲突严重
-                .withUseBiometricApi(!smallPayDialogFloating && Config.from(context).isUseBiometricApi())
+        cancelFingerprintIdentify();
+        mFingerprintIdentify = new BizBiometricIdentify(context)
                 .withMockCurrentUserCallback(this)
-                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
+
                     @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
+                        super.onDecryptionSuccess(identify, decryptedContent);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                         super.onFailed(target, failInfo);
                         onFailureUnlockCallback.run();
                     }
@@ -236,7 +238,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         }
         String passwordEncrypted = config.getPasswordEncrypted();
         if (TextUtils.isEmpty(passwordEncrypted) || TextUtils.isEmpty(config.getPasswordIV())) {
-            NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_password_not_set_wechat));
+            NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_password_not_set_wechat));
             return;
         }
 
@@ -307,11 +309,9 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             }
             mInputEditText.setVisibility(View.VISIBLE);
             keyboardViews.get(keyboardViews.size() - 1).setVisibility(View.VISIBLE);
+            mInputEditText.requestFocus();
             mInputEditText.performClick();
-            XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-            if (fingerprintIdentify != null) {
-                fingerprintIdentify.cancelIdentify();
-            }
+            cancelFingerprintIdentify();
             mMockCurrentUser = false;
             if (titleTextView != null) {
                 titleTextView.setText(Lang.getString(R.id.wechat_payview_password_title));
@@ -331,9 +331,12 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                 if (fingerPrintLayoutLast != null) {
                     passwordLayout.removeView(fingerPrintLayoutLast);
                 }
-                fingerPrintLayout.setVisibility(View.GONE);
+                // 禁止修改, 会导致layoutListener 再次调用 switchToFingerprintRunnable
+                // onPayDialogShown 调用 initFingerPrintLock
+                // switchToFingerprintRunnable 调用 initFingerPrintLock 导致 onFailed 调用 switchToPasswordRunnable
+                // switchToPasswordRunnable 调用 cancelFingerprintIdentify cancel 掉当前, 最终导致全部指纹识别取消
+                // fingerPrintLayout.setVisibility(View.GONE);
                 passwordLayout.addView(fingerPrintLayout);
-                passwordLayout.post(() -> fingerPrintLayout.setVisibility(View.VISIBLE));
                 // ensure image icon visibility
                 Task.onMain(1000, fingerPrintLayout::requestLayout);
                 passwordLayout.setClipChildren(false);
@@ -349,14 +352,8 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                 }
                 rootView.addView(fingerPrintLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
-            initFingerPrintLock(context, smallPayDialogFloating, (cipher)-> {
+            initFingerPrintLock(context, config, smallPayDialogFloating, passwordEncrypted, (password)-> {
                 BlackListUtils.applyIfNeeded(context);
-                //SUCCESS UNLOCK
-                String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                if (TextUtils.isEmpty(password)) {
-                    NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                    return;
-                }
                 inputDigitalPassword(context, mInputEditText, password, keyboardViews, smallPayDialogFloating);
             }, switchToPasswordRunnable);
             if (titleTextView != null) {
@@ -429,10 +426,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             } else {
                 if (fingerPrintLayout.getVisibility() != View.GONE) {
                     fingerPrintLayout.setVisibility(View.GONE);
-                    XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
-                    if (fingerprintIdentify != null) {
-                        fingerprintIdentify.cancelIdentify();
-                    }
+                    cancelFingerprintIdentify();
                 }
             }
             nodeInfo.recycle();
@@ -458,11 +452,16 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             keyboardViewParams.height = 2;
             inputEditText.requestFocus();
             inputEditText.post(() -> {
+                int i = 0;
                 for (char c : pwd.toCharArray()) {
-                    View digitView = ViewUtils.findViewByName(keyboardView, context.getPackageName(),
-                            digitPasswordKeyPad.keys.get(String.valueOf(c)));
+                    String[] keyIds = digitPasswordKeyPad.keys.get(String.valueOf(c));
+                    if (keyIds == null) {
+                        continue;
+                    }
+                    View digitView = ViewUtils.findViewByName(keyboardView, context.getPackageName(), keyIds);
                     if (digitView != null) {
-                        ViewUtils.performActionClick(digitView);
+                        int time = ThreadLocalRandom.current().nextInt(200, 300 + 1);
+                        Task.onMain(i++ * time, () -> ViewUtils.performActionClick(digitView));
                     }
                 }
                 // inputEditText.setVisibility(View.VISIBLE); 副作用反制
@@ -495,10 +494,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     protected void onPayDialogDismiss(Context context) {
         L.d("PayDialog dismiss");
         if (Config.from(context).isOn()) {
-            XFingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
-            if (fingerPrintIdentify != null) {
-                fingerPrintIdentify.cancelIdentify();
-            }
+            cancelFingerprintIdentify();
             mMockCurrentUser = false;
         }
     }
@@ -509,6 +505,19 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             activityViewObserver.stop();
             mActivityViewObserver = null;
         }
+    }
+
+    private void cancelFingerprintIdentify() {
+        L.d("cancelFingerprintIdentify", new Exception());
+        XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
+        if (fingerprintIdentify == null) {
+            return;
+        }
+        if (!fingerprintIdentify.fingerprintScanStateReady) {
+            return;
+        }
+        fingerprintIdentify.cancelIdentify();
+        mFingerprintIdentify = null;
     }
 
     protected void doSettingsMenuInject(final Activity activity) {

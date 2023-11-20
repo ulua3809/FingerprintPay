@@ -26,21 +26,18 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
 import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
-import com.surcumference.fingerprint.util.AESUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.NotifyUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.crypto.Cipher;
 
 /**
  * Created by Jason on 2017/9/9.
@@ -102,6 +99,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_unionpay), true, Config.from(context).isOn()));
                 mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_unionpay)));
                 break;
+            case BuildConfig.APPLICATION_ID:
+                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_switch), Lang.getString(R.id.settings_sub_title_switch_unionpay), true, Config.from(context).isOn()));
+                mSettingsDataList.add(new PreferenceAdapter.Data(Lang.getString(R.id.settings_title_password), Lang.getString(R.id.settings_sub_title_password_unionpay)));
+                break;
             default:
                 throw new RuntimeException("Package " + packageName + " not supported yet!");
         }
@@ -158,7 +159,11 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                     }).showInDialog();
             } else {
                 if (!data.selectionState && !checkPasswordAndNotify(context)) {
-                    showUpdatePasswordViewDialog();
+                    showUpdatePasswordViewDialog(() -> {
+                        data.selectionState = !data.selectionState;
+                        config.setOn(data.selectionState);
+                        mListAdapter.notifyDataSetChanged();
+                    });
                     return;
                 }
                 data.selectionState = !data.selectionState;
@@ -180,6 +185,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     }
 
     private void showUpdatePasswordViewDialog() {
+        showUpdatePasswordViewDialog(null);
+    }
+
+    private void showUpdatePasswordViewDialog(@Nullable Runnable onSuccess) {
         Context context = getContext();
         Config config = Config.from(context);
         PasswordInputView passwordInputView = new PasswordInputView(context);
@@ -199,16 +208,14 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
                 dialog.dismiss();
                 return;
             }
-            updatePassword(dialog, inputText);
+            updatePassword(dialog, inputText, onSuccess);
         }).showInDialog();
     }
 
-    private void updatePassword(DialogInterface passwordInputDialog, String password) {
+    private void updatePassword(DialogInterface passwordInputDialog, final String password,
+                                @Nullable Runnable onSuccess) {
         Context context = this.getContext();
-        Config config = Config.from(context);
-        XFingerprintIdentify fingerprintIdentify = new XFingerprintIdentify(context)
-                .withEncryptionMode();
-
+        BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
                 .withOnCloseImageClickListener((target, v) -> {
             target.getDialog().dismiss();
@@ -216,10 +223,10 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         }).withOnDismissListener(v -> {
             fingerprintIdentify.cancelIdentify();
         }).showInDialog();
-        fingerprintIdentify.startIdentify(new XFingerprintIdentify.IdentifyListener() {
+        fingerprintIdentify.encryptPasscode(password, new BizBiometricIdentify.IdentifyListener() {
 
             @Override
-            public void onInited(XFingerprintIdentify identify) {
+            public void onInited(BizBiometricIdentify identify) {
                 super.onInited(identify);
                 if (identify.isUsingBiometricApi()) {
                     ViewUtils.setAlpha(fingerprintVerificationDialog, 0);
@@ -227,19 +234,18 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             }
 
             @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        NotifyUtils.notifyFingerprint(context, Lang.getString(R.id.toast_fingerprint_password_enc_success));
-                        String encrypted = AESUtils.encrypt(cipher, password);
-                        config.setPasswordEncrypted(encrypted);
-                        config.setPasswordIV(AESUtils.byte2hex(cipher.getIV()));
-
-                        passwordInputDialog.dismiss();
-                        fingerprintVerificationDialog.dismiss();
-                    }
+            public void onEncryptionSuccess(BizBiometricIdentify identify, @NonNull String encryptedContent, @Nullable byte[] encryptedIV) {
+                super.onEncryptionSuccess(identify, encryptedContent, encryptedIV);
+                Task.onMain(456, () -> NotifyUtils.notifyBiometricIdentify(context, Lang.getString(R.id.toast_fingerprint_password_enc_success)));
+                passwordInputDialog.dismiss();
+                fingerprintVerificationDialog.dismiss();
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+            }
 
             @Override
-            public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+            public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                 super.onFailed(target, failInfo);
                 ViewUtils.setAlpha(fingerprintVerificationDialog, 1);
                 ViewUtils.setDimAmount(fingerprintVerificationDialog, 0.6f);
@@ -252,7 +258,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     private boolean checkPasswordAndNotify(Context context) {
         String pwd = Config.from(context).getPasswordEncrypted();
         if (TextUtils.isEmpty(pwd)) {
-            Toaster.showLong(Lang.getString(R.id.toast_password_not_set_switch_on_failed));
+            Task.onMain(400, () -> Toaster.showLong(Lang.getString(R.id.toast_password_not_set_switch_on_failed)));
             return false;
         }
         return true;

@@ -29,7 +29,7 @@ public class NotifyUtils {
         });
     }
 
-    public static void notifyFingerprint(Context context, String message) {
+    public static void notifyBiometricIdentify(Context context, String message) {
         if (Constant.PACKAGE_NAME_WECHAT.equals(context.getPackageName())) {
             // 支付界面无法弹出Toast
             View toastView = Toaster.getStyle().createView(context);

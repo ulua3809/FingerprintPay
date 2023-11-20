@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
@@ -31,16 +32,16 @@ import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
-import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.ApplicationUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
+import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -48,8 +49,6 @@ import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.util.Map;
 import java.util.WeakHashMap;
-
-import javax.crypto.Cipher;
 
 public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
 
@@ -60,7 +59,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
     private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
-    protected XFingerprintIdentify mFingerprintIdentify;
+    protected XBiometricIdentify mFingerprintIdentify;
 
     private int mWeChatVersionCode = 0;
 
@@ -75,28 +74,30 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
         return mWeChatVersionCode;
     }
 
-    protected synchronized void initFingerPrintLock(Context context, AlertDialog dialog,
+    protected synchronized void initFingerPrintLock(Context context,
+                                                    AlertDialog dialog, String passwordEncrypted,
                                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
         L.d("指纹识别开始");
-        mFingerprintIdentify = new XFingerprintIdentify(context)
+        mFingerprintIdentify = new BizBiometricIdentify(context)
                 .withMockCurrentUserCallback(this)
-                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
                     @Override
-                    public void onInited(XFingerprintIdentify identify) {
+                    public void onInited(BizBiometricIdentify identify) {
                         super.onInited(identify);
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
                             ViewUtils.setDimAmount(dialog, 0);
                         }
                     }
+
                     @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
+                        super.onDecryptionSuccess(identify, decryptedContent);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                         super.onFailed(target, failInfo);
                         if (dialog != null) {
                             ViewUtils.setAlpha(dialog, 1);
@@ -160,7 +161,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
                     Task.onMain(300, () -> finalPayRootLayout.setAlpha(1));
                 }
             }).withOnDismissListener(v -> {
-                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                     L.d("指纹识别取消1");
@@ -179,13 +180,8 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
                     }
                     ViewUtils.setAlpha(target.getDialog(), 1);
                     ViewUtils.setDimAmount(target.getDialog(), 0.6f);
-                    initFingerPrintLock(context, target.getDialog(), (cipher) -> {
+                    initFingerPrintLock(context, target.getDialog(), passwordEncrypted, (password) -> {
                         BlackListUtils.applyIfNeeded(context);
-                        String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                        if (TextUtils.isEmpty(password)) {
-                            Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                            return;
-                        }
 
                         Runnable onCompleteRunnable = () -> {
                             mPwdActivityReShowDelayTimeMsec = 2000;
@@ -412,7 +408,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
     protected void onPayDialogDismiss(Context context) {
         L.d("PayDialog dismiss");
         if (Config.from(context).isOn()) {
-            XFingerprintIdentify fingerPrintIdentify = mFingerprintIdentify;
+            XBiometricIdentify fingerPrintIdentify = mFingerprintIdentify;
             if (fingerPrintIdentify != null) {
                 fingerPrintIdentify.cancelIdentify();
                 L.d("指纹识别取消2");

@@ -21,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
@@ -29,8 +31,8 @@ import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
-import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ApplicationUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.ImageUtils;
@@ -39,7 +41,7 @@ import com.surcumference.fingerprint.util.QQUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
+import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.util.paydialog.QQPayDialog;
 import com.surcumference.fingerprint.view.SettingsView;
@@ -49,8 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 
-import javax.crypto.Cipher;
-
 public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private static final String TAG_FINGER_PRINT_IMAGE = "FINGER_PRINT_IMAGE";
@@ -59,7 +59,7 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
     private static final String TAG_ACTIVITY_PAY = "TAG_ACTIVITY_PAY";
     private static final String TAG_ACTIVITY_FIRST_RESUME = "TAG_ACTIVITY_FIRST_RESUME";
 
-    private XFingerprintIdentify mFingerprintIdentify;
+    private XBiometricIdentify mFingerprintIdentify;
     private LinearLayout mMenuItemLLayout;
 
     protected boolean mMockCurrentUser = false;
@@ -273,12 +273,7 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
             if (payDialog.withdrawTitleTextView != null) {
                 payDialog.withdrawTitleTextView.setText("使用指纹验证身份");
             }
-            initFingerPrintLock(context, (cipher) -> { // success
-                String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                if (TextUtils.isEmpty(password)) {
-                    Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                    return;
-                }
+            initFingerPrintLock(context, passwordEncrypted, (password) -> { // success
                 payDialog.inputEditText.setText(password);
                 if (longPassword) {
                     payDialog.okButton.performClick();
@@ -388,20 +383,22 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
         return linearLayout;
     }
 
-    public void initFingerPrintLock(final Context context, OnFingerprintVerificationOKListener onSuccessUnlockCallback, final Runnable onFailureUnlockCallback) {
+    public void initFingerPrintLock(final Context context, String passwordEncrypted,
+                                    OnFingerprintVerificationOKListener onSuccessUnlockCallback, final Runnable onFailureUnlockCallback) {
         L.d("initFingerPrintLock");
         cancelFingerprintIdentify();
-        mFingerprintIdentify = new XFingerprintIdentify(context)
+        mFingerprintIdentify = new BizBiometricIdentify(context)
                 .withMockCurrentUserCallback(this)
-                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
+
                     @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
+                        super.onDecryptionSuccess(identify, decryptedContent);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                         super.onFailed(target, failInfo);
                         onFailureUnlockCallback.run();
                     }
@@ -410,7 +407,7 @@ public class QQBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private void cancelFingerprintIdentify() {
         L.d("cancelFingerprintIdentify");
-        XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+        XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
         if (fingerprintIdentify == null) {
             return;
         }

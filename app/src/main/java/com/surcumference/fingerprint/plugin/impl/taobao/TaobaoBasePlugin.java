@@ -24,8 +24,8 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
-import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ApplicationUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
@@ -33,7 +33,7 @@ import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.TaobaoVersionControl;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
+import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
@@ -42,8 +42,6 @@ import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.crypto.Cipher;
 
 public class TaobaoBasePlugin implements IAppPlugin {
 
@@ -55,7 +53,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
     private LinearLayout mLineTopCon;
     private View mLineBottomView;
 
-    private XFingerprintIdentify mFingerprintIdentify;
+    private XBiometricIdentify mFingerprintIdentify;
 
     private Activity mCurrentActivity;
 
@@ -170,13 +168,14 @@ public class TaobaoBasePlugin implements IAppPlugin {
         return false;
     }
 
-    public void initFingerPrintLock(final Context context, AlertDialog dialog,
+    public void initFingerPrintLock(final Context context,
+                                    AlertDialog dialog, String passwordEncrypted,
                                     final OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
-        mFingerprintIdentify = new XFingerprintIdentify(context)
-                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+        mFingerprintIdentify = new BizBiometricIdentify(context)
+                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
 
                     @Override
-                    public void onInited(XFingerprintIdentify identify) {
+                    public void onInited(BizBiometricIdentify identify) {
                         super.onInited(identify);
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
@@ -185,13 +184,13 @@ public class TaobaoBasePlugin implements IAppPlugin {
                     }
 
                     @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
+                        super.onDecryptionSuccess(identify, decryptedContent);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                         super.onFailed(target, failInfo);
                         if (dialog != null) {
                             ViewUtils.setAlpha(dialog, 1);
@@ -218,13 +217,8 @@ public class TaobaoBasePlugin implements IAppPlugin {
             mPwdActivityReShowDelayTimeMsec = 0;
             AlipayPayView alipayPayView = new AlipayPayView(context)
                     .withOnShowListener((target) -> {
-                initFingerPrintLock(context, target.getDialog(), (cipher) -> {
+                initFingerPrintLock(context, target.getDialog(), passwordEncrypted, (password) -> {
                             BlackListUtils.applyIfNeeded(context);
-                            String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                            if (TextUtils.isEmpty(password)) {
-                                Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                                return;
-                            }
 
                             Runnable onCompleteRunnable = () -> {
                                 mPwdActivityReShowDelayTimeMsec = 1000;
@@ -266,7 +260,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
                 target.getDialog().dismiss();
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
-                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                 }

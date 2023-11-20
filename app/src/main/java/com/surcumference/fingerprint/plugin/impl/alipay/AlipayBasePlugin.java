@@ -20,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
@@ -27,10 +29,10 @@ import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
-import com.surcumference.fingerprint.util.AESUtils;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
 import com.surcumference.fingerprint.util.AlipayVersionControl;
 import com.surcumference.fingerprint.util.ApplicationUtils;
+import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
 import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
@@ -38,7 +40,7 @@ import com.surcumference.fingerprint.util.ImageUtils;
 import com.surcumference.fingerprint.util.StyleUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.ViewUtils;
-import com.surcumference.fingerprint.util.XFingerprintIdentify;
+import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
@@ -48,8 +50,6 @@ import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.Cipher;
-
 public class AlipayBasePlugin implements IAppPlugin {
 
 
@@ -57,7 +57,7 @@ public class AlipayBasePlugin implements IAppPlugin {
     private boolean mPwdActivityDontShowFlag;
     private int mPwdActivityReShowDelayTimeMsec;
 
-    private XFingerprintIdentify mFingerprintIdentify;
+    private XBiometricIdentify mFingerprintIdentify;
     private Activity mCurrentActivity;
 
     private boolean mIsViewTreeObserverFirst;
@@ -198,13 +198,13 @@ public class AlipayBasePlugin implements IAppPlugin {
         }
     }
 
-    public void initFingerPrintLock(final Context context, AlertDialog dialog,
+    public void initFingerPrintLock(final Context context ,AlertDialog dialog, String passwordEncrypted,
                                     OnFingerprintVerificationOKListener onSuccessUnlockCallback) {
-        mFingerprintIdentify = new XFingerprintIdentify(context)
-                .startIdentify(new XFingerprintIdentify.IdentifyListener() {
+        mFingerprintIdentify = new BizBiometricIdentify(context)
+                .decryptPasscode(passwordEncrypted, new BizBiometricIdentify.IdentifyListener() {
 
                     @Override
-                    public void onInited(XFingerprintIdentify identify) {
+                    public void onInited(BizBiometricIdentify identify) {
                         super.onInited(identify);
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
@@ -213,13 +213,13 @@ public class AlipayBasePlugin implements IAppPlugin {
                     }
 
                     @Override
-                    public void onSucceed(XFingerprintIdentify target, Cipher cipher) {
-                        super.onSucceed(target, cipher);
-                        onSuccessUnlockCallback.onFingerprintVerificationOK(cipher);
+                    public void onDecryptionSuccess(BizBiometricIdentify identify, @NonNull String decryptedContent) {
+                        super.onDecryptionSuccess(identify, decryptedContent);
+                        onSuccessUnlockCallback.onFingerprintVerificationOK(decryptedContent);
                     }
 
                     @Override
-                    public void onFailed(XFingerprintIdentify target, FingerprintIdentifyFailInfo failInfo) {
+                    public void onFailed(BizBiometricIdentify target, FingerprintIdentifyFailInfo failInfo) {
                         super.onFailed(target, failInfo);
                         if (dialog != null) {
                             ViewUtils.setAlpha(dialog, 1);
@@ -259,14 +259,8 @@ public class AlipayBasePlugin implements IAppPlugin {
             clickDigitPasswordWidget(activity);
             AlipayPayView alipayPayView = new AlipayPayView(context)
                 .withOnShowListener((target) -> {
-                    initFingerPrintLock(context, target.getDialog(), (cipher) -> {
+                    initFingerPrintLock(context, target.getDialog(), passwordEncrypted, (password) -> {
                         BlackListUtils.applyIfNeeded(context);
-                        String password = AESUtils.decrypt(cipher, passwordEncrypted);
-                        if (TextUtils.isEmpty(password)) {
-                            Toaster.showShort(Lang.getString(R.id.toast_fingerprint_password_dec_failed));
-                            return;
-                        }
-
                         Runnable onCompleteRunnable = () -> {
                             mPwdActivityReShowDelayTimeMsec = 1000;
                             AlertDialog dialog = mFingerPrintAlertDialog;
@@ -309,7 +303,7 @@ public class AlipayBasePlugin implements IAppPlugin {
                 target.getDialog().dismiss();
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
-                XFingerprintIdentify fingerprintIdentify = mFingerprintIdentify;
+                XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                 }
