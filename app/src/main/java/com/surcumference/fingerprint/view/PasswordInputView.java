@@ -90,9 +90,7 @@ public class PasswordInputView extends DialogFrameLayout {
 
         withPositiveButtonText(Lang.getString(R.id.ok));
         withOnPositiveButtonClickListener((dialog, which) -> {
-            mInputView.clearFocus();
-            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(mInputView.getWindowToken(), 0);
+            hideInputMethod();
             post(() -> {
                 dialog.dismiss();
             });
@@ -123,6 +121,12 @@ public class PasswordInputView extends DialogFrameLayout {
             imm.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
         }, 200);
     }
+    public void hideInputMethod() {
+        mInputView.clearFocus();
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mInputView.getWindowToken(), 0);
+    }
+
 
     @Override
     public AlertDialog showInDialog() {

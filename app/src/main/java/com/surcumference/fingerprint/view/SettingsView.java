@@ -187,6 +187,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
             passwordInputView.setDefaultText(DEFAULT_HIDDEN_PASS);
         }
         passwordInputView.withOnPositiveButtonClickListener((dialog, which) -> {
+            passwordInputView.hideInputMethod();
             String inputText = passwordInputView.getInput();
             if (TextUtils.isEmpty(inputText)) {
                 config.setPasswordEncrypted("");
