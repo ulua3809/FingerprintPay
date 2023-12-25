@@ -50,7 +50,9 @@
 </details>
 
 ## 使用步骤 Xposed 
-> (2023.11.08, 不推荐, Xposed框架会导致大概率触发面部识别验证)
+> ~~(2023.11.08, 不推荐, Xposed框架会导致大概率触发面部识别验证)~~
+
+> (2023.12.25 面部识别验证暂未发现可行解决方案, 建议不使用本插件或不升级对应app)
 1. 下载并安装插件: [xposed.com.surcumference.fingerprintpay.release.apk](https://github.com/eritpchy/FingerprintPay/releases/latest)
 2. 在Xposed管理器启用插件
 3. 重启手机
