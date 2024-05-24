@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.network.updateCheck;
+package com.surcumference.fingerprint.network.update;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,7 +18,7 @@ import com.surcumference.fingerprint.bean.PluginTarget;
 import com.surcumference.fingerprint.bean.PluginType;
 import com.surcumference.fingerprint.bean.UpdateInfo;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
-import com.surcumference.fingerprint.network.updateCheck.github.GithubUpdateChecker;
+import com.surcumference.fingerprint.network.update.github.GithubUpdateChecker;
 import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Config;
@@ -66,7 +66,8 @@ public class UpdateFactory {
             }});
             File targetFile = FileUtils.getSharableFile(context, fileName);
             FileUtils.delete(targetFile);
-            new GithubUpdateChecker(new UpdateResultListener() {
+            new GithubUpdateChecker(BuildConfig.VERSION_NAME, Constant.UPDATE_URL_GITHUB,
+                    new UpdateResultListener() {
                 @Override
                 public void onNoUpdate() {
                     if (!quite) {
@@ -75,7 +76,7 @@ public class UpdateFactory {
                 }
 
                 @Override
-                public void onNetErr() {
+                public void onNetErr(Exception e) {
                     if (!quite) {
                         Toaster.showLong(Lang.getString(R.id.toast_check_update_fail_net_err));
                     }

@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -26,6 +27,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
@@ -36,6 +38,7 @@ import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.IMockCurrentUser;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
+import com.surcumference.fingerprint.util.ActivityViewObserverHolder;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -59,11 +62,9 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
 
-    private ActivityViewObserver mActivityViewObserver;
     private WeakHashMap<View, View.OnAttachStateChangeListener> mView2OnAttachStateChangeListenerMap = new WeakHashMap<>();
     protected boolean mMockCurrentUser = false;
     protected XBiometricIdentify mFingerprintIdentify;
@@ -133,6 +134,11 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
     public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
         final String activityClzName = activity.getClass().getName();
@@ -144,14 +150,14 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             startFragmentObserver(activity);
         } else if (activityClzName.contains(".WalletPayUI")
                 || activityClzName.contains(".UIPageFragmentActivity")) {
-            stopAndRemoveCurrentActivityViewObserver();
             ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
             activityViewObserver.setViewIdentifyType(".EditHintPasswdView");
-            activityViewObserver.start(100, new ActivityViewObserver.IActivityViewListener() {
+            ActivityViewObserverHolder.start(ActivityViewObserverHolder.Key.WeChatPayView,  activityViewObserver,
+                    100, new ActivityViewObserver.IActivityViewListener() {
                 @Override
                 public void onViewFounded(ActivityViewObserver observer, View view) {
                     ActivityViewObserver.IActivityViewListener l = this;
-                    observer.stop();
+                    ActivityViewObserverHolder.stop(observer);
                     L.d("onViewFounded:", view, " rootView: ", view.getRootView());
                     view.postDelayed(() -> onPayDialogShown((ViewGroup) view.getRootView()), 100);
                     View.OnAttachStateChangeListener listener = mView2OnAttachStateChangeListenerMap.get(view);
@@ -177,13 +183,12 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                     mView2OnAttachStateChangeListenerMap.put(view, listener);
                 }
             });
-            mActivityViewObserver = activityViewObserver;
         }
     }
 
     @Override
-    public void onActivityCreated(Activity activity) {
-
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -193,7 +198,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             final String activityClzName = activity.getClass().getName();
             if (activityClzName.contains(".WalletPayUI")
                 || activityClzName.contains(".UIPageFragmentActivity")) {
-                stopAndRemoveCurrentActivityViewObserver();
+                ActivityViewObserverHolder.stop(ActivityViewObserverHolder.Key.WeChatPayView);
                 onPayDialogDismiss(activity);
             } else if (getVersionCode(activity) >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_20 && activityClzName.contains("com.tencent.mm.ui.LauncherUI")) {
                 stopFragmentObserver(activity);
@@ -201,6 +206,21 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -441,7 +461,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         if (versionCode >= Constant.WeChat.WECHAT_VERSION_CODE_8_0_43) {
             DigitPasswordKeyPadInfo digitPasswordKeyPad = WeChatVersionControl.getDigitPasswordKeyPad(versionCode);
             inputEditText.getText().clear();
-            View keyboardView = keyboardViews.get(0);
+            View keyboardView = keyboardViews.get(0); //测了很多遍就是第一个
             // 在半高支付界面需要先激活inputEditText才能正常输入
             if (!smallPayDialogFloating) {
                 ((ViewGroup)inputEditText.getParent().getParent()).setAlpha(0.01f);
@@ -452,7 +472,6 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
             keyboardViewParams.height = 2;
             inputEditText.requestFocus();
             inputEditText.post(() -> {
-                int i = 0;
                 for (char c : pwd.toCharArray()) {
                     String[] keyIds = digitPasswordKeyPad.keys.get(String.valueOf(c));
                     if (keyIds == null) {
@@ -460,8 +479,7 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
                     }
                     View digitView = ViewUtils.findViewByName(keyboardView, context.getPackageName(), keyIds);
                     if (digitView != null) {
-                        int time = ThreadLocalRandom.current().nextInt(200, 300 + 1);
-                        Task.onMain(i++ * time, () -> ViewUtils.performActionClick(digitView));
+                        ViewUtils.performActionClick(digitView);
                     }
                 }
                 // inputEditText.setVisibility(View.VISIBLE); 副作用反制
@@ -496,14 +514,6 @@ public class WeChatBasePlugin implements IAppPlugin, IMockCurrentUser {
         if (Config.from(context).isOn()) {
             cancelFingerprintIdentify();
             mMockCurrentUser = false;
-        }
-    }
-
-    protected void stopAndRemoveCurrentActivityViewObserver() {
-        ActivityViewObserver activityViewObserver = mActivityViewObserver;
-        if (activityViewObserver != null) {
-            activityViewObserver.stop();
-            mActivityViewObserver = null;
         }
     }
 

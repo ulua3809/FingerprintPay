@@ -1,6 +1,5 @@
 package com.surcumference.fingerprint.plugin.magisk;
 
-import android.app.Activity;
 import android.app.Application;
 
 import androidx.annotation.Keep;
@@ -10,11 +9,10 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.bean.PluginTarget;
 import com.surcumference.fingerprint.bean.PluginType;
-import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.network.update.UpdateFactory;
 import com.surcumference.fingerprint.plugin.PluginApp;
 import com.surcumference.fingerprint.plugin.PluginFactory;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
-import com.surcumference.fingerprint.util.ActivityLifecycleCallbacks;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Umeng;
@@ -53,16 +51,6 @@ public class WeChatPlugin {
         Task.onMain(1000, ()-> Umeng.init(application));
 
         UpdateFactory.lazyUpdateWhenActivityAlive();
-        application.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
-            @Override
-            public void onActivityResumed(Activity activity) {
-                plugin.onActivityResumed(activity);
-            }
-
-            @Override
-            public void onActivityPaused(Activity activity) {
-                plugin.onActivityPaused(activity);
-            }
-        });
+        application.registerActivityLifecycleCallbacks(plugin);
     }
 }

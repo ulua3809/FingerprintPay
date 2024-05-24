@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -24,6 +26,8 @@ import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
+import com.surcumference.fingerprint.util.ActivityViewObserver;
+import com.surcumference.fingerprint.util.ActivityViewObserverHolder;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BizBiometricIdentify;
 import com.surcumference.fingerprint.util.BlackListUtils;
@@ -46,7 +50,6 @@ import java.util.List;
 public class TaobaoBasePlugin implements IAppPlugin {
 
     private AlertDialog mFingerPrintAlertDialog;
-    private boolean mPwdActivityDontShowFlag;
     private int mPwdActivityReShowDelayTimeMsec;
 
     private LinearLayout mItemHlinearLayout;
@@ -70,19 +73,39 @@ public class TaobaoBasePlugin implements IAppPlugin {
     }
 
     @Override
-    public void onActivityCreated(Activity activity) {
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
         L.d("activity", activity);
         handleSettingsMenuInjection(activity);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
+        //Xposed not hooked yet!
+    }
 
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override
     public boolean getMockCurrentUser() {
         return false;
+    }
+
+    @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -103,24 +126,30 @@ public class TaobaoBasePlugin implements IAppPlugin {
                     return;
                 }
                 mIsViewTreeObserverFirst = true;
-                activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                View rootView = activity.getWindow().getDecorView();
+                rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
                     if (mCurrentActivity == null) {
                         return;
                     }
-                    if (activity.isDestroyed()) {
-                        return;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                        if (activity.isDestroyed()) {
+                            return;
+                        }
                     }
                     if (mCurrentActivity != activity) {
                         return;
                     }
-                    if (ViewUtils.findViewByName(activity, "com.taobao.taobao", "mini_spwd_input") == null
-                            && ViewUtils.findViewByName(activity, "com.taobao.taobao", "simplePwdLayout") == null
-                            && ViewUtils.findViewByName(activity, "com.taobao.taobao", "input_et_password") == null ) {
+                    boolean isRechargePay = (ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password"))
+                            && ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "keyboard_container")));
+
+                    boolean isNormalPay = ViewUtils.isShown(ViewUtils.findViewByText(rootView,"请输入长密码", "請輸入長密碼", "Payment Password"))
+                            || ViewUtils.isShown(ViewUtils.findViewByText(rootView,"密码共6位，已输入0位"));
+                    if (isRechargePay || isNormalPay) {
+                        if (mIsViewTreeObserverFirst) {
+                            mIsViewTreeObserverFirst = false;
+                            showFingerPrintDialog(activity);
+                        }
                         return;
-                    }
-                    if (mIsViewTreeObserverFirst) {
-                        mIsViewTreeObserverFirst = false;
-                        showFingerPrintDialog(activity);
                     }
                 });
 
@@ -180,6 +209,9 @@ public class TaobaoBasePlugin implements IAppPlugin {
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
                             ViewUtils.setDimAmount(dialog, 0);
+                        } else {
+                            ViewUtils.setAlpha(dialog, 1);
+                            ViewUtils.setDimAmount(dialog, 0.6f);
                         }
                     }
 
@@ -212,9 +244,8 @@ public class TaobaoBasePlugin implements IAppPlugin {
                 Toaster.showLong(Lang.getString(R.id.toast_password_not_set_taobao));
                 return;
             }
-            activity.getWindow().getDecorView().setAlpha(0);
-            mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
+            reEnteredPayDialogSolution(activity);
             AlipayPayView alipayPayView = new AlipayPayView(context)
                     .withOnShowListener((target) -> {
                 initFingerPrintLock(context, target.getDialog(), passwordEncrypted, (password) -> {
@@ -256,7 +287,6 @@ public class TaobaoBasePlugin implements IAppPlugin {
                             onCompleteRunnable.run();
                         });
             }).withOnCloseImageClickListener((target, v) -> {
-                mPwdActivityDontShowFlag = true;
                 target.getDialog().dismiss();
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
@@ -264,13 +294,63 @@ public class TaobaoBasePlugin implements IAppPlugin {
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                 }
-                if (!mPwdActivityDontShowFlag) {
-                    Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
-                }
             });
-            Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
+            AlertDialog fingerPrintAlertDialog = alipayPayView.showInDialog();
+            ViewUtils.setAlpha(fingerPrintAlertDialog, 0);
+            ViewUtils.setDimAmount(fingerPrintAlertDialog, 0);
+            mFingerPrintAlertDialog = fingerPrintAlertDialog;
         } catch (OutOfMemoryError e) {
         }
+    }
+
+    private void reEnteredPayDialogSolution(Activity activity) {
+        int versionCode = getVersionCode(activity);
+        if (versionCode < 643 /** 10.36.10 */) {
+            return;
+        }
+        // 在10s内寻找密码框
+        ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
+        activityViewObserver.setActivityViewFinder(outViewList -> {
+            EditText view = findPasswordEditText(activity);
+            if (view != null) {
+                outViewList.add(view);
+            }
+            View shortPwdView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "密码共6位，已输入0位");
+            if (ViewUtils.isShown(shortPwdView)) {
+                outViewList.add(shortPwdView);
+            }
+        });
+        ActivityViewObserverHolder.start(ActivityViewObserverHolder.Key.TaobaoPasswordView,
+                activityViewObserver, 300, (observer, view) -> {
+                    ActivityViewObserverHolder.stop(observer);
+                    L.d("找到密码框", view);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                            private boolean lastFocusState = true; //初始化默认给true
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                L.d("密码框", "onFocusChange", view, hasFocus);
+                                try {
+                                    // 如果失去焦点并且获得新焦点, 通常是切换支付方式, 尝试重新触发识别
+                                    if (!lastFocusState && hasFocus) {
+                                        AlertDialog dialog = mFingerPrintAlertDialog;
+                                        if (dialog == null) {
+                                            return;
+                                        }
+                                        if (!dialog.isShowing()) {
+                                            dialog.show();
+                                        }
+                                    }
+                                } finally {
+                                    lastFocusState = hasFocus;
+                                }
+
+                            }
+
+                        });
+                    }
+                },
+                10000);
     }
 
     /**
@@ -452,7 +532,6 @@ public class TaobaoBasePlugin implements IAppPlugin {
 
     private boolean tryInputGenericPassword(Activity activity, String password) {
         EditText pwdEditText = findPasswordEditText(activity);
-        L.d("pwdEditText", pwdEditText);
         if (pwdEditText == null) {
             return false;
         }
@@ -474,6 +553,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
             }
             return (EditText) pwdEditText;
         }
+        // long password
         ViewGroup viewGroup = (ViewGroup)activity.getWindow().getDecorView();
         List<View> outList = new ArrayList<>();
         ViewUtils.getChildViews(viewGroup, "", outList);

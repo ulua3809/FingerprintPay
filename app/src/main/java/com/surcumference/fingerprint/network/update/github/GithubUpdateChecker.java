@@ -1,17 +1,16 @@
-package com.surcumference.fingerprint.network.updateCheck.github;
+package com.surcumference.fingerprint.network.update.github;
 
 import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.surcumference.fingerprint.BuildConfig;
-import com.surcumference.fingerprint.Constant;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.bean.UpdateInfo;
 import com.surcumference.fingerprint.network.inf.UpdateResultListener;
-import com.surcumference.fingerprint.network.updateCheck.BaseUpdateChecker;
-import com.surcumference.fingerprint.network.updateCheck.github.bean.GithubAssetsInfo;
-import com.surcumference.fingerprint.network.updateCheck.github.bean.GithubLatestInfo;
+import com.surcumference.fingerprint.network.update.BaseUpdateChecker;
+import com.surcumference.fingerprint.network.update.github.bean.GithubAssetsInfo;
+import com.surcumference.fingerprint.network.update.github.bean.GithubLatestInfo;
 import com.surcumference.fingerprint.util.DateUtils;
 import com.surcumference.fingerprint.util.StringUtils;
 import com.surcumference.fingerprint.util.log.L;
@@ -32,9 +31,13 @@ import okhttp3.Response;
 public class GithubUpdateChecker extends BaseUpdateChecker {
 
     public static OkHttpClient sHttpClient = new OkHttpClient();
+    private final String mLocalVersion;
+    private final String mUpdateUrl;
 
-    public GithubUpdateChecker(UpdateResultListener listener) {
+    public GithubUpdateChecker(String localVersion, String updateUrl, UpdateResultListener listener) {
         super(listener);
+        this.mLocalVersion = localVersion;
+        this.mUpdateUrl = updateUrl;
     }
 
     @Override
@@ -43,7 +46,7 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
         callback = new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetErr();
+                onNetErr(e);
             }
 
             @Override
@@ -53,32 +56,32 @@ public class GithubUpdateChecker extends BaseUpdateChecker {
                     response.close();
                     try {
                         GithubLatestInfo info = new Gson().fromJson(replay, GithubLatestInfo.class);
-                        if (info != null) {
-                            if (info.isDataComplete()) {
-                                if (BuildConfig.DEBUG || StringUtils.isAppNewVersion(BuildConfig.VERSION_NAME, info.version)) {
-                                    L.d("info", info);
-                                    String content = appendUpdateExtInfo(info.content, info.date, info.contentUrl);
-                                    L.d("content", content);
-                                    GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
-                                    UpdateInfo updateInfo = new UpdateInfo(info.version, content,
-                                            info.contentUrl, assetsInfo.url, assetsInfo.name, assetsInfo.size);
-                                    onHasUpdate(updateInfo);
-                                } else {
-                                    onNoUpdate();
-                                }
-                                return;
-                            }
+                        if (!info.isDataComplete()) {
+                            onNetErr(new IllegalArgumentException("data not complete!"));
+                            return;
                         }
+                        if (BuildConfig.DEBUG || StringUtils.isAppNewVersion(mLocalVersion, info.version)) {
+                            L.d("info", info);
+                            String content = appendUpdateExtInfo(info.content, info.date, info.contentUrl);
+                            L.d("content", content);
+                            GithubAssetsInfo assetsInfo = info.getDownloadAssetsInfo();
+                            UpdateInfo updateInfo = new UpdateInfo(info.version, content,
+                                    info.contentUrl, assetsInfo.url, assetsInfo.name, assetsInfo.size);
+                            onHasUpdate(updateInfo);
+                        } else {
+                            onNoUpdate();
+                        }
+                        return;
                     } catch (Exception e) {
                         L.d(e);
                     }
                 }
-                onNetErr();
+                onNetErr(new IOException("response not successful. code: " + response.code()));
             }
         };
 
         Request request = new Request.Builder()
-                .url(Constant.UPDATE_URL_GITHUB)
+                .url(this.mUpdateUrl)
                 .build();
         sHttpClient.newCall(request).enqueue(callback);
     }

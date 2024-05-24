@@ -8,6 +8,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -21,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
@@ -30,6 +32,7 @@ import com.surcumference.fingerprint.bean.DigitPasswordKeyPadInfo;
 import com.surcumference.fingerprint.plugin.inf.IAppPlugin;
 import com.surcumference.fingerprint.plugin.inf.OnFingerprintVerificationOKListener;
 import com.surcumference.fingerprint.util.ActivityViewObserver;
+import com.surcumference.fingerprint.util.ActivityViewObserverHolder;
 import com.surcumference.fingerprint.util.AlipayVersionControl;
 import com.surcumference.fingerprint.util.ApplicationUtils;
 import com.surcumference.fingerprint.util.BizBiometricIdentify;
@@ -54,7 +57,6 @@ public class AlipayBasePlugin implements IAppPlugin {
 
 
     private AlertDialog mFingerPrintAlertDialog;
-    private boolean mPwdActivityDontShowFlag;
     private int mPwdActivityReShowDelayTimeMsec;
 
     private XBiometricIdentify mFingerprintIdentify;
@@ -62,7 +64,6 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     private boolean mIsViewTreeObserverFirst;
     private int mAlipayVersionCode;
-    private ActivityViewObserver mSettingPageEnteredObserver;
 
     @Override
     public int getVersionCode(Context context) {
@@ -74,7 +75,7 @@ public class AlipayBasePlugin implements IAppPlugin {
     }
 
     @Override
-    public void onActivityCreated(Activity activity) {
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
         L.d("activity", activity);
         try {
             final String activityClzName = activity.getClass().getName();
@@ -83,21 +84,11 @@ public class AlipayBasePlugin implements IAppPlugin {
             }
             int alipayVersionCode = getVersionCode(activity);
             if (alipayVersionCode >= 773 /** 10.3.80.9100 */ && activityClzName.contains(".FBAppWindowActivity")) {
-
-                ActivityViewObserver activityViewObserver = mSettingPageEnteredObserver;
-                if (activityViewObserver != null) {
-                    activityViewObserver.stop();
-                    mSettingPageEnteredObserver = null;
-                }
-                activityViewObserver = new ActivityViewObserver(activity);
+                ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
                 activityViewObserver.setViewIdentifyText("支付密码", "支付密碼", "Payment Password");
-                activityViewObserver.start(100, (observer, view) -> doSettingsMenuInject_10_1_38(activity));
-                mSettingPageEnteredObserver = activityViewObserver;
-                ActivityViewObserver finalActivityViewObserver = activityViewObserver;
-                Task.onBackground(30000, () -> {
-                    mSettingPageEnteredObserver = null;
-                    finalActivityViewObserver.stop();
-                });
+                ActivityViewObserverHolder.start(ActivityViewObserverHolder.Key.AlipaySettingPageEntered,
+                        activityViewObserver, 100, (observer, view) -> doSettingsMenuInject_10_1_38(activity),
+                        30000);
             } else if (activityClzName.contains(".MySettingActivity")) {
                 Task.onMain(100, () -> doSettingsMenuInject_10_1_38(activity));
             } else if (activityClzName.contains(".UserSettingActivity")) {
@@ -110,7 +101,23 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     @Override
     public void onActivityPaused(Activity activity) {
+        //Xposed not hooked yet!
+        L.d("onActivityPaused", activity);
+    }
 
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -118,6 +125,10 @@ public class AlipayBasePlugin implements IAppPlugin {
         return false;
     }
 
+    @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
 
     public void onActivityResumed(Activity activity) {
         try {
@@ -126,7 +137,6 @@ public class AlipayBasePlugin implements IAppPlugin {
                 L.d("activity", activity, "clz", activityClzName);
             }
             mCurrentActivity = activity;
-            int versionCode = getVersionCode(activity);
             if (activityClzName.contains(".PayPwdDialogActivity")
                     || activityClzName.contains(".MspContainerActivity")
                     || activityClzName.contains(".FlyBirdWindowActivity")) {
@@ -136,7 +146,9 @@ public class AlipayBasePlugin implements IAppPlugin {
                     return;
                 }
                 mIsViewTreeObserverFirst = true;
-                activity.getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                int versionCode = getVersionCode(activity);
+                View rootView = activity.getWindow().getDecorView();
+                rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
                     if (mCurrentActivity == null) {
                         return;
                     }
@@ -149,16 +161,18 @@ public class AlipayBasePlugin implements IAppPlugin {
                         return;
                     }
                     if (versionCode >= 661 /** 10.3.10.8310 */) {
-                        if (ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "simplePwdLayout") == null
-                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "mini_linSimplePwdComponent") == null
-                                && ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password") == null) {
-                            return;
-                        }
+                        boolean isRechargePay = (ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password"))
+                                && ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "keyboard_container")));
 
-                        if (mIsViewTreeObserverFirst) {
-                            if (showFingerPrintDialog(activity)) {
-                                mIsViewTreeObserverFirst = false;
+                        boolean isNormalPay = ViewUtils.isShown(ViewUtils.findViewByText(rootView,"请输入长密码", "請輸入長密碼", "Payment Password"))
+                                || ViewUtils.isShown(ViewUtils.findViewByText(rootView,"密码共6位，已输入0位"));
+                        if (isRechargePay || isNormalPay) {
+                            if (mIsViewTreeObserverFirst) {
+                                if (showFingerPrintDialog(activity)) {
+                                    mIsViewTreeObserverFirst = false;
+                                }
                             }
+                            return;
                         }
                         return;
                     }
@@ -180,8 +194,8 @@ public class AlipayBasePlugin implements IAppPlugin {
                 if (!config.isOn()) {
                     return;
                 }
-                activity.getWindow().getDecorView().setAlpha(0);
                 Task.onMain(1500, () -> {
+                    int versionCode = getVersionCode(activity);
                     DigitPasswordKeyPadInfo digitPasswordKeyPad = AlipayVersionControl.getDigitPasswordKeyPad(versionCode);
                     View key1View = ViewUtils.findViewByName(activity, digitPasswordKeyPad.modulePackageName, digitPasswordKeyPad.key1);
                     if (key1View != null) {
@@ -209,6 +223,9 @@ public class AlipayBasePlugin implements IAppPlugin {
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
                             ViewUtils.setDimAmount(dialog, 0);
+                        } else {
+                            ViewUtils.setAlpha(dialog, 1);
+                            ViewUtils.setDimAmount(dialog, 0.6f);
                         }
                     }
 
@@ -238,7 +255,9 @@ public class AlipayBasePlugin implements IAppPlugin {
         try {
             if (getVersionCode(activity) >= 224) {
                 if (activity.getClass().getName().contains(".MspContainerActivity")) {
-                    View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password");
+                    View payTextView = ViewUtils.findViewByText(activity.getWindow().getDecorView(),
+                            "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password",
+                            "请输入支付密码", "請輸入支付密碼", "Payment password");
                     L.d("payTextView", payTextView);
                     if (payTextView == null) {
                         return false;
@@ -253,10 +272,9 @@ public class AlipayBasePlugin implements IAppPlugin {
                 return true;
             }
 
-            activity.getWindow().getDecorView().setAlpha(0);
-            mPwdActivityDontShowFlag = false;
             mPwdActivityReShowDelayTimeMsec = 0;
             clickDigitPasswordWidget(activity);
+            reEnteredPayDialogSolution(activity);
             AlipayPayView alipayPayView = new AlipayPayView(context)
                 .withOnShowListener((target) -> {
                     initFingerPrintLock(context, target.getDialog(), passwordEncrypted, (password) -> {
@@ -299,7 +317,6 @@ public class AlipayBasePlugin implements IAppPlugin {
                         onCompleteRunnable.run();
                     });
             }).withOnCloseImageClickListener((target, v) -> {
-                mPwdActivityDontShowFlag = true;
                 target.getDialog().dismiss();
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
@@ -307,14 +324,64 @@ public class AlipayBasePlugin implements IAppPlugin {
                 if (fingerprintIdentify != null) {
                     fingerprintIdentify.cancelIdentify();
                 }
-                if (!mPwdActivityDontShowFlag) {
-                    Task.onMain(mPwdActivityReShowDelayTimeMsec, () -> activity.getWindow().getDecorView().setAlpha(1));
-                }
             });
-            Task.onMain(100,  () -> mFingerPrintAlertDialog = alipayPayView.showInDialog());
+            AlertDialog fingerPrintAlertDialog = alipayPayView.showInDialog();
+            ViewUtils.setAlpha(fingerPrintAlertDialog, 0);
+            ViewUtils.setDimAmount(fingerPrintAlertDialog, 0);
+            mFingerPrintAlertDialog = fingerPrintAlertDialog;
         } catch (OutOfMemoryError e) {
         }
         return true;
+    }
+
+    private void reEnteredPayDialogSolution(Activity activity) {
+        int versionCode = getVersionCode(activity);
+        if (versionCode < 1261 /** 10.5.96.8000 */) {
+            return;
+        }
+        // 在10s内寻找密码框
+        ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
+        activityViewObserver.setActivityViewFinder(outViewList -> {
+            EditText view = findPasswordEditText(activity);
+            if (view != null) {
+                outViewList.add(view);
+            }
+            View shortPwdView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "密码共6位，已输入0位");
+            if (ViewUtils.isShown(shortPwdView)) {
+                outViewList.add(shortPwdView);
+            }
+        });
+        ActivityViewObserverHolder.start(ActivityViewObserverHolder.Key.AlipayPasswordView,
+                activityViewObserver, 300, (observer, view) -> {
+                    ActivityViewObserverHolder.stop(observer);
+                    L.d("找到密码框", view);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                            private boolean lastFocusState = true; //初始化默认给true
+                            @Override
+                            public void onFocusChange(View v, boolean hasFocus) {
+                                L.d("密码框", "onFocusChange", view, hasFocus);
+                                try {
+                                    // 如果失去焦点并且获得新焦点, 通常是切换支付方式, 尝试重新触发识别
+                                    if (!lastFocusState && hasFocus) {
+                                        AlertDialog dialog = mFingerPrintAlertDialog;
+                                        if (dialog == null) {
+                                            return;
+                                        }
+                                        if (!dialog.isShowing()) {
+                                            dialog.show();
+                                        }
+                                    }
+                                } finally {
+                                    lastFocusState = hasFocus;
+                                }
+
+                            }
+
+                        });
+                    }
+                },
+                10000);
     }
 
     /**
@@ -582,13 +649,13 @@ public class AlipayBasePlugin implements IAppPlugin {
 
     private EditText findPasswordEditText(Activity activity) {
         View pwdEditText = ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password");
-        L.d("pwdEditText1", pwdEditText);
         if (pwdEditText instanceof EditText) {
             if (!pwdEditText.isShown()) {
                 return null;
             }
             return (EditText) pwdEditText;
         }
+        // long password
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
         List<View> outList = new ArrayList<>();
         ViewUtils.getChildViews(rootView, "", outList);
@@ -624,12 +691,16 @@ public class AlipayBasePlugin implements IAppPlugin {
         if (outList.isEmpty()) {
             ViewUtils.getChildViews(rootView, "确定", outList);
         }
+        int versionCode = getVersionCode(activity);
         for (View view : outList) {
             if (view.getId() != -1) {
                 continue;
             }
             if (!view.isShown()) {
                 continue;
+            }
+            if (versionCode >= 1261 /** 10.5.96.8000 */) {
+                return view;
             }
             return (View) view.getParent();
         }

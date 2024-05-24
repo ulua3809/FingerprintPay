@@ -9,6 +9,6 @@ import com.surcumference.fingerprint.bean.UpdateInfo;
 public interface UpdateResultListener {
 
     void onNoUpdate();
-    void onNetErr();
+    void onNetErr(Exception exception);
     void onHasUpdate(UpdateInfo updateInfo);
 }

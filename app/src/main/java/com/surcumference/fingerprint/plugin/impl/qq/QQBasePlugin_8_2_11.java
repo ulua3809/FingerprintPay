@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -17,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.hjq.toast.Toaster;
 import com.surcumference.fingerprint.BuildConfig;
@@ -77,7 +79,7 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
     }
 
     @Override
-    public void onActivityCreated(Activity activity) {
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
         L.d("activity", activity);
         try {
             final String activityClzName = activity.getClass().getName();
@@ -90,6 +92,11 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -141,6 +148,21 @@ public class QQBasePlugin_8_2_11 implements IAppPlugin, IMockCurrentUser {
         } catch (Exception e) {
             L.e(e);
         }
+    }
+
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override

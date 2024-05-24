@@ -255,6 +255,7 @@ public class ViewUtils {
         int []location = new int[]{0,0};
         view.getLocationOnScreen(location);
         stringBuffer.append(" cor x:").append(location[0]).append(" y:").append(location[1]);
+        stringBuffer.append(" w:").append(view.getWidth()).append(" h:").append(view.getHeight());
         CharSequence desc = view.getContentDescription();
         if (!TextUtils.isEmpty(desc)) {
             stringBuffer.append(" desc:").append(desc);
@@ -263,6 +264,9 @@ public class ViewUtils {
         if (view instanceof ViewGroup) {
             stringBuffer.append(" child:").append(((ViewGroup) view).getChildCount());
         }
+        stringBuffer.append(" shownInScreen:").append(isShownInScreen(view));
+        stringBuffer.append(" viewVisibleInScreen:").append(isViewVisibleInScreen(view));
+        stringBuffer.append(" shown:").append(isShown(view));
         return stringBuffer.toString();
     }
 
@@ -308,6 +312,11 @@ public class ViewUtils {
                 }
             } else if (child instanceof TextView) {
                 if (text.equals(String.valueOf(((TextView) child).getText()))) {
+                    outList.add(child);
+                }
+            }
+            if (!outList.contains(child)) {
+                if (text.equals(String.valueOf(child.getContentDescription()))) {
                     outList.add(child);
                 }
             }
@@ -462,7 +471,10 @@ public class ViewUtils {
         return new ArrayList<View>();
     }
 
-    public static boolean isShown(View v) {
+    public static boolean isShown(@Nullable View v) {
+        if (v == null) {
+            return false;
+        }
         Rect r = new Rect();
         v.getGlobalVisibleRect(r);
         if (r.left == 0 && r.right == 0 && r.top == 0 && r.bottom == 0) {

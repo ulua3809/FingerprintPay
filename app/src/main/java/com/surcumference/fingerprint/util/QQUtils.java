@@ -10,12 +10,16 @@ import java.lang.reflect.Method;
 
 public class QQUtils {
 
-    private static final String BLACK_UIN = new String(Base64.decode("NDQ4MDc1NTM3Cg==", Base64.NO_WRAP));
+    private static final String[] BLACK_UINS = new String(Base64.decode("NDQ4MDc1NTM3LDUyMzAxNzQxNwo=", Base64.NO_WRAP))
+            .split(",");
 
     public static void checkBlackListQQ(Context context) {
         String qqUin = getQQUin(context.getClassLoader());
         if (!TextUtils.isEmpty(qqUin)) {
-            if (BLACK_UIN.equals(qqUin)) {
+            for (String uin: BLACK_UINS) {
+                if (!qqUin.equalsIgnoreCase(uin)) {
+                    continue;
+                }
                 BlackListUtils.setDisable();
                 BlackListUtils.onTrigger(context);
                 return;

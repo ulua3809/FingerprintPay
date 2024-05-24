@@ -22,6 +22,9 @@ public class ActivityViewObserver {
     private boolean mRunning = false;
     private String mViewIdentifyType;
     private String[] mViewIdentifyTexts;
+
+    private IActivityViewFinder mIActivityViewFinder;
+
     private boolean mWatchActivityViewOnly = false;
 
     public ActivityViewObserver(Activity weakRefActivity) {
@@ -36,12 +39,18 @@ public class ActivityViewObserver {
         this.mViewIdentifyTexts = viewIdentifyTexts;
     }
 
+    public void setActivityViewFinder(IActivityViewFinder viewFinder) {
+        this.mIActivityViewFinder = viewFinder;
+    }
+
     public void setWatchActivityViewOnly(boolean on) {
         this.mWatchActivityViewOnly = on;
     }
 
     public void start(long loopMSec, IActivityViewListener listener) {
-        if (TextUtils.isEmpty(this.mViewIdentifyType) &&  (mViewIdentifyTexts == null || mViewIdentifyTexts.length == 0)) {
+        if (TextUtils.isEmpty(this.mViewIdentifyType)
+                && (mViewIdentifyTexts == null || mViewIdentifyTexts.length == 0)
+                && mIActivityViewFinder == null) {
             throw new IllegalArgumentException("Error: ViewIdentifyType or ViewIdentifyTexts not set");
         }
         if (mRunning) {
@@ -105,6 +114,13 @@ public class ActivityViewObserver {
                     }
                 }
             }
+            IActivityViewFinder viewFinder = mIActivityViewFinder;
+            if (viewFinder != null) {
+                viewFinder.find(viewList);
+                if (viewList.size() > 0) {
+                    break;
+                }
+            }
         }
         if (viewList.size() > 0) {
             Set<View> viewLinkedHashSet = new LinkedHashSet<>(viewList);
@@ -129,5 +145,9 @@ public class ActivityViewObserver {
 
     public interface IActivityViewListener {
         void onViewFounded(ActivityViewObserver observer, View view);
+    }
+
+    public interface IActivityViewFinder {
+        void find(List<View> outViewList);
     }
 }

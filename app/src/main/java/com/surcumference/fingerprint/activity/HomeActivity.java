@@ -27,7 +27,7 @@ import com.surcumference.fingerprint.BuildConfig;
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
 import com.surcumference.fingerprint.adapter.PreferenceAdapter;
-import com.surcumference.fingerprint.network.updateCheck.UpdateFactory;
+import com.surcumference.fingerprint.network.update.UpdateFactory;
 import com.surcumference.fingerprint.util.Task;
 import com.surcumference.fingerprint.util.Umeng;
 import com.surcumference.fingerprint.util.bugfixer.TagManagerBugFixer;

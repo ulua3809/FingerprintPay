@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -87,6 +88,9 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
                         if (identify.isUsingBiometricApi()) {
                             ViewUtils.setAlpha(dialog, 0);
                             ViewUtils.setDimAmount(dialog, 0);
+                        } else {
+                            ViewUtils.setAlpha(dialog, 1);
+                            ViewUtils.setDimAmount(dialog, 0.6f);
                         }
                     }
 
@@ -226,7 +230,10 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
                 if (ViewUtils.isViewVisibleInScreen(rootView) == false) {
                     return;
                 }
-                mFingerPrintAlertDialog = payView.showInDialog();
+                AlertDialog fingerPrintAlertDialog = payView.showInDialog();
+                ViewUtils.setAlpha(fingerPrintAlertDialog, 0);
+                ViewUtils.setDimAmount(fingerPrintAlertDialog, 0);
+                mFingerPrintAlertDialog = fingerPrintAlertDialog;
             });
         } catch (OutOfMemoryError e) {
         }
@@ -298,6 +305,11 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     @Override
+    public void onActivityStarted(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
     public void onActivityResumed(Activity activity) {
         L.d("Activity onResume =", activity);
         mActivityResumedMap.put(activity, true);
@@ -315,8 +327,8 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     @Override
-    public void onActivityCreated(Activity activity) {
-
+    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        //Xposed not hooked yet!
     }
 
     @Override
@@ -330,6 +342,21 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
             hidePreviousPayDialog();
         }
         stopAndRemoveTargetActivityViewObserver(activity);
+    }
+
+    @Override
+    public void onActivityStopped(@NonNull Activity activity) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+        //Xposed not hooked yet!
+    }
+
+    @Override
+    public void onActivityDestroyed(@NonNull Activity activity) {
+        //Xposed not hooked yet!
     }
 
     @Override

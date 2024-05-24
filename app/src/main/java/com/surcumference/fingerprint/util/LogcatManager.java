@@ -1,5 +1,7 @@
 package com.surcumference.fingerprint.util;
 
+import android.os.Build;
+
 import com.surcumference.fingerprint.util.log.L;
 
 import java.io.BufferedReader;
@@ -83,7 +85,10 @@ public class LogcatManager {
 		if (process == null) {
 			return false;
 		}
-		return process.isAlive();
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			return process.isAlive();
+		}
+		return new File("/proc/"+ getPid(process)).exists();
 	}
 
 	public File getTargetFile() {

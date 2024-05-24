@@ -1,4 +1,4 @@
-package com.surcumference.fingerprint.network.updateCheck.github.bean;
+package com.surcumference.fingerprint.network.update.github.bean;
 
 import android.text.TextUtils;
 
