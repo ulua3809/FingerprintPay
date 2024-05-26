@@ -15,9 +15,9 @@
 
 ## 他怎么工作呢？
 1. 利用 [Magisk](https://github.com/topjohnwu/Magisk) 的 [Riru](https://github.com/RikkaApps/Riru)模块 或 Zygisk 加载指纹支付模块
-2. 在指纹支付模块中录入应用的支付密码
-3. 将密码加密保存至本地
-4. 对应程序在支付界面时, 验证手机指纹, 验证成功解密密码
+2. 在指纹支付模块中录入应用的"支付密码"
+3. 使用[TEE](https://source.android.com/docs/security/features/trusty?hl=zh-cn)(v5.0+)将"支付密码"加密保存
+4. 对应程序在支付界面时, 验证手机指纹, 验证成功解密"支付密码"
 5. 自动替代用户输入支付密码, 完成支付操作
 
 ## 国内镜像
