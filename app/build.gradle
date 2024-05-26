@@ -7,7 +7,7 @@ android {
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
         targetSdkVersion 33
-        versionCode 32
+        versionCode 33
         versionName "5.2.0"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"FingerprintPay\""
     }
