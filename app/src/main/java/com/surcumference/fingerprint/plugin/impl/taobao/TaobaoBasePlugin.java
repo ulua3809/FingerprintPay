@@ -41,6 +41,7 @@ import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.drawable.XDrawable;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
+import com.surcumference.fingerprint.view.DialogUtils;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
@@ -287,11 +288,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
                             onCompleteRunnable.run();
                         });
             }).withOnCancelButtonClickListener(target -> {
-                AlertDialog dialog = target.getDialog();
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-                activity.onBackPressed();
+                DialogUtils.dismiss(target.getDialog());
             }).withOnDismissListener(v -> {
                 XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;
                 if (fingerprintIdentify != null) {
@@ -306,11 +303,51 @@ public class TaobaoBasePlugin implements IAppPlugin {
         }
     }
 
+    private void setupPaymentItemOnClickListener(ViewGroup rootView) {
+        List<View> paymentMethodsViewList = new ArrayList<>();
+        ViewUtils.getChildViewsByRegex(rootView, ".*选中,.+", paymentMethodsViewList);
+        long paymentMethodsViewListSize = paymentMethodsViewList.size();
+        for (int i = 0; i < paymentMethodsViewListSize; i++) {
+            if (i == paymentMethodsViewListSize - 1) {
+                // 最后一个
+                continue;
+            }
+            View paymentMethodView = paymentMethodsViewList.get(i);
+            L.d("paymentMethodView", ViewUtils.getViewInfo(paymentMethodView));
+            // 只取第一次, 防止多次调用造成出错
+            View.OnClickListener originPaymentMethodListener = (View.OnClickListener) paymentMethodView.getTag(R.id.alipay_payment_method_item_click_listener);
+            if (originPaymentMethodListener == null) {
+                paymentMethodView.setTag(R.id.alipay_payment_method_item_click_listener, ViewUtils.getOnClickListener(paymentMethodView));
+            }
+            paymentMethodView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        AlertDialog dialog = mFingerPrintAlertDialog;
+                        if (dialog == null) {
+                            return;
+                        }
+                        if (!dialog.isShowing()) {
+                            dialog.show();
+                        }
+                    } finally {
+                        View.OnClickListener originPaymentMethodListener = (View.OnClickListener) v.getTag(R.id.alipay_payment_method_item_click_listener);
+                        if (originPaymentMethodListener != null && originPaymentMethodListener != this) {
+                            originPaymentMethodListener.onClick(v);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     private void reEnteredPayDialogSolution(Activity activity) {
         int versionCode = getVersionCode(activity);
         if (versionCode < 643 /** 10.36.10 */) {
             return;
         }
+        ViewGroup rootView = (ViewGroup)activity.getWindow().getDecorView();
+        setupPaymentItemOnClickListener(rootView);
         // 在10s内寻找密码框
         ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
         activityViewObserver.setActivityViewFinder(outViewList -> {
@@ -318,7 +355,7 @@ public class TaobaoBasePlugin implements IAppPlugin {
             if (view != null) {
                 outViewList.add(view);
             }
-            View shortPwdView = ViewUtils.findViewByText(activity.getWindow().getDecorView(), "密码共6位，已输入0位");
+            View shortPwdView = ViewUtils.findViewByText(rootView, "密码共6位，已输入0位");
             if (ViewUtils.isShown(shortPwdView)) {
                 outViewList.add(shortPwdView);
             }
@@ -336,6 +373,10 @@ public class TaobaoBasePlugin implements IAppPlugin {
                                 try {
                                     // 如果失去焦点并且获得新焦点, 通常是切换支付方式, 尝试重新触发识别
                                     if (!lastFocusState && hasFocus) {
+                                        // 如果支付方式点了第一项, 页面会刷新, 需要重建OnclickListener
+                                        Task.onMain(666, () -> {
+                                            setupPaymentItemOnClickListener(rootView);
+                                        });
                                         AlertDialog dialog = mFingerPrintAlertDialog;
                                         if (dialog == null) {
                                             return;
@@ -582,18 +623,10 @@ public class TaobaoBasePlugin implements IAppPlugin {
             }
             return okView;
         }
-        ViewGroup viewGroup = (ViewGroup)activity.getWindow().getDecorView();
+        ViewGroup rootView = (ViewGroup)activity.getWindow().getDecorView();
         List<View> outList = new ArrayList<>();
-        ViewUtils.getChildViews(viewGroup, "确认", outList);
-        if (outList.isEmpty()) {
-            ViewUtils.getChildViews(viewGroup, "付款", outList);
-        }
-        if (outList.isEmpty()) {
-            ViewUtils.getChildViews(viewGroup, "確認", outList);
-        }
-        if (outList.isEmpty()) {
-            ViewUtils.getChildViews(viewGroup, "Pay", outList);
-        }
+        ViewUtils.getChildViewsByRegex(rootView, "确定|確定|OK|确认|付款|確認|Pay", outList);
+        int versionCode = getVersionCode(activity);
         for (View view : outList) {
             if (view.getId() != -1) {
                 continue;
@@ -601,7 +634,14 @@ public class TaobaoBasePlugin implements IAppPlugin {
             if (!view.isShown()) {
                 continue;
             }
-            return (View) view.getParent();
+            // 跳过键盘上的OK
+            if (view.getParent().toString().contains(":id/key_enter")) {
+                continue;
+            }
+            if (versionCode < 643 /** 10.36.10 */) {
+                return (View) view.getParent();
+            }
+            return view;
         }
         return null;
     }

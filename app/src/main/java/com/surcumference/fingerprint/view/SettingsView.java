@@ -220,7 +220,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
                 .withOnCancelButtonClickListener((target) -> {
-            target.getDialog().dismiss();
+            DialogUtils.dismiss(target.getDialog());
             fingerprintIdentify.cancelIdentify();
         }).withOnDismissListener(v -> {
             fingerprintIdentify.cancelIdentify();

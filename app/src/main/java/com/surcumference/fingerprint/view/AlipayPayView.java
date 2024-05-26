@@ -65,8 +65,6 @@ public class AlipayPayView extends DialogFrameLayout<AlipayPayView> {
         frameLayoutParams.gravity = Gravity.TOP | Gravity.RIGHT;
 
         withNeutralButtonText(Lang.getString(R.id.cancel));
-        withPositiveButtonText(Lang.getString(R.id.enter_password));
-        withOnPositiveButtonClickListener((dialog, which) -> dialog.dismiss());
         this.addView(rootFrameLayout);
     }
 

@@ -46,6 +46,7 @@ import com.surcumference.fingerprint.util.ViewUtils;
 import com.surcumference.fingerprint.util.XBiometricIdentify;
 import com.surcumference.fingerprint.util.log.L;
 import com.surcumference.fingerprint.view.AlipayPayView;
+import com.surcumference.fingerprint.view.DialogUtils;
 import com.surcumference.fingerprint.view.SettingsView;
 import com.wei.android.lib.fingerprintidentify.bean.FingerprintIdentifyFailInfo;
 
@@ -123,7 +124,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
             ViewTreeObserver.OnGlobalLayoutListener paymentMethodListener = new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    View selectPaymentMethodView = ViewUtils.findViewByText(rootView, "选择付款方式");
+                    View selectPaymentMethodView = ViewUtils.findViewByText(rootView, "选择付款方式", "Select payment method");
                     L.d("selectPaymentMethodView", ViewUtils.getViewInfo(selectPaymentMethodView));
                     if (selectPaymentMethodView == null) {
                         showFingerPrintDialog(activity, targetView);
@@ -153,7 +154,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
             View payRootLayout = ViewUtils.findViewByName(rootView, PACKAGE_NAME_UNIONPAY, "fl_container");
             L.d("payRootLayout", payRootLayout);
             if (payRootLayout == null) {
-                View payTitleTextView = ViewUtils.findViewByText(rootView, "请输入支付密码");
+                View payTitleTextView = ViewUtils.findViewByText(rootView, "请输入支付密码", "Input payment password");
                 payRootLayout = (View)payTitleTextView.getParent().getParent().getParent();
                 dialogMode = true;
             }
@@ -161,11 +162,8 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
             boolean finalDialogMode = dialogMode;
             AlipayPayView payView = new AlipayPayView(context)
                     .withOnCancelButtonClickListener(target -> {
-                AlertDialog dialog = target.getDialog();
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-                if (finalDialogMode) {
+                    DialogUtils.dismiss(target.getDialog());
+                    if (finalDialogMode) {
                     Task.onBackground(100, () -> {
                         Task.onMain(500, () -> {
                             //窗口消失了
@@ -247,14 +245,14 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
         }
     }
 
-    private void retryWatchPayViewIfPossible(Activity activity, View rootView, int countDown, int delayMsec) {
-        View payTitleTextView = ViewUtils.findViewByText(rootView, "请输入支付密码");
+    private void retryWatchPayViewIfPossible(Activity activity, View rootView, int countDown, int delayMS) {
+        View payTitleTextView = ViewUtils.findViewByText(rootView, "请输入支付密码", "Input payment password");
         if (payTitleTextView == null
                 || !(ViewUtils.isViewVisibleInScreen(payTitleTextView) && ViewUtils.isShownInScreen(payTitleTextView))) {
             watchPayView(activity);
         }
         if (countDown > 0) {
-            Task.onMain(delayMsec, () -> retryWatchPayViewIfPossible(activity, rootView, countDown - 1, delayMsec));
+            Task.onMain(delayMS, () -> retryWatchPayViewIfPossible(activity, rootView, countDown - 1, delayMS));
         }
     }
 
@@ -380,7 +378,7 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
 
     private void watchPayView(Activity activity) {
         ActivityViewObserver activityViewObserver = new ActivityViewObserver(activity);
-        activityViewObserver.setViewIdentifyText("请输入支付密码");
+        activityViewObserver.setViewIdentifyText("请输入支付密码", "Input payment password");
         activityViewObserver.setWatchActivityViewOnly(true);
         ActivityViewObserverHolder.start(ActivityViewObserverHolder.Key.UnionPayPasswordView,  activityViewObserver,
                 100, new ActivityViewObserver.IActivityViewListener() {
@@ -558,15 +556,8 @@ public class UnionPayBasePlugin implements IAppPlugin, IMockCurrentUser {
     }
 
     private void hidePreviousPayDialog() {
-        AlertDialog dialog = mFingerPrintAlertDialog;
         L.d("hidePreviousPayDialog", mFingerPrintAlertDialog);
-        if (dialog != null) {
-            try {
-                dialog.dismiss();
-            } catch (IllegalArgumentException e) {
-                //for java.lang.IllegalArgumentException: View=DecorView@4eafdfb[UPActivityPayPasswordSet] not attached to window manager
-            }
-        }
+        DialogUtils.dismiss(mFingerPrintAlertDialog);
         mFingerPrintAlertDialog = null;
     }
 }

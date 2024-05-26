@@ -330,6 +330,35 @@ public class ViewUtils {
         }
     }
 
+    public static void getChildViewsByRegex(ViewGroup parent, String regex, List<View> outList) {
+        for (int i = parent.getChildCount() - 1; i >= 0; i--) {
+            final View child = parent.getChildAt(i);
+            if (child == null) {
+                continue;
+            }
+            if (child instanceof EditText) {
+                if (String.valueOf(((TextView) child).getText()).matches(regex)) {
+                    outList.add(child);
+                } else if (regex.equals(String.valueOf(((EditText) child).getHint()))) {
+                    outList.add(child);
+                }
+            } else if (child instanceof TextView) {
+                if (String.valueOf(((TextView) child).getText()).matches(regex)) {
+                    outList.add(child);
+                }
+            }
+            if (!outList.contains(child)) {
+                if (String.valueOf(child.getContentDescription()).matches(regex)) {
+                    outList.add(child);
+                }
+            }
+            if (child instanceof ViewGroup) {
+                getChildViewsByRegex((ViewGroup) child, regex, outList);
+            } else {
+            }
+        }
+    }
+
     public static void getChildViews(ViewGroup parent, int id, List<View> outList) {
         for (int i = parent.getChildCount() - 1; i >= 0; i--) {
             final View child = parent.getChildAt(i);
@@ -584,5 +613,60 @@ public class ViewUtils {
             return;
         }
         window.setDimAmount(value);
+    }
+
+    public static View.OnClickListener getOnClickListener(View v) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            return getOnClickListenerV14(v);
+        } else {
+            return getOnClickListenerV(v);
+        }
+    }
+
+    //Used for APIs lower than ICS (API 14)
+    private static View.OnClickListener getOnClickListenerV(View view) {
+        View.OnClickListener retrievedListener = null;
+        String viewStr = "android.view.View";
+        Field field;
+        try {
+            //noinspection JavaReflectionMemberAccess
+            field = Class.forName(viewStr).getDeclaredField("mOnClickListener");
+            retrievedListener = (View.OnClickListener) field.get(view);
+        } catch (NoSuchFieldException ex) {
+            L.e("Reflection: No Such Field.");
+        } catch (IllegalAccessException ex) {
+            L.e("Reflection: Illegal Access.");
+        } catch (ClassNotFoundException ex) {
+            L.e("Reflection: Class Not Found.");
+        }
+        return retrievedListener;
+    }
+
+    //Used for new ListenerInfo class structure used beginning with API 14 (ICS)
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    @SuppressLint("PrivateApi")
+    private static View.OnClickListener getOnClickListenerV14(View view) {
+        View.OnClickListener retrievedListener = null;
+        String viewStr = "android.view.View";
+        String lInfoStr = "android.view.View$ListenerInfo";
+        try {
+            Field listenerField = Class.forName(viewStr).getDeclaredField("mListenerInfo");
+            Object listenerInfo = null;
+            if (listenerField != null) {
+                listenerField.setAccessible(true);
+                listenerInfo = listenerField.get(view);
+            }
+            Field clickListenerField = Class.forName(lInfoStr).getDeclaredField("mOnClickListener");
+            if (clickListenerField != null && listenerInfo != null) {
+                retrievedListener = (View.OnClickListener) clickListenerField.get(listenerInfo);
+            }
+        } catch (NoSuchFieldException ex) {
+            L.e("Reflection: No Such Field.");
+        } catch (IllegalAccessException ex) {
+            L.e("Reflection: Illegal Access.");
+        } catch (ClassNotFoundException ex) {
+            L.e("Reflection: Class Not Found.");
+        }
+        return retrievedListener;
     }
 }
