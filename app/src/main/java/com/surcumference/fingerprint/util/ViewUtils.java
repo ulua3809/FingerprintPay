@@ -242,8 +242,11 @@ public class ViewUtils {
         return view.getClass().getName();
     }
 
-    public static String getViewInfo(View view) {
+    public static String getViewInfo(@Nullable View view) {
         StringBuffer stringBuffer = new StringBuffer();
+        if (view == null) {
+            return "null";
+        }
         stringBuffer.append(String.valueOf(view));
         stringBuffer.append(" type:").append(getViewBaseDesc(view));
         stringBuffer.append(" clz:").append(view.getClass().getName());
@@ -514,15 +517,11 @@ public class ViewUtils {
     }
 
     public static ViewGroup getTopestView(View view) {
-        return getTopestView(view, null);
-    }
-
-    private static ViewGroup getTopestView(View view, ViewGroup current) {
-        View parent = view.getRootView();
-        if (parent == null) {
-            return current;
+        ViewParent parent = view.getParent();
+        if (parent == null || !(parent instanceof ViewGroup)) {
+            return (ViewGroup) view;
         }
-        return getTopestView(parent, (ViewGroup)parent);
+        return getTopestView((View) parent);
     }
 
     public static void relayout(View view) {

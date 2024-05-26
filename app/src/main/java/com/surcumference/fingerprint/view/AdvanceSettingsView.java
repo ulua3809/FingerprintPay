@@ -3,6 +3,7 @@ package com.surcumference.fingerprint.view;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -113,8 +114,9 @@ public class AdvanceSettingsView extends DialogFrameLayout implements AdapterVie
     }
 
     @Override
-    public int dialogWindowHorizontalInsets() {
-        return DpUtils.dip2px(getContext(), 13);
+    public Rect dialogWindowInset() {
+        int paddingW = DpUtils.dip2px(getContext(), 13);
+        return new Rect(paddingW, 0, paddingW, 0);
     }
 
     @Override

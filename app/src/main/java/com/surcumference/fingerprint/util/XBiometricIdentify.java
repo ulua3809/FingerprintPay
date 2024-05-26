@@ -180,7 +180,12 @@ public class XBiometricIdentify<T extends XBiometricIdentify>{
                 if (cipherMode == Cipher.ENCRYPT_MODE) {
                     return cryptoHandler.encrypt(cipher, cipherContent);
                 } else if (cipherMode == Cipher.DECRYPT_MODE) {
-                    return cryptoHandler.decrypt(cipher, cipherContent);
+                    try {
+                        return cryptoHandler.decrypt(cipher, cipherContent);
+                    } catch (Exception e) {
+                        onNotify(NotifyEnum.OnDecryptionFailed);
+                        throw e;
+                    }
                 } else {
                     throw new RuntimeException("Unsupported cipher mode: " + cipherMode);
                 }

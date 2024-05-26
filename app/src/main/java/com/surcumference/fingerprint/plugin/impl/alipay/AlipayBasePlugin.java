@@ -316,8 +316,11 @@ public class AlipayBasePlugin implements IAppPlugin {
                         }
                         onCompleteRunnable.run();
                     });
-            }).withOnCloseImageClickListener((target, v) -> {
-                target.getDialog().dismiss();
+            }).withOnCancelButtonClickListener(target -> {
+                AlertDialog dialog = target.getDialog();
+                if (dialog != null) {
+                   dialog.dismiss();
+                }
                 activity.onBackPressed();
             }).withOnDismissListener(v -> {
                 XBiometricIdentify fingerprintIdentify = mFingerprintIdentify;

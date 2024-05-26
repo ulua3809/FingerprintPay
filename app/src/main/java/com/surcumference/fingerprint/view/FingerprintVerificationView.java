@@ -1,36 +1,34 @@
 package com.surcumference.fingerprint.view;
 
 import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_ALIPAY_BASE64;
-import static com.surcumference.fingerprint.Constant.ICON_FINGER_PRINT_CLOSE_BASE64;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.surcumference.fingerprint.Lang;
 import com.surcumference.fingerprint.R;
+import com.surcumference.fingerprint.util.Config;
 import com.surcumference.fingerprint.util.DpUtils;
 import com.surcumference.fingerprint.util.ImageUtils;
-import com.surcumference.fingerprint.util.StyleUtils;
 
 /**
  * Created by Jason on 2023/11/20.
  */
 public class FingerprintVerificationView extends DialogFrameLayout {
-
-    private FrameLayout mCloseImageContainer;
 
     public FingerprintVerificationView(@NonNull Context context) {
         super(context);
@@ -55,33 +53,18 @@ public class FingerprintVerificationView extends DialogFrameLayout {
         vLinearLayout.setGravity(Gravity.CENTER);
         ImageView fingerprintImage = new ImageView(context);
         fingerprintImage.setImageBitmap(ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_ALIPAY_BASE64));
-
-        TextView textView = new TextView(context);
-        StyleUtils.apply(textView);
-        textView.setText(Lang.getString(R.id.fingerprint_verification));
-
-        mCloseImageContainer = new FrameLayout(context);
-        ImageView closeImage = new ImageView(context);
-        closeImage.setImageBitmap(ImageUtils.base64ToBitmap(ICON_FINGER_PRINT_CLOSE_BASE64));
-        mCloseImageContainer.setPadding(DpUtils.dip2px(context, 10),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 15),DpUtils.dip2px(context, 10));
-        mCloseImageContainer.addView(closeImage, new LayoutParams(DpUtils.dip2px(context, 22), DpUtils.dip2px(context, 22)));
-
+        fingerprintImage.setVisibility(Config.from(context).isShowFingerprintIcon() ? VISIBLE: INVISIBLE);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(DpUtils.dip2px(context, 60), DpUtils.dip2px(context, 60));
-        params.topMargin = DpUtils.dip2px(context, 60);
-        params.bottomMargin = DpUtils.dip2px(context, 30);
+        params.topMargin = DpUtils.dip2px(context, 90);
+        params.bottomMargin = DpUtils.dip2px(context, 90);
         vLinearLayout.addView(fingerprintImage, params);
-        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.bottomMargin = DpUtils.dip2px(context, 30);
-        vLinearLayout.addView(textView, params);
 
         rootFrameLayout.addView(vLinearLayout, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         LayoutParams frameLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         frameLayoutParams.gravity = Gravity.TOP | Gravity.RIGHT;
-        LayoutParams closeImageLayoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        closeImageLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
-        rootFrameLayout.addView(mCloseImageContainer, closeImageLayoutParams);
 
+        withNeutralButtonText(Lang.getString(R.id.cancel));
         this.addView(rootFrameLayout);
     }
 
@@ -96,6 +79,12 @@ public class FingerprintVerificationView extends DialogFrameLayout {
             }
             return false;
         });
+        Window window = dialog.getWindow();
+        if (window != null) {
+            WindowManager.LayoutParams layoutParams = window.getAttributes();
+            layoutParams.gravity = Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL;
+            window.setAttributes(layoutParams);
+        }
         return dialog;
     }
 
@@ -109,12 +98,22 @@ public class FingerprintVerificationView extends DialogFrameLayout {
         super.onDismiss(dialogInterface);
     }
 
-    public FingerprintVerificationView withOnCloseImageClickListener(OnCloseImageClickListener listener) {
-        mCloseImageContainer.setOnClickListener(v -> listener.onClicked(FingerprintVerificationView.this, v));
+    public FingerprintVerificationView withOnCancelButtonClickListener(OnCancelButtonClickListener listener) {
+        withOnNeutralButtonClickListener((dialog, which) -> listener.onClicked(FingerprintVerificationView.this));
         return this;
     }
 
-    public interface OnCloseImageClickListener {
-        void onClicked(FingerprintVerificationView target, View v);
+    public interface OnCancelButtonClickListener {
+        void onClicked(FingerprintVerificationView target);
+    }
+
+    @Override
+    public String getDialogTitle() {
+        return Lang.getString(R.id.fingerprint_verification);
+    }
+
+    @Override
+    public Rect dialogWindowInset() {
+        return new Rect(0,0,0,0);
     }
 }

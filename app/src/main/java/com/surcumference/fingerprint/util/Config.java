@@ -92,7 +92,7 @@ public class Config {
     }
 
     public boolean isShowFingerprintIcon() {
-        return mCache.sharedPreferences.getBoolean("fingerprint_icon", true);
+        return mCache.sharedPreferences.getBoolean("fingerprint_icon", false);
     }
 
     public void setShowFingerprintIcon(boolean on) {

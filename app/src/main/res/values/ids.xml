@@ -73,6 +73,8 @@
     <item name="qq_payview_fingerprint_title" type="id"/>
     <item name="qq_payview_password_switch_text" type="id"/>
     <item name="qq_payview_fingerprint_switch_text" type="id"/>
+    <item name="unionpay_payview_shown" type="id"/>
+    <item name="unionpay_payment_method_listener" type="id"/>
     <item name="disagree" type="id"/>
     <item name="agree" type="id"/>
     <item name="update_time" type="id"/>

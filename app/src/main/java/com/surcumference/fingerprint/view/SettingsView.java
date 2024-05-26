@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
@@ -130,8 +131,9 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
     }
 
     @Override
-    public int dialogWindowHorizontalInsets() {
-        return DpUtils.dip2px(getContext(), 26);
+    public Rect dialogWindowInset() {
+        int paddingW = DpUtils.dip2px(getContext(), 26);
+        return new Rect(paddingW, 0, paddingW, 0);
     }
 
     @Override
@@ -217,7 +219,7 @@ public class SettingsView extends DialogFrameLayout implements AdapterView.OnIte
         Context context = this.getContext();
         BizBiometricIdentify fingerprintIdentify = new BizBiometricIdentify(context);
         AlertDialog fingerprintVerificationDialog = new FingerprintVerificationView(context)
-                .withOnCloseImageClickListener((target, v) -> {
+                .withOnCancelButtonClickListener((target) -> {
             target.getDialog().dismiss();
             fingerprintIdentify.cancelIdentify();
         }).withOnDismissListener(v -> {

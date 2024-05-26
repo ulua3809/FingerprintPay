@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -151,8 +152,9 @@ public abstract class DialogFrameLayout<T extends DialogFrameLayout> extends Fra
     /**
      * @return pixel
      */
-    public int dialogWindowHorizontalInsets () {
-        return DpUtils.dip2px(getContext(), 4);
+    public Rect dialogWindowInset() {
+        int padding = DpUtils.dip2px(getContext(), 4);
+        return new Rect(padding, padding, padding, padding);
     }
 
     private TextView createTitleTextView() {
@@ -325,8 +327,8 @@ public abstract class DialogFrameLayout<T extends DialogFrameLayout> extends Fra
         GradientDrawable shape =  new GradientDrawable();
         shape.setCornerRadius(DpUtils.dip2px(getContext(), 10));
         shape.setColor(0xFFF5F5F5);
-        int paddingH = dialogWindowHorizontalInsets();
-        return new InsetDrawable(shape, paddingH, 0, paddingH, 0);
+        Rect inset = dialogWindowInset();
+        return new InsetDrawable(shape, inset.left, inset.top, inset.right, inset.bottom);
     }
 
 }

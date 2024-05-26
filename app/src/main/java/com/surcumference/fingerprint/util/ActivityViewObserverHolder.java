@@ -10,6 +10,7 @@ public class ActivityViewObserverHolder {
         AlipayPasswordView,
         TaobaoPasswordView,
         WeChatPayView,
+        UnionPayPasswordView,
     }
 
     private static Map<Key, ActivityViewObserver> sHolder = new ConcurrentHashMap<>();
