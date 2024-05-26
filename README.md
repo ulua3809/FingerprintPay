@@ -18,7 +18,7 @@
 2. 在指纹支付模块中录入应用的"支付密码"
 3. 使用[TEE](https://source.android.com/docs/security/features/trusty?hl=zh-cn)(v5.0+)将"支付密码"加密保存
 4. 对应程序在支付界面时, 验证手机指纹, 验证成功解密"支付密码"
-5. 自动替代用户输入支付密码, 完成支付操作
+5. 自动替代用户输入"支付密码", 完成支付操作
 
 ## 国内镜像
 - [点这里](https://file.xdow.net/fingerprintpay/)
