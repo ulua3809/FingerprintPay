@@ -143,7 +143,9 @@ public class TaobaoBasePlugin implements IAppPlugin {
                     boolean isRechargePay = (ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "input_et_password"))
                             && ViewUtils.isShown(ViewUtils.findViewByName(activity, "com.alipay.android.phone.mobilecommon.verifyidentity", "keyboard_container")));
 
-                    boolean isNormalPay = ViewUtils.isShown(ViewUtils.findViewByText(rootView,"请输入长密码", "請輸入長密碼", "Payment Password"))
+                    boolean isNormalPay = ViewUtils.isShown(ViewUtils.findViewByText(rootView,
+                            "支付宝支付密码", "支付寶支付密碼", "Alipay Payment Password", //兼容上一版本的支付组件, 参考 10.28.10(473)
+                            "请输入长密码", "請輸入長密碼", "Payment Password"))
                             || ViewUtils.isShown(ViewUtils.findViewByText(rootView,"密码共6位，已输入0位"));
                     if (isRechargePay || isNormalPay) {
                         if (mIsViewTreeObserverFirst) {
