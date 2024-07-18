@@ -12,7 +12,7 @@ assignees: ''
 请清晰简洁的描述这个bug
 
 **重现步骤 To Reproduce**
-清提供视频或文字描述您出现问题时候的操作路径:
+请提供视频或文字描述您出现问题时候的操作路径:
 
 
 **环境信息 Environment Information**
