@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 33
     defaultConfig {
+        compileSdk 33
         applicationId "com.surcumference.fingerprintpay"
         minSdkVersion 14
         targetSdkVersion 33
@@ -16,7 +16,6 @@ android {
         release {
             minifyEnabled false
             shrinkResources false
-            zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -26,10 +25,12 @@ android {
             dirs 'libs'
         }
     }
-
     packagingOptions {
-        exclude '**/publicsuffixes.gz'
+        resources {
+            excludes += ['**/publicsuffixes.gz']
+        }
     }
+
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -63,7 +64,7 @@ apply from: 'debug.gradle'
 apply from: 'update-json.gradle'
 dependencies {
     implementation project(":3rdparty:FingerprintIdentify:FingerprintIdentifyLib")
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.squareup.okhttp3:okhttp:3.12.8'
     implementation 'com.umeng.analytics:analytics:6.1.2'
     implementation 'com.crossbowffs.remotepreferences:remotepreferences:0.5'
