@@ -2,14 +2,29 @@ name: Release Published
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
+  # release:
+  #   types: [published]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: setting up environment vars
+        env:
+          RCLONE_CONFIG_WEBDAV_USER: ${{secrets.WEBDAV_USERNAME}}
+          RCLONE_CONFIG_WEBDAV_URL: ${{secrets.WEBDAV_ADDRESS}}
+          WEBDAV_PASSWORD: ${{secrets.WEBDAV_PASSWORD}}
+        run: |
+          if [[ -z "$RCLONE_CONFIG_WEBDAV_USER" || -z "$RCLONE_CONFIG_WEBDAV_URL" || -z "$WEBDAV_PASSWORD" ]]
+          then
+          echo "[Error] webdav not set properly ❌"
+          echo "webdavOK=false" >> $GITHUB_ENV
+          else
+          echo "[Info] Gitee var set ✅"
+          echo "webdavOK=true" >> $GITHUB_ENV
+          fi
       - name: Publish release
+        if: env.webdavOK == 'true'
         run: |
           RCLONE_CONFIG_WEBDAV_PASS=$(docker run --rm rclone/rclone obscure $WEBDAV_PASSWORD)
           docker run --rm \

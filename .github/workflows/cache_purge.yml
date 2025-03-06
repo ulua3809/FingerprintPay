@@ -14,7 +14,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: setting up environment vars
+        env:
+          ALIST_TOKEN: ${{secrets.ALIST_TOKEN}}
+          WEBDAV_ADDRESS: ${{secrets.WEBDAV_ADDRESS_R}}
+        run: |
+          if [[ -z "$ALIST_TOKEN" || -z "$WEBDAV_ADDRESS_R" ]]
+          then
+          echo "[Error] ALIST_TOKEN or WEBDAV_ADDRESS_R not set ❌"
+          echo "secretsOK=false" >> $GITHUB_ENV
+          else
+          echo "[Info] secrets var set ✅"
+          echo "secretsOK=true" >> $GITHUB_ENV
+          fi
       - name: Purge User Cache
+        if: env.secretsOK == 'true'
         run: |
           curl --location --request POST "${WEBDAV_ADDRESS%/*}/api/admin/user/del_cache?username=guest" \
             --header "Authorization: $ALIST_TOKEN"
@@ -23,6 +37,7 @@ jobs:
           WEBDAV_ADDRESS: ${{secrets.WEBDAV_ADDRESS_R}}
         shell: bash
       - name: Purge List Cache
+        if: env.secretsOK == 'true'
         run: |
           curl --location "${WEBDAV_ADDRESS%/*}/api/fs/list" \
             --header "Authorization: $ALIST_TOKEN" \

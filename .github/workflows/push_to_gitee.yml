@@ -1,18 +1,39 @@
 name: 'Push to Gitee'
+
 on:
+  workflow_dispatch:
   push:
+    branches:
+        - "**"
 
 jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
+      - name: setting up environment vars
+        env:
+          GITEE_PRIVATE_KEY: ${{ secrets.GITEE_PRIVATE_KEY }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          if [[ -z "$GITEE_PRIVATE_KEY" || -z "$GITEE_TOKEN" ]]
+          then
+          echo "[Error] GITEE_TOKEN or GITEE_PRIVATE_KEY not set ❌"
+          echo "giteeOK=false" >> $GITHUB_ENV
+          else
+          echo "[Info] Gitee var set ✅"
+          echo "giteeOK=true" >> $GITHUB_ENV
+          fi
       - name: Mirror the Github organization repos to Gitee.
+        if: env.giteeOK == 'true'
         uses: Yikun/hub-mirror-action@master
         with:
-          src: 'github/eritpchy'
-          dst: 'gitee/eritpchy'
+          # your github username
+          src: 'github/your-username-here'
+          # your gitee username
+          dst: 'gitee/your-username-here'
           dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
           dst_token:  ${{ secrets.GITEE_TOKEN }}
+          # repo name
           static_list: "FingerprintPay"
           force_update: true
           debug: true

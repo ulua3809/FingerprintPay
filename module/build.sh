@@ -1,63 +1,106 @@
 #!/bin/bash
 set -e
 cd ${0%/*}
-MODULE_GRALDE_TASK="$1"
-MODULE_GRALDE_FILE="$2"
-PLUGIN_TYPE_NAME="$3"
-MODULE_TEMPLATE="../3rdparty/Riru-ModuleTemplate"
-VERSION_NAME=$(cat ../app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/\1/g')
-VERSION_CODE=$(cat ../app/build.gradle| grep versionCode | sed -E 's/.+versionCode +([0-9]+).*/\1/g')
-APP_PRODUCT_TARGET=$(echo "$MODULE_GRALDE_FILE"|sed -E 's/.+\/(.+)\..+/\1/g')
-MODULE_LIB_NAME="$(echo "$PLUGIN_TYPE_NAME" | tr '[:upper:]' '[:lower:]')-module-xfingerprint-pay-$APP_PRODUCT_TARGET"
-echo VERSION_NAME: $VERSION_NAME
-echo VERSION_CODE: $VERSION_CODE
-bash ./reset.sh
-echo "updateJson=\${updateJson}" >> $MODULE_TEMPLATE/template/magisk_module/module.prop
-perl -i -pe  's/(description: moduleDescription,)/$1 \nupdateJson: moduleUpdateJson,/g'  $MODULE_TEMPLATE/module/build.gradle
-echo org.gradle.java.home="$(java_home || echo "$JAVA_HOME_15")" >> $MODULE_TEMPLATE/gradle.properties
 
-cp -rfv ./src/cpp/* $MODULE_TEMPLATE/module/src/main/cpp/
-cp -rfv "$MODULE_GRALDE_FILE" $MODULE_TEMPLATE/module.gradle
-cp -rfv "./src/gradle/fingerprint.gradle" $MODULE_TEMPLATE/
-if [ -f "../local.properties" ]; then cp -rfv ../local.properties $MODULE_TEMPLATE/; fi
-if [ "$PLUGIN_TYPE_NAME" == "Zygisk" ]; then
-  echo "ZYGISK_MODULE_LIB_NAME=\"$MODULE_LIB_NAME\"" > $MODULE_TEMPLATE/template/magisk_module/customize.sh
-  cat ./src/zygisk/customize.sh >> $MODULE_TEMPLATE/template/magisk_module/customize.sh
-  rm -f $MODULE_TEMPLATE/template/magisk_module/riru.sh
-else
-  cat ./src/magisk/customize.sh >> $MODULE_TEMPLATE/template/magisk_module/customize.sh
+MODULE_author="ulua3809 \&\& Jason Eric"
+MODULE_description="让支付宝、QQ、淘宝、云闪付、微信支持生物支付 biometric pay for Alipay,QQ,Taobao,UnionPay,WeChat."
+# ADD your updateJson here
+MODULE_updateJson=""
+MODULE_Id="zygisk-biometric-pay"
+MODULE_Name="zygisk-生物识别支付"
+# get version info from app
+MODULE_verName=$(cat ../app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/\1/g')
+MODULE_verCode=$(cat ../app/build.gradle| grep versionCode | sed -E 's/.+versionCode +([0-9]+).*/\1/g')
+MODULE_commithash=$(git -C ../ rev-parse --verify --short HEAD)
+
+# all apps shared same dex,do not add suffiix
+INJECT_DEX_NAME="zygisk-biometric-pay"
+GRALDE_TASK_ZYGISK_MODULE=":module:zipRelease"
+PATH_ZYGISK_MODULE_TEMPLATE="../3rdparty/zygisk-module-template"
+PATH_TEMP_MODULE_TEMPLATE='./moduleBuildTmp'
+PATH_APP_PROJ='..'
+File_BuildDex='../app/build/intermediates/dex/release/mergeDexRelease/classes.dex'
+
+echo "[Info] setting up ZYGISK MODULE TEMPLATE"
+# reset PATH_ZYGISK_MODULE_TEMPLATE prebuild
+bash ./reset.sh "$PATH_ZYGISK_MODULE_TEMPLATE"
+# cleaning PATH_TEMP_MODULE_TEMPLATE prebuild
+rm -rfv "$PATH_TEMP_MODULE_TEMPLATE"
+cp -rfv ./template "$PATH_TEMP_MODULE_TEMPLATE"
+echo "=================================="
+echo "MODULE_VERSION_NAME: $MODULE_verName"
+echo "MODULE_VERSION_CODE: $MODULE_verCode"
+echo "MODULE_CommitHash: $MODULE_commithash"
+echo "=================================="
+echo "[Info] writing module infos"
+# write author
+sed -i "s/#replace-me-with-author/${MODULE_author}/g" "$PATH_TEMP_MODULE_TEMPLATE/module.prop"
+# write updateJson
+sed -i "s@#replace-me-with-updateJson@${MODULE_updateJson}@g" "$PATH_TEMP_MODULE_TEMPLATE/module.prop"
+# write description
+sed -i "s/#replace-me-with-desc/${MODULE_description}/g" "$PATH_TEMP_MODULE_TEMPLATE/module.prop"
+# write MODULE_Id
+sed -i -r "s/val moduleId by extra\(\".*\"\)/val moduleId by extra\(\"${MODULE_Id}\"\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# write MODULE_Name
+sed -i -r "s/val moduleName by extra\(\".*\"\)/val moduleName by extra\(\"${MODULE_Name}\"\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# write MODULE_verName
+sed -i -r "s/val verName by extra\(\".*\"\)/val verName by extra\(\"${MODULE_verName}\"\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# write MODULE_commithash
+sed -i -r "s/val commitHash by extra\(.*\)/val commitHash by extra\(\"${MODULE_commithash}\"\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# write MODULE_verCode
+sed -i -r "s/val verCode by extra\(.*\)/val verCode by extra\(${MODULE_verCode}\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# use moduleid to name output zip
+# because github release file name cant use chinese
+sed -i "s/\$moduleName-\$verName/\$moduleId-\$verName/g" "$PATH_ZYGISK_MODULE_TEMPLATE/module/build.gradle.kts"
+# disable eof fix
+sed -i "s@filter<FixCrLfFilter>@//filter<FixCrLfFilter>@g" "$PATH_ZYGISK_MODULE_TEMPLATE/module/build.gradle.kts"
+
+# we dont want build x86 abi
+# no one would use fingerprintpay on x86 device.would you?^_^
+sed -i -r "s/val abiList by extra\(.*\)/val abiList by extra\(listOf\(\"arm64-v8a\", \"armeabi-v7a\"\)\)/g" "$PATH_ZYGISK_MODULE_TEMPLATE/build.gradle.kts"
+# write INJECT_DEX_NAME
+sed -i "s/#replace-me-with-INJECT_DEX_NAME/${INJECT_DEX_NAME}/g" "$PATH_TEMP_MODULE_TEMPLATE/customize.sh"
+# merge the template
+echo "$(cat "$PATH_ZYGISK_MODULE_TEMPLATE/module/template/customize.sh" "$PATH_TEMP_MODULE_TEMPLATE/customize.sh")" > "$PATH_TEMP_MODULE_TEMPLATE/customize.sh"
+# remove some gitkeep
+rm -fv "$PATH_TEMP_MODULE_TEMPLATE/dex/.gitkeep"
+rm -fv "$PATH_TEMP_MODULE_TEMPLATE/config/.gitkeep"
+
+if [ ! -f $File_BuildDex ];then
+echo '[Warning] dex file not exist, satrt building dex'
+# building dex here
+"$PATH_APP_PROJ/gradlew" -p "$PATH_APP_PROJ" clean :app:mergeDexRelease
+echo '[Info] dex file build success'
 fi
-echo "rm -f \"/data/local/tmp/lib$MODULE_LIB_NAME.dex\" || true" >> $MODULE_TEMPLATE/template/magisk_module/uninstall.sh
-cat ./src/magisk/post-fs-data.sh > $MODULE_TEMPLATE/template/magisk_module/post-fs-data.sh
-chmod 0755 $MODULE_TEMPLATE/template/magisk_module/post-fs-data.sh
-perl -0777 -i -pe  's/(forkAndSpecializePre[\W\w]+?{[\W\w]+?)}/$1    fingerprintPre(env, appDataDir, niceName);\n}/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
-perl -0777 -i -pe  's/(forkAndSpecializePost[\W\w]+?{[\W\w]*?)}/$1    fingerprintPost(env, MAGISK_MODULE_TYPE_RIRU);\n    }/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
-perl -0777 -i -pe  's/(specializeAppProcessPre[\W\w]+?{[\W\w]+?)}/$1    fingerprintPre(env, appDataDir, niceName);\n}/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
-perl -0777 -i -pe  's/(specializeAppProcessPost[\W\w]+?{[\W\w]+?)}/$1    fingerprintPost(env, MAGISK_MODULE_TYPE_RIRU);\n}/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
-perl -0777 -i -pe  's/^/#include "fingerprint.h"\n/'  $MODULE_TEMPLATE/module/src/main/cpp/main.cpp
-perl -i -pe  's/(main\.cpp)/$1 fingerprint.cpp zygisk_main.cpp/g'  $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
-echo 'add_definitions(-DMODULE_NAME="${MODULE_NAME}")' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
-echo 'target_link_libraries(${MODULE_NAME})' >> $MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt
-$MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE clean \
-  -PVERSION_NAME=$VERSION_NAME \
-  -PVERSION_CODE=$VERSION_CODE \
-  -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
-  -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
 
-$MODULE_TEMPLATE/gradlew -p $MODULE_TEMPLATE $MODULE_GRALDE_TASK \
-  -PVERSION_NAME=$VERSION_NAME \
-  -PVERSION_CODE=$VERSION_CODE \
-  -PPLUGIN_TYPE_NAME=$PLUGIN_TYPE_NAME \
-  -PMODULE_LIB_NAME=$MODULE_LIB_NAME \
+getsha256(){
+  s256=$(sha256sum $1 | tr -d '\n')
+  echo -n ${s256% *}
+}
 
+echo "[Info] dex file found -> $File_BuildDex"
+dexsha256="$(getsha256 "$File_BuildDex")"
+echo "[Info] sha256 : ${dexsha256}"
+
+cp -fv "$File_BuildDex" "${PATH_TEMP_MODULE_TEMPLATE}/dex/${INJECT_DEX_NAME}.dex"
+cp -rfv "${PATH_TEMP_MODULE_TEMPLATE}"/. "$PATH_ZYGISK_MODULE_TEMPLATE/module/template/"
+
+# remove module example
+rm -fv "$PATH_ZYGISK_MODULE_TEMPLATE/module/src/main/cpp/example.cpp"
+echo '[Info] copy module source code to template'
+cp -rfv ./src/cpp/. "$PATH_ZYGISK_MODULE_TEMPLATE/module/src/main/cpp/"
+sed -i 's/example\.cpp/biometricPay.cpp dexutil.cpp/g' "$PATH_ZYGISK_MODULE_TEMPLATE/module/src/main/cpp/CMakeLists.txt"
+
+sed -i "s/#{{inject_dex_name}}/${INJECT_DEX_NAME}/g" "$PATH_ZYGISK_MODULE_TEMPLATE/module/src/main/cpp/const.hpp"
+sed -i "s/#{{module-id}}/${MODULE_Id}/g" "$PATH_ZYGISK_MODULE_TEMPLATE/module/src/main/cpp/const.hpp"
+
+echo '[Info] building zygisk module'
+$PATH_ZYGISK_MODULE_TEMPLATE/gradlew -p "$PATH_ZYGISK_MODULE_TEMPLATE" $GRALDE_TASK_ZYGISK_MODULE
+
+# after build
 if [ ! -d "./build/release" ]; then mkdir -p "./build/release"; fi
-find $MODULE_TEMPLATE/out -name "*.zip" | xargs -I{} bash -c "cp -fv {} ./build/release/\$(basename {})"
-ZIPNAME=$(ls $MODULE_TEMPLATE/out/ | grep -E "\.zip$" | head -n1 | sed  -E 's/-[A-Za-z]+-v/-all-v/g')
-CURRENT_DIR="$PWD"
-cd "$MODULE_TEMPLATE/out"
-zip -u "$CURRENT_DIR/build/release/$ZIPNAME" *.zip
-cd "$CURRENT_DIR/src/installer"
-zip -ur "$CURRENT_DIR/build/release/$ZIPNAME" * || true
-cd "$CURRENT_DIR"
-bash ./reset.sh
+echo -n ${dexsha256} > "./build/release/${INJECT_DEX_NAME}.dex.sha256"
+cp -fv "$PATH_TEMP_MODULE_TEMPLATE/dex/${INJECT_DEX_NAME}.dex" "./build/release/"
+cp -fv "$PATH_ZYGISK_MODULE_TEMPLATE"/module/release/*.zip "./build/release/"
 
+echo '[Info] zygisk module build success'

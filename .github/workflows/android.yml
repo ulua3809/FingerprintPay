@@ -1,14 +1,14 @@
 name: Android CI
-
+permissions:
+  contents: write
 on:
   push:
     branches:
-      - '**'
+      - "**"
   workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -16,58 +16,108 @@ jobs:
         uses: 1466587594/get-current-time@v2
         id: current-time
         with:
-          format: YYYYMMDD-HH
+          format: yyyy-MM-DD_HH-mm-ss
           utcOffset: "+08:00"
-      - uses: actions/checkout@v2
+
+      - name: checkout repo and all submodules
+        uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Decode Keystore
+
+      - name: setting up environment vars
         env:
-          ENCODED_STRING: ${{ secrets.SIGNING_STORE_BASE64 }}
-        run: echo $ENCODED_STRING | base64 -di > app/keystore.jks
-      - uses: AdoptOpenJDK/install-jdk@v1
-        with:
-          version: '17'
-          architecture: x64
-      - uses: AdoptOpenJDK/install-jdk@v1
-        with:
-          version: '15'
-          architecture: x64
-          targets: 'JAVA_HOME_15'
-      - name: Build Riru modules
-        run: cd ./module && bash ./make.sh
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Build with Gradle
-        run: ./gradlew clean ":app:assembleRelease"
-        env:
+          WEBDAV_ADDRESS: ${{ secrets.WEBDAV_ADDRESS }}
+          WEBDAV_USERNAME: ${{ secrets.WEBDAV_USERNAME }}
+          WEBDAV_PASSWORD: ${{ secrets.WEBDAV_PASSWORD }}
+          SIGNING_STORE_BASE64: ${{ secrets.SIGNING_STORE_BASE64 }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        run: |
+          if [[ -z "$SIGNING_STORE_BASE64" || -z "$SIGNING_KEY_ALIAS" || -z "$SIGNING_KEY_PASSWORD" || -z "$SIGNING_STORE_PASSWORD" ]]
+          then
+          echo "[Info] secret Keystore not set ❌"
+          echo "hascustKeystore=false" >> $GITHUB_ENV
+          else
+          echo "[Info] secret Keystore set ✅"
+          echo "hascustKeystore=true" >> $GITHUB_ENV
+          fi
+          if [[ -z "$WEBDAV_ADDRESS" || -z "$WEBDAV_USERNAME" || -z "$WEBDAV_PASSWORD" ]]
+          then
+          echo "[Info] secret webdav not set ❌"
+          echo "haswebdav=false" >> $GITHUB_ENV
+          else
+          echo "[Info] secret webdav set ✅"
+          echo "haswebdav=true" >> $GITHUB_ENV
+          fi
+          echo "[Info] get release version"
+          rev=$(cat ./app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/release_version=\1/g')
+          echo "[Info] ${rev}"
+          echo "${rev}" >> $GITHUB_ENV
+
+      # use test key if Keystore not defined
+      - name: Decode Keystore
+        env:
+          SIGNING_STORE_BASE64: ${{ secrets.SIGNING_STORE_BASE64 }}
+        run: |
+          if [ "${{ env.hascustKeystore }}" = "true" ]
+          then
+          echo "[Info] decoding custom Keystore"
+          echo $SIGNING_STORE_BASE64 | base64 -di > app/keystore.jks
+          else
+          echo "[Warning] secrets SIGNING_STORE_BASE64 not set, using AOSP test Key"
+          mv app/AOSPtestKeystore.jks app/keystore.jks
+          fi
+
+      - name: deploy OpenJDK 21
+        uses: AdoptOpenJDK/install-jdk@v1
+        with:
+          version: "21"
+          architecture: x64
+
+      - name: Build Apk
+        env:
+          SIGNING_STORE_BASE64: ${{ secrets.SIGNING_STORE_BASE64 }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+        run: |
+          # Grant execute permission for gradlew
+          chmod +x gradlew
+          if [ "${{ env.hascustKeystore }}" != "true" ]
+          then
+          echo "[Warning] use AOSP testkey to sign apk"
+          export SIGNING_KEY_ALIAS="android"
+          export SIGNING_KEY_PASSWORD="android"
+          export SIGNING_STORE_PASSWORD="android"
+          fi
+          ./gradlew clean ":app:assembleRelease"
+
       - name: Upload Apk
-        uses: actions/upload-artifact@v2.2.0
+        uses: actions/upload-artifact@main
         with:
           name: xposed.${{ steps.current-time.outputs.formattedTime }}
           path: app/build/outputs/apk/release/*.apk
-      - name: Upload Riru Modules
-        uses: actions/upload-artifact@v2.2.0
+
+      - name: Build Zygisk modules
+        run: cd ./module && bash ./build.sh
+
+      - name: Upload Zygisk Modules
+        uses: actions/upload-artifact@main
         with:
           name: magisk.${{ steps.current-time.outputs.formattedTime }}
           path: |
             module/build/release/*.zip
-            !module/build/release/*-all-*.zip
-      - name: Assign release version from version.properties to Env variable
-        run: |
-          cat ./app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/release_version=\1/g' >> $GITHUB_ENV
-      - name: Echo release version from  Env variable
-        run: |
-          echo "${{ env.release_version }}"
-      - name: Delete drafts
+            module/build/release/*.dex
+            module/build/release/*.dex.sha256
+
+      - name: Delete release drafts
         uses: hugo19941994/delete-draft-releases@v1.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Release draft
-        uses: softprops/action-gh-release@v1
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Create release draft
+        uses: softprops/action-gh-release@master
         with:
           draft: true
           name: "${{ env.release_version }}"
@@ -75,49 +125,40 @@ jobs:
           files: |
             app/build/outputs/apk/release/*.apk
             module/build/release/*.zip
+            module/build/release/*.dex
+            module/build/release/*.dex.sha256
           body: "[Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})"
-      - name: Upload artifacts - Xposed
+
+      - name: Upload artifacts via webdav - Xposed
+        if: env.haswebdav == 'true'
         uses: Wandalen/wretry.action@master
         with:
           action: bxb100/action-upload@main
           with: |
             provider: webdav
             provider_options: |
-              endpoint=${{secrets.WEBDAV_ADDRESS}}
-              username=${{secrets.WEBDAV_USERNAME}}
-              password=${{secrets.WEBDAV_PASSWORD}}
+              endpoint=${{ secrets.WEBDAV_ADDRESS }}
+              username=${{ secrets.WEBDAV_USERNAME }}
+              password=${{ secrets.WEBDAV_PASSWORD }}
               root=/${{ env.release_version }}-dev
             include: |
               app/build/outputs/apk/release/*.apk
           attempt_limit: 3
           attempt_delay: 0
-      - name: Upload artifacts - Zygisk
+
+      - name: Upload artifacts via webdav - Zygisk
+        if: env.haswebdav == 'true'
         uses: Wandalen/wretry.action@master
         with:
           action: bxb100/action-upload@main
           with: |
             provider: webdav
             provider_options: |
-              endpoint=${{secrets.WEBDAV_ADDRESS}}
-              username=${{secrets.WEBDAV_USERNAME}}
-              password=${{secrets.WEBDAV_PASSWORD}}
+              endpoint=${{ secrets.WEBDAV_ADDRESS }}
+              username=${{ secrets.WEBDAV_USERNAME }}
+              password=${{ secrets.WEBDAV_PASSWORD }}
               root=/${{ env.release_version }}-dev
             include: |
               module/build/release/zygisk-*.zip
-          attempt_limit: 3
-          attempt_delay: 0
-      - name: Upload artifacts - Riru
-        uses: Wandalen/wretry.action@master
-        with:
-          action: bxb100/action-upload@main
-          with: |
-            provider: webdav
-            provider_options: |
-              endpoint=${{secrets.WEBDAV_ADDRESS}}
-              username=${{secrets.WEBDAV_USERNAME}}
-              password=${{secrets.WEBDAV_PASSWORD}}
-              root=/${{ env.release_version }}-dev
-            include: |
-              module/build/release/riru-*.zip
           attempt_limit: 3
           attempt_delay: 0

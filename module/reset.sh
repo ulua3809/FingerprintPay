@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 cd ${0%/*}
-cd ../3rdparty/Riru-ModuleTemplate
+cd $1
 git reset --hard HEAD
 git clean -df .
