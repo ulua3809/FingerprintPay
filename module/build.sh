@@ -33,6 +33,8 @@ echo "MODULE_VERSION_CODE: $MODULE_verCode"
 echo "MODULE_CommitHash: $MODULE_commithash"
 echo "=================================="
 echo "[Info] writing module infos"
+# copy readme
+cp -fv "../README.md" "$PATH_ZYGISK_MODULE_TEMPLATE/"
 # write author
 sed -i "s/#replace-me-with-author/${MODULE_author}/g" "$PATH_TEMP_MODULE_TEMPLATE/module.prop"
 # write updateJson

@@ -61,7 +61,7 @@ project.ext.appInfo = [
 ]
 
 apply from: 'debug.gradle'
-apply from: 'update-json.gradle'
+// apply from: 'update-json.gradle'
 dependencies {
     implementation project(":3rdparty:FingerprintIdentify:FingerprintIdentifyLib")
     implementation 'com.google.code.gson:gson:2.10.1'
